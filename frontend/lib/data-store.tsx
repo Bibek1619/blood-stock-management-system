@@ -1,3 +1,5 @@
+import React, { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+
 // Types
 export interface BloodPack {
   id: string;
@@ -49,6 +51,7 @@ export interface Donation {
   recipientName: string;
   createdAt: string;
 }
+
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 function generatePackCode(bloodGroup: string, index: number): string {
@@ -57,6 +60,7 @@ function generatePackCode(bloodGroup: string, index: number): string {
   return `BP-${bgCode}-${year}-${String(index).padStart(4, "0")}`;
 }
 
+// Seed data
 function createSeedData() {
   const donors: Donor[] = [
     { id: "d1", name: "Sarah Johnson", phone: "+1-555-0101", email: "sarah@example.com", bloodGroup: "A+", location: "Downtown Clinic", lastDonationDate: "2026-02-15", totalDonations: 5 },
@@ -111,6 +115,130 @@ function createSeedData() {
 
   return { donors, bloodPacks, events, certificates, donations };
 }
+
+interface DataStore {
+  donors: Donor[];
+  bloodPacks: BloodPack[];
+  events: BloodEvent[];
+  certificates: Certificate[];
+  bloodGroups: string[];
+  addDonor: (donor: Omit<Donor, "id">) => void;
+  addBloodPack: (pack: Omit<BloodPack, "id" | "packCode">) => void;
+  updateBloodPackStatus: (id: string, status: BloodPack["status"]) => void;
+  addEvent: (event: Omit<BloodEvent, "id">) => void;
+  addParticipant: (eventId: string, donorId: string) => void;
+  addVolunteer: (eventId: string, donorId: string) => void;
+  addCertificate: (cert: Omit<Certificate, "id">) => void;
+  donations: Donation[];
+  addDonation: (donation: Omit<Donation, "id" | "createdAt">) => void;
+  updateDonation: (id: string, data: Partial<Omit<Donation, "id" | "createdAt">>) => void;
+  deleteDonation: (id: string) => void;
+  getStockByGroup: () => Record<string, { available: number; total: number }>;
+  getLowStockGroups: () => string[];
+  getDonorById: (id: string) => Donor | undefined;
+}
+
+const DataContext = createContext<DataStore | null>(null);
+
+export function DataProvider({ children }: { children: ReactNode }) {
+  const [seed] = useState(createSeedData);
+  const [donors, setDonors] = useState<Donor[]>(seed.donors);
+  const [bloodPacks, setBloodPacks] = useState<BloodPack[]>(seed.bloodPacks);
+  const [events, setEvents] = useState<BloodEvent[]>(seed.events);
+  const [certificates, setCertificates] = useState<Certificate[]>(seed.certificates);
+  const [donations, setDonations] = useState<Donation[]>(seed.donations);
+
+  const addDonor = useCallback((donor: Omit<Donor, "id">) => {
+    setDonors((prev) => [...prev, { ...donor, id: `d${Date.now()}` }]);
+  }, []);
+
+  const addBloodPack = useCallback((pack: Omit<BloodPack, "id" | "packCode">) => {
+    setBloodPacks((prev) => {
+      const idx = prev.length + 1;
+      return [...prev, { ...pack, id: `bp-${Date.now()}`, packCode: generatePackCode(pack.bloodGroup, idx) }];
+    });
+  }, []);
+
+  const updateBloodPackStatus = useCallback((id: string, status: BloodPack["status"]) => {
+    setBloodPacks((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
+  }, []);
+
+  const addEvent = useCallback((event: Omit<BloodEvent, "id">) => {
+    setEvents((prev) => [...prev, { ...event, id: `e${Date.now()}` }]);
+  }, []);
+
+  const addParticipant = useCallback((eventId: string, donorId: string) => {
+    setEvents((prev) => prev.map((e) => (e.id === eventId ? { ...e, participants: [...new Set([...e.participants, donorId])] } : e)));
+  }, []);
+
+  const addVolunteer = useCallback((eventId: string, donorId: string) => {
+    setEvents((prev) => prev.map((e) => (e.id === eventId ? { ...e, volunteers: [...new Set([...e.volunteers, donorId])] } : e)));
+  }, []);
+
+  const addCertificate = useCallback((cert: Omit<Certificate, "id">) => {
+    setCertificates((prev) => [...prev, { ...cert, id: `c${Date.now()}` }]);
+  }, []);
+
+  const addDonation = useCallback((donation: Omit<Donation, "id" | "createdAt">) => {
+    setDonations((prev) => [...prev, { ...donation, id: `don${Date.now()}`, createdAt: new Date().toISOString() }]);
+    setBloodPacks((prev) => {
+      let remaining = donation.units;
+      return prev.map((p) => {
+        if (remaining > 0 && p.bloodGroup === donation.bloodGroup && p.status === "Available") {
+          remaining--;
+          return { ...p, status: "Used" as const };
+        }
+        return p;
+      });
+    });
+  }, []);
+
+  const updateDonation = useCallback((id: string, data: Partial<Omit<Donation, "id" | "createdAt">>) => {
+    setDonations((prev) => prev.map((d) => (d.id === id ? { ...d, ...data } : d)));
+  }, []);
+
+  const deleteDonation = useCallback((id: string) => {
+    setDonations((prev) => {
+      const donation = prev.find((d) => d.id === id);
+      if (donation) {
+        setBloodPacks((bps) => {
+          let remaining = donation.units;
+          return bps.map((p) => {
+            if (remaining > 0 && p.bloodGroup === donation.bloodGroup && p.status === "Used") {
+              remaining--;
+              return { ...p, status: "Available" as const };
+            }
+            return p;
+          });
+        });
+      }
+      return prev.filter((d) => d.id !== id);
+    });
+  }, []);
+
+  const getStockByGroup = useCallback(() => {
+    const stock: Record<string, { available: number; total: number }> = {};
+    for (const bg of BLOOD_GROUPS) {
+      const packs = bloodPacks.filter((p) => p.bloodGroup === bg);
+      stock[bg] = { available: packs.filter((p) => p.status === "Available").length, total: packs.length };
+    }
+    return stock;
+  }, [bloodPacks]);
+
+  const getLowStockGroups = useCallback(() => {
+    const stock = getStockByGroup();
+    return Object.entries(stock).filter(([, v]) => v.available <= 5).map(([k]) => k);
+  }, [getStockByGroup]);
+
+  const getDonorById = useCallback((id: string) => donors.find((d) => d.id === id), [donors]);
+
+  return (
+    <DataContext.Provider value={{ donors, bloodPacks, events, certificates, bloodGroups: BLOOD_GROUPS, addDonor, addBloodPack, updateBloodPackStatus, addEvent, addParticipant, addVolunteer, addCertificate, donations, addDonation, updateDonation, deleteDonation, getStockByGroup, getLowStockGroups, getDonorById }}>
+      {children}
+    </DataContext.Provider>
+  );
+}
+
 export function useData() {
   const ctx = useContext(DataContext);
   if (!ctx) throw new Error("useData must be used within DataProvider");
