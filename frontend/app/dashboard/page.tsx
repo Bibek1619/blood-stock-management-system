@@ -1,13 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Heart, Users, Droplet, Calendar, AlertCircle, TrendingUp } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import {
+  Heart, Users, Droplet, Calendar, AlertCircle,
+  TrendingUp, Activity, ArrowRight,
+} from 'lucide-react';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell,
+} from 'recharts';
 
 // ── Mock Data ──────────────────────────────────────────────────────────────────
-
 const MOCK_BLOOD_STOCK = [
   { bloodGroup: 'A+',  units: 12 },
   { bloodGroup: 'A-',  units: 4  },
@@ -20,315 +23,477 @@ const MOCK_BLOOD_STOCK = [
 ];
 
 const MOCK_DONORS = [
-  { name: 'Aarav Sharma',    bloodGroup: 'O+',  location: 'Kathmandu',  totalDonations: 5 },
-  { name: 'Priya Thapa',     bloodGroup: 'A+',  location: 'Lalitpur',   totalDonations: 3 },
-  { name: 'Rohan Karki',     bloodGroup: 'B-',  location: 'Bhaktapur',  totalDonations: 1 },
-  { name: 'Sita Poudel',     bloodGroup: 'AB+', location: 'Pokhara',    totalDonations: 7 },
-  { name: 'Bikash Rai',      bloodGroup: 'O-',  location: 'Kathmandu',  totalDonations: 2 },
-  { name: 'Anita Gurung',    bloodGroup: 'A-',  location: 'Chitwan',    totalDonations: 4 },
+  { name: 'Aarav Sharma',  bloodGroup: 'O+',  location: 'Kathmandu', totalDonations: 5 },
+  { name: 'Priya Thapa',   bloodGroup: 'A+',  location: 'Lalitpur',  totalDonations: 3 },
+  { name: 'Rohan Karki',   bloodGroup: 'B-',  location: 'Bhaktapur', totalDonations: 1 },
+  { name: 'Sita Poudel',   bloodGroup: 'AB+', location: 'Pokhara',   totalDonations: 7 },
+  { name: 'Bikash Rai',    bloodGroup: 'O-',  location: 'Kathmandu', totalDonations: 2 },
+  { name: 'Anita Gurung',  bloodGroup: 'A-',  location: 'Chitwan',   totalDonations: 4 },
 ];
 
 const MOCK_EVENTS = [
-  { title: 'Community Blood Drive',   location: 'Ratna Park, Kathmandu', status: 'Upcoming' },
-  { title: 'Hospital Collection Day', location: 'Bir Hospital',          status: 'Running'  },
-  { title: 'University Camp',         location: 'TU Campus, Kirtipur',   status: 'Upcoming' },
-  { title: 'Corporate Donation Drive',location: 'Durbarmarg Office Hub', status: 'Completed'},
+  { title: 'Community Blood Drive',    location: 'Ratna Park, Kathmandu', status: 'Upcoming'  },
+  { title: 'Hospital Collection Day',  location: 'Bir Hospital',          status: 'Running'   },
+  { title: 'University Camp',          location: 'TU Campus, Kirtipur',   status: 'Upcoming'  },
+  { title: 'Corporate Donation Drive', location: 'Durbarmarg Office Hub', status: 'Completed' },
 ];
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ── Config ─────────────────────────────────────────────────────────────────────
+const PIE_COLORS = ['#7F1D1D','#991B1B','#B91C1C','#C04040','#DC2626','#E04A4A','#EF4444','#F87171'];
 
+const EVENT_STATUS = {
+  Upcoming:  { bg: 'rgba(59,130,246,0.08)',  text: '#1d4ed8', border: 'rgba(59,130,246,0.2)'  },
+  Running:   { bg: 'rgba(21,128,61,0.08)',   text: '#15803d', border: 'rgba(21,128,61,0.2)'   },
+  Completed: { bg: 'rgba(100,116,139,0.08)', text: '#475569', border: 'rgba(100,116,139,0.2)' },
+};
+
+// ── Custom Tooltip ─────────────────────────────────────────────────────────────
+const CustomBarTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={s.tooltip}>
+      <p style={s.tooltipLabel}>{label}</p>
+      <p style={s.tooltipValue}>{payload[0].value} units</p>
+    </div>
+  );
+};
+
+// ── Main Component ─────────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [stats, setStats] = useState({
-    totalDonors: 0,
-    totalBloodUnits: 0,
-    lowStockUnits: 0,
-    upcomingEvents: 0,
-    totalDonations: 0,
-    activeDonors: 0,
+    totalDonors: 0, totalBloodUnits: 0, lowStockUnits: 0,
+    upcomingEvents: 0, totalDonations: 0, activeDonors: 0,
   });
-  const [bloodData, setBloodData] = useState<any[]>([]);
-  const [lowStockAlerts, setLowStockAlerts] = useState<any[]>([]);
-  const [bloodDistribution, setBloodDistribution] = useState<any[]>([]);
-  const [recentDonors, setRecentDonors] = useState<any[]>([]);
-  const [recentEvents, setRecentEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [bloodData, setBloodData]                   = useState([]);
+  const [lowStockAlerts, setLowStockAlerts]         = useState([]);
+  const [bloodDistribution, setBloodDistribution]   = useState([]);
+  const [recentDonors, setRecentDonors]             = useState([]);
+  const [recentEvents, setRecentEvents]             = useState([]);
+  const [loading, setLoading]                       = useState(true);
 
   useEffect(() => {
-    // Simulate async load with mock data
-    const loadMockData = () => {
+    const timer = setTimeout(() => {
       const bloodAllData = MOCK_BLOOD_STOCK;
-      const donors      = MOCK_DONORS;
-      const events      = MOCK_EVENTS;
+      const donors       = MOCK_DONORS;
+      const events       = MOCK_EVENTS;
 
-      const lowStock = bloodAllData.filter((pack) => pack.units < 5);
+      const lowStock = bloodAllData.filter((p) => p.units < 5);
       setLowStockAlerts(lowStock);
-
-      const distribution: Record<string, number> = {};
-      bloodAllData.forEach((pack) => {
-        distribution[pack.bloodGroup] = (distribution[pack.bloodGroup] || 0) + pack.units;
-      });
-      const bloodDist = Object.entries(distribution).map(([group, units]) => ({
-        name: group,
-        value: units,
-      }));
-      setBloodDistribution(bloodDist);
-
-      const chartData = bloodAllData.map((pack) => ({
-        name: pack.bloodGroup,
-        units: pack.units,
-      }));
-      setBloodData(chartData);
-
+      setBloodData(bloodAllData.map((p) => ({ name: p.bloodGroup, units: p.units })));
+      setBloodDistribution(bloodAllData.map((p) => ({ name: p.bloodGroup, value: p.units })));
       setRecentDonors(donors.slice(0, 5));
       setRecentEvents(events.slice(0, 4));
-
-      const activeDonorsCount = donors.filter((d) => d.totalDonations > 0).length;
-
       setStats({
-        totalDonors:      donors.length,
-        activeDonors:     activeDonorsCount,
-        totalBloodUnits:  bloodAllData.reduce((acc, pack) => acc + pack.units, 0),
-        lowStockUnits:    lowStock.length,
-        upcomingEvents:   events.filter((e) => e.status === 'Upcoming').length,
-        totalDonations:   donors.reduce((acc, d) => acc + d.totalDonations, 0),
+        totalDonors:     donors.length,
+        activeDonors:    donors.filter((d) => d.totalDonations > 0).length,
+        totalBloodUnits: bloodAllData.reduce((a, p) => a + p.units, 0),
+        lowStockUnits:   lowStock.length,
+        upcomingEvents:  events.filter((e) => e.status === 'Upcoming').length,
+        totalDonations:  donors.reduce((a, d) => a + d.totalDonations, 0),
       });
-
       setLoading(false);
-    };
-
-    // Small delay to mimic a real fetch
-    const timer = setTimeout(loadMockData, 400);
+    }, 400);
     return () => clearTimeout(timer);
   }, []);
 
-  const COLORS = ['#7F1D1D', '#A03A3A', '#C04040', '#E04A4A', '#F05858', '#F07070', '#F08888', '#F0A0A0'];
-
-  const getStockStatusColor = (units: number) => {
-    if (units < 3) return 'bg-red-50 border-red-200 text-red-700';
-    if (units < 5) return 'bg-orange-50 border-orange-200 text-orange-700';
-    return 'bg-green-50 border-green-200 text-green-700';
-  };
-
-  const getStatusIcon = (units: number) => {
-    if (units < 3) return '🔴';
-    if (units < 5) return '🟠';
-    return '🟢';
-  };
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-muted border-t-primary"></div>
+      <div style={s.loadingWrap}>
+        <div style={s.spinner} />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 bg-background">
-      <div className="flex items-center justify-between">
+    <div className="w-full p-6 md:p-8 bg-background min-h-[calc(100vh-3.5rem)]">
+
+      {/* ── Page Header ── */}
+      <div style={s.pageHeader}>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Blood bank management overview and analytics</p>
+          <h1 style={s.pageTitle}>Dashboard</h1>
+          <p style={s.pageSubtitle}>Blood bank management overview and analytics</p>
+        </div>
+        <div style={s.liveIndicator}>
+          <span style={s.liveDot} />
+          Live
         </div>
       </div>
 
+      {/* ── Low Stock Alert Card ── */}
       {lowStockAlerts.length > 0 && (
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              <CardTitle className="text-red-900">Low Stock Alerts</CardTitle>
+        <div style={s.alertCard}>
+          <div style={s.alertCardHeader}>
+            <div style={s.alertIconWrap}>
+              <AlertCircle size={16} color="#7F1D1D" />
             </div>
-            <CardDescription className="text-red-800">
-              {lowStockAlerts.length} blood group{lowStockAlerts.length !== 1 ? 's' : ''} running low
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              {lowStockAlerts.slice(0, 4).map((alert, index) => (
-                <div key={index} className={`p-3 rounded-lg border ${getStockStatusColor(alert.units)}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-sm">{alert.bloodGroup}</p>
-                      <p className="text-xs opacity-80">{alert.units} units remaining</p>
-                    </div>
-                    <span className="text-xl">{getStatusIcon(alert.units)}</span>
+            <div>
+              <p style={s.alertCardTitle}>Low Stock Alerts</p>
+              <p style={s.alertCardDesc}>
+                {lowStockAlerts.length} blood group{lowStockAlerts.length !== 1 ? 's' : ''} running critically low
+              </p>
+            </div>
+          </div>
+          <div style={s.alertGrid}>
+            {lowStockAlerts.slice(0, 4).map((alert, i) => {
+              const isCritical = alert.units < 3;
+              return (
+                <div
+                  key={i}
+                  style={{
+                    ...s.alertItem,
+                    background:  isCritical ? 'rgba(127,29,29,0.07)' : 'rgba(194,65,12,0.06)',
+                    borderColor: isCritical ? 'rgba(127,29,29,0.2)'  : 'rgba(194,65,12,0.15)',
+                  }}
+                >
+                  <div>
+                    <p style={{ ...s.alertGroup, color: isCritical ? '#7F1D1D' : '#c2410c' }}>
+                      {alert.bloodGroup}
+                    </p>
+                    <p style={s.alertUnits}>{alert.units} units remaining</p>
                   </div>
+                  <span style={{ fontSize: 18 }}>{isCritical ? '🔴' : '🟠'}</span>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              );
+            })}
+          </div>
+        </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Blood Units</CardTitle>
-            <Droplet className="h-5 w-5 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{stats.totalBloodUnits}</div>
-            <p className="text-xs text-muted-foreground">In stock across all groups</p>
-          </CardContent>
-        </Card>
+      {/* ── Stat Cards ── */}
+      <div style={s.statGrid}>
+        <div style={s.statCard}>
+          <div style={s.statCardTop}>
+            <span style={s.statCardLabel}>Total Blood Units</span>
+            <div style={{ ...s.statCardIcon, background: 'rgba(127,29,29,0.08)' }}>
+              <Droplet size={16} color="#7F1D1D" />
+            </div>
+          </div>
+          <div style={{ ...s.statCardValue, color: '#7F1D1D' }}>{stats.totalBloodUnits}</div>
+          <p style={s.statCardSub}>In stock across all groups</p>
+        </div>
 
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock Units</CardTitle>
-            <AlertCircle className="h-5 w-5 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats.lowStockUnits}</div>
-            <p className="text-xs text-muted-foreground">Requires immediate action</p>
-          </CardContent>
-        </Card>
+        <div style={s.statCard}>
+          <div style={s.statCardTop}>
+            <span style={s.statCardLabel}>Low Stock Groups</span>
+            <div style={{ ...s.statCardIcon, background: 'rgba(194,65,12,0.07)' }}>
+              <AlertCircle size={16} color="#c2410c" />
+            </div>
+          </div>
+          <div style={{ ...s.statCardValue, color: '#c2410c' }}>{stats.lowStockUnits}</div>
+          <p style={s.statCardSub}>Requires immediate action</p>
+        </div>
 
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Donors</CardTitle>
-            <Heart className="h-5 w-5 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalDonors}</div>
-            <p className="text-xs text-muted-foreground">{stats.activeDonors} active this month</p>
-          </CardContent>
-        </Card>
+        <div style={s.statCard}>
+          <div style={s.statCardTop}>
+            <span style={s.statCardLabel}>Total Donors</span>
+            <div style={{ ...s.statCardIcon, background: 'rgba(127,29,29,0.08)' }}>
+              <Heart size={16} color="#7F1D1D" />
+            </div>
+          </div>
+          <div style={s.statCardValue}>{stats.totalDonors}</div>
+          <p style={s.statCardSub}>{stats.activeDonors} active this month</p>
+        </div>
 
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
-            <Calendar className="h-5 w-5 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.upcomingEvents}</div>
-            <p className="text-xs text-muted-foreground">Scheduled collections</p>
-          </CardContent>
-        </Card>
+        <div style={s.statCard}>
+          <div style={s.statCardTop}>
+            <span style={s.statCardLabel}>Upcoming Events</span>
+            <div style={{ ...s.statCardIcon, background: 'rgba(127,29,29,0.08)' }}>
+              <Calendar size={16} color="#7F1D1D" />
+            </div>
+          </div>
+          <div style={s.statCardValue}>{stats.upcomingEvents}</div>
+          <p style={s.statCardSub}>Scheduled collections</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              Blood Stock by Group
-            </CardTitle>
-            <CardDescription>Current units available</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={bloodData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)\" />
-                <XAxis dataKey="name" stroke="var(--muted-foreground)" />
-                <YAxis stroke="var(--muted-foreground)" />
-                <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)' }} />
-                <Bar dataKey="units" fill="#8884d8" radius={[8, 8, 0, 0]} />
+      {/* ── Charts Row ── */}
+      <div style={s.chartsRow}>
+        {/* Bar Chart */}
+        <div style={{ ...s.card, flex: 2 }}>
+          <div style={s.cardHeader}>
+            <div style={s.cardTitleRow}>
+              <div style={s.cardIconWrap}>
+                <TrendingUp size={15} color="#7F1D1D" />
+              </div>
+              <div>
+                <p style={s.cardTitle}>Blood Stock by Group</p>
+                <p style={s.cardDesc}>Current units available per blood type</p>
+              </div>
+            </div>
+          </div>
+          <div style={s.cardBody}>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={bloodData} barSize={32}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 12, fill: '#64748b', fontFamily: 'inherit' }}
+                  axisLine={false} tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: '#94a3b8', fontFamily: 'inherit' }}
+                  axisLine={false} tickLine={false}
+                />
+                <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(127,29,29,0.04)' }} />
+                <Bar dataKey="units" fill="#7F1D1D" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Blood Type Distribution</CardTitle>
-            <CardDescription>Units by type</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+        {/* Pie Chart */}
+        <div style={{ ...s.card, flex: 1 }}>
+          <div style={s.cardHeader}>
+            <div style={s.cardTitleRow}>
+              <div style={s.cardIconWrap}>
+                <Activity size={15} color="#7F1D1D" />
+              </div>
+              <div>
+                <p style={s.cardTitle}>Type Distribution</p>
+                <p style={s.cardDesc}>Units by blood type</p>
+              </div>
+            </div>
+          </div>
+          <div style={{ ...s.cardBody, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
                   data={bloodDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={2}
-                  dataKey="value"
+                  cx="50%" cy="50%"
+                  innerRadius={55} outerRadius={88}
+                  paddingAngle={3} dataKey="value"
                 >
-                  {bloodDistribution.map((_: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  {bloodDistribution.map((_, i) => (
+                    <Cell key={`cell-${i}`} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => `${value} units`} />
+                <Tooltip
+                  formatter={(v) => [`${v} units`]}
+                  contentStyle={s.tooltip}
+                />
               </PieChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" />
-                Recent Donors
-              </CardTitle>
-              <Button variant="ghost" size="sm" asChild>
-                <a href="/dashboard/donors">View All</a>
-              </Button>
-            </div>
-            <CardDescription>Latest registered donors</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentDonors.map((donor, index) => (
-                <div key={index} className="flex items-center justify-between border-b border-border pb-3 last:border-0">
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-primary font-semibold text-sm">{donor.name.charAt(0)}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{donor.name}</p>
-                      <p className="text-xs text-muted-foreground">{donor.bloodGroup} • {donor.location}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-semibold text-primary">{donor.totalDonations}x</p>
-                  </div>
+            <div style={s.pieLegend}>
+              {bloodDistribution.map((item, i) => (
+                <div key={i} style={s.pieLegendItem}>
+                  <span style={{ ...s.pieLegendDot, background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                  <span style={s.pieLegendText}>{item.name}</span>
+                  <span style={s.pieLegendVal}>{item.value}</span>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-primary" />
-                Recent Events
-              </CardTitle>
-              <Button variant="ghost" size="sm" asChild>
-                <a href="/dashboard/events">View All</a>
-              </Button>
+      {/* ── Bottom Row ── */}
+      <div style={s.bottomRow}>
+        {/* Recent Donors */}
+        <div style={{ ...s.card, flex: 1 }}>
+          <div style={s.cardHeader}>
+            <div style={s.cardTitleRow}>
+              <div style={s.cardIconWrap}>
+                <Users size={15} color="#7F1D1D" />
+              </div>
+              <div>
+                <p style={s.cardTitle}>Recent Donors</p>
+                <p style={s.cardDesc}>Latest registered donors</p>
+              </div>
             </div>
-            <CardDescription>Upcoming and recent activities</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentEvents.map((event, index) => (
-                <div key={index} className="border border-border rounded-lg p-3 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{event.title}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{event.location}</p>
+            <a href="/dashboard/donors" style={s.viewAllBtn}>
+              View All <ArrowRight size={12} />
+            </a>
+          </div>
+          <div style={s.cardBody}>
+            <div style={s.donorList}>
+              {recentDonors.map((donor, i) => (
+                <div key={i} style={{ ...s.donorRow, borderBottom: i < recentDonors.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                  <div style={s.donorAvatar}>{donor.name.charAt(0)}</div>
+                  <div style={s.donorInfo}>
+                    <p style={s.donorName}>{donor.name}</p>
+                    <p style={s.donorMeta}>{donor.bloodGroup} · {donor.location}</p>
+                  </div>
+                  <div style={s.donorBadge}>{donor.totalDonations}×</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Events */}
+        <div style={{ ...s.card, flex: 1 }}>
+          <div style={s.cardHeader}>
+            <div style={s.cardTitleRow}>
+              <div style={s.cardIconWrap}>
+                <Calendar size={15} color="#7F1D1D" />
+              </div>
+              <div>
+                <p style={s.cardTitle}>Recent Events</p>
+                <p style={s.cardDesc}>Upcoming and recent activities</p>
+              </div>
+            </div>
+            <a href="/dashboard/events" style={s.viewAllBtn}>
+              View All <ArrowRight size={12} />
+            </a>
+          </div>
+          <div style={s.cardBody}>
+            <div style={s.eventList}>
+              {recentEvents.map((event, i) => {
+                const es = EVENT_STATUS[event.status] ?? EVENT_STATUS.Completed;
+                return (
+                  <div key={i} style={s.eventRow}>
+                    <div style={s.eventInfo}>
+                      <p style={s.eventTitle}>{event.title}</p>
+                      <p style={s.eventLocation}>{event.location}</p>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
-                      event.status === 'Upcoming'  ? 'bg-blue-100 text-blue-700'  :
-                      event.status === 'Running'   ? 'bg-green-100 text-green-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
+                    <span style={{ ...s.eventBadge, background: es.bg, color: es.text, borderColor: es.border }}>
                       {event.status}
                     </span>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
+
     </div>
   );
 }
+
+// ── Styles ─────────────────────────────────────────────────────────────────────
+const s = {
+  loadingWrap: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: 384 },
+  spinner: {
+    width: 44, height: 44, borderRadius: '50%',
+    border: '3px solid #f1f5f9', borderTop: '3px solid #7F1D1D',
+    animation: 'spin 0.8s linear infinite',
+  },
+
+  // page styles replaced with Tailwind classes
+
+  // Header
+  pageHeader: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
+  pageTitle:  { fontSize: 26, fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.4px' },
+  pageSubtitle: { fontSize: 13, color: '#64748b', margin: '3px 0 0' },
+  liveIndicator: {
+    display: 'flex', alignItems: 'center', gap: 6,
+    background: '#fff', border: '1px solid #e2e8f0',
+    borderRadius: 20, padding: '5px 12px',
+    fontSize: 12, fontWeight: 600, color: '#374151',
+  },
+  liveDot: {
+    display: 'inline-block', width: 7, height: 7, borderRadius: '50%',
+    background: '#22c55e', boxShadow: '0 0 0 2px rgba(34,197,94,0.25)',
+  },
+
+  // Alert
+  alertCard: {
+    background: 'rgba(127,29,29,0.03)', border: '1px solid rgba(127,29,29,0.18)',
+    borderRadius: 12, overflow: 'hidden',
+  },
+  alertCardHeader: { padding: '14px 16px 12px', display: 'flex', alignItems: 'center', gap: 10 },
+  alertIconWrap: {
+    width: 34, height: 34, borderRadius: 9,
+    background: 'rgba(127,29,29,0.08)', border: '1px solid rgba(127,29,29,0.15)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  },
+  alertCardTitle: { fontSize: 14, fontWeight: 700, color: '#7F1D1D', margin: 0 },
+  alertCardDesc:  { fontSize: 12, color: '#991B1B', margin: '1px 0 0', opacity: 0.8 },
+  alertGrid: {
+    display: 'grid', gridTemplateColumns: 'repeat(4,1fr)',
+    borderTop: '1px solid rgba(127,29,29,0.1)',
+  },
+  alertItem: {
+    padding: '12px 16px',
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    borderRight: '1px solid rgba(127,29,29,0.08)',
+    border: '1px solid transparent',
+  },
+  alertGroup: { fontSize: 15, fontWeight: 800, margin: 0 },
+  alertUnits: { fontSize: 11, color: '#64748b', margin: '2px 0 0' },
+
+  // Stat Cards
+  statGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 },
+  statCard: {
+    background: '#fff', border: '1px solid #e2e8f0',
+    borderRadius: 12, padding: '16px', transition: 'box-shadow 0.15s',
+  },
+  statCardTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  statCardLabel: { fontSize: 12, fontWeight: 600, color: '#64748b' },
+  statCardIcon: { width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  statCardValue: { fontSize: 28, fontWeight: 800, color: '#0f172a', lineHeight: 1 },
+  statCardSub:   { fontSize: 11, color: '#94a3b8', margin: '4px 0 0' },
+
+  // Cards
+  card: { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' },
+  cardHeader: { padding: '16px 18px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
+  cardTitleRow: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 },
+  cardIconWrap: {
+    width: 32, height: 32, borderRadius: 8,
+    background: 'rgba(127,29,29,0.08)', border: '1px solid rgba(127,29,29,0.15)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  },
+  cardTitle: { fontSize: 14, fontWeight: 700, color: '#0f172a', margin: 0 },
+  cardDesc:  { fontSize: 12, color: '#94a3b8', margin: '1px 0 0' },
+  cardBody:  { padding: '4px 18px 18px' },
+  viewAllBtn: {
+    display: 'flex', alignItems: 'center', gap: 4,
+    fontSize: 12, fontWeight: 600, color: '#7F1D1D',
+    textDecoration: 'none', padding: '4px 0', opacity: 0.85,
+  },
+
+  // Layout rows
+  chartsRow: { display: 'flex', gap: 14 },
+  bottomRow: { display: 'flex', gap: 14 },
+
+  // Tooltip
+  tooltip: {
+    background: '#fff', border: '1px solid #e2e8f0',
+    borderRadius: 8, padding: '8px 12px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+  },
+  tooltipLabel: { fontSize: 12, fontWeight: 600, color: '#374151', margin: 0 },
+  tooltipValue: { fontSize: 14, fontWeight: 800, color: '#7F1D1D', margin: '2px 0 0' },
+
+  // Pie Legend
+  pieLegend: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px', marginTop: 8, width: '100%' },
+  pieLegendItem: { display: 'flex', alignItems: 'center', gap: 6 },
+  pieLegendDot:  { width: 8, height: 8, borderRadius: '50%', flexShrink: 0 },
+  pieLegendText: { fontSize: 11, color: '#64748b', flex: 1 },
+  pieLegendVal:  { fontSize: 11, fontWeight: 700, color: '#374151' },
+
+  // Donors
+  donorList: { display: 'flex', flexDirection: 'column' },
+  donorRow:  { display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0' },
+  donorAvatar: {
+    width: 36, height: 36, borderRadius: '50%',
+    background: 'rgba(127,29,29,0.08)', border: '1px solid rgba(127,29,29,0.15)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 14, fontWeight: 700, color: '#7F1D1D', flexShrink: 0,
+  },
+  donorInfo: { flex: 1, minWidth: 0 },
+  donorName: { fontSize: 13, fontWeight: 600, color: '#1e293b', margin: 0 },
+  donorMeta: { fontSize: 11, color: '#94a3b8', margin: '1px 0 0' },
+  donorBadge: {
+    fontSize: 12, fontWeight: 700, color: '#7F1D1D',
+    background: 'rgba(127,29,29,0.08)', border: '1px solid rgba(127,29,29,0.15)',
+    borderRadius: 20, padding: '2px 9px',
+  },
+
+  // Events
+  eventList: { display: 'flex', flexDirection: 'column', gap: 8 },
+  eventRow: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '10px 12px', background: '#f8fafc',
+    borderRadius: 9, border: '1px solid #f1f5f9', gap: 10,
+  },
+  eventInfo:     { flex: 1, minWidth: 0 },
+  eventTitle:    { fontSize: 13, fontWeight: 600, color: '#1e293b', margin: 0 },
+  eventLocation: { fontSize: 11, color: '#94a3b8', margin: '2px 0 0' },
+  eventBadge: {
+    fontSize: 11, fontWeight: 600,
+    padding: '3px 10px', borderRadius: 20,
+    border: '1px solid', flexShrink: 0,
+  },
+};
