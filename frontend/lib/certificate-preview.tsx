@@ -2,17 +2,23 @@ import { QrCode } from "lucide-react";
 import type { Certificate } from "@/lib/data-store";
 
 /* ─────────────────────────────────────────────
-   Responsive preview shown in the dialog
+
 ───────────────────────────────────────────── */
 export function CertificatePreview({ cert }: { cert: Certificate }) {
   return (
-    <div
-      className="relative bg-white border-[3px] border-[#8b0000] shadow-2xl w-full aspect-[1.414/1]"
-      style={{ fontFamily: "Georgia, 'Times New Roman', serif", WebkitPrintColorAdjust: "exact"}}
-    >
+   <div
+  style={{
+    width: "1122px",
+    height: "794px",
+    background: "#ffffff",
+    overflow: "hidden",
+    pageBreakInside: "avoid",
+    position:'relative'
+  }}
+>
       <CornerDecorations size={110} />
       <Watermark />
-      <div className="relative z-[2] px-[8%] py-8">
+      <div className="relative z-[2] px-[8%] py-6">
         <p className="text-center text-[13px] text-[#1a5fa8] italic mb-4 tracking-wide">
           रक्तदान गर्नका लागि ०१-४२३४५६७८
         </p>
