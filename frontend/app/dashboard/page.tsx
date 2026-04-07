@@ -154,38 +154,46 @@ export default function DashboardPage() {
 
       {/* ── Low Stock Alert Card ── */}
       {lowStockAlerts.length > 0 && (
-        <div className="bg-[rgba(127,29,29,0.03)] border border-[rgba(127,29,29,0.18)] rounded-xl overflow-hidden mb-6">
-          <div className="p-3.5 pb-3 flex items-center gap-2.5">
-            <div className="w-[34px] h-[34px] rounded-[9px] bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.15)] flex items-center justify-center flex-shrink-0">
-              <AlertCircle size={16} color="#7F1D1D" />
+        <div className="bg-gradient-to-r from-red-50 via-rose-50 to-red-50 border-2 border-red-200 rounded-xl overflow-hidden mb-6 shadow-sm">
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center flex-shrink-0 shadow-lg animate-pulse">
+                <AlertCircle size={20} className="text-white" />
+              </div>
+              <div>
+                <p className="text-base font-bold text-red-900 m-0">⚠️ Low Stock Alert</p>
+                <p className="text-sm text-red-700 mt-0.5">
+                  {lowStockAlerts.length} blood group{lowStockAlerts.length !== 1 ? 's' : ''} need immediate attention
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-bold text-[#7F1D1D] m-0">Low Stock Alerts</p>
-              <p className="text-xs text-[#991B1B] mt-[1px] opacity-80">
-                {lowStockAlerts.length} blood group{lowStockAlerts.length !== 1 ? 's' : ''} running critically low
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-4 border-t border-[rgba(127,29,29,0.1)]">
-            {lowStockAlerts.slice(0, 4).map((alert, i) => {
-              const isCritical = alert.units < 3;
-              return (
-                <div
-                  key={i}
-                  className={`p-3 px-4 flex items-center justify-between border-r border-[rgba(127,29,29,0.08)] ${
-                    isCritical ? 'bg-[rgba(127,29,29,0.07)] border border-[rgba(127,29,29,0.2)]' : 'bg-[rgba(194,65,12,0.06)] border border-[rgba(194,65,12,0.15)]'
-                  }`}
-                >
-                  <div>
-                    <p className={`text-[15px] font-extrabold m-0 ${isCritical ? 'text-[#7F1D1D]' : 'text-[#c2410c]'}`}>
-                      {alert.bloodGroup}
-                    </p>
-                    <p className="text-[11px] text-slate-500 mt-[2px]">{alert.units} units remaining</p>
+            
+            {/* Blood Groups in a clean row */}
+            <div className="flex items-center gap-3">
+              {lowStockAlerts.slice(0, 4).map((alert, i) => {
+                const isCritical = alert.units < 3;
+                return (
+                  <div
+                    key={i}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 ${
+                      isCritical 
+                        ? 'bg-red-100 border-red-300 shadow-md' 
+                        : 'bg-orange-50 border-orange-200'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <p className={`text-xl font-black m-0 ${isCritical ? 'text-red-800' : 'text-orange-700'}`}>
+                        {alert.bloodGroup}
+                      </p>
+                      <p className="text-xs text-slate-600 font-semibold mt-0.5">
+                        {alert.units} units
+                      </p>
+                    </div>
+                    <span className="text-2xl">{isCritical ? '🔴' : '🟠'}</span>
                   </div>
-                  <span className="text-lg">{isCritical ? '🔴' : '🟠'}</span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
