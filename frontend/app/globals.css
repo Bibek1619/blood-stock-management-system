@@ -123,3 +123,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Print styles for certificates */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  [data-print="true"], 
+  [data-print="true"] * {
+    visibility: visible;
+  }
+
+  [data-print="true"] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
