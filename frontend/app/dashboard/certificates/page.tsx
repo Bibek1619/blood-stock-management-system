@@ -199,7 +199,8 @@ export default function CertificatesPage() {
                 {/* Preview Dialog */}
                 <Dialog open={!!previewCert} onOpenChange={(open) => !open && setPreviewCert(null)}>
                     <DialogContent
-                        className="!w-[95vw] !max-w-none h-[95vh] overflow-y-auto">
+                        className="!w-[95vw] !max-w-none h-[90vh] overflow-y-auto print:overflow-visible print:h-auto"
+                    >
                         <DialogHeader className="mb-4">
                             <DialogTitle>
                                 {previewType === "certificate" ? "Certificate Preview" : "ID Card Preview"}
@@ -210,16 +211,29 @@ export default function CertificatesPage() {
                                     : "Preview and download the volunteer ID card as PDF"}
                             </DialogDescription>
                         </DialogHeader>
-
-                        {previewCert && (
-                            <div  data-print='true' className="w-full flex justify-center">
+                       // In CertificatesPage.tsx — replace the print button
+<div className="print:hidden mb-4">
+  <Button onClick={() => {
+    // Briefly move certificate outside the dialog portal before printing
+    const el = document.getElementById('print-area');
+    if (el) {
+      document.body.appendChild(el); // reparent to body directly
+    }
+    setTimeout(() => window.print(), 50);
+  }}>
+    Print Certificate
+  </Button>
+</div>
+                       
+                        <div id="print-area">
+                            <div className="print-container">
                                 {previewType === "certificate" ? (
                                     <CertificatePreview cert={previewCert} />
                                 ) : (
                                     <IDCardPreview cert={previewCert} />
                                 )}
                             </div>
-                        )}
+                        </div>
                     </DialogContent>
                 </Dialog>
             </div>
