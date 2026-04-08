@@ -4,102 +4,43 @@ import {
   Plus, CalendarDays, MapPin, Users, UserPlus,
   X, Clock, CheckCircle2, PlayCircle, ChevronRight, Trash2,
 } from "lucide-react";
+import {
+  MOCK_DONORS,
+  MOCK_EVENTS,
+  EVENT_STATUS_CONFIG,
+  getInitials,
+  getDonorById,
+  type EventStatus,
+  type BloodEvent,
+  type Donor,
+} from "@/lib/data";
 
-// ─── TYPES ────────────────────────────────────────────────────────────────────
-type EventStatus = "Upcoming" | "Running" | "Completed";
-
-type BloodEvent = {
-  id: string;
-  title: string;
-  date: string;
-  location: string;
-  description?: string;
-  status: EventStatus;
-  participants: string[];
-  volunteers: string[];
-};
-
-type Donor = {
-  id: string;
-  name: string;
-  bloodGroup: string;
-  location: string;
-};
-
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
-const MOCK_DONORS: Donor[] = [
-  { id: "dn1", name: "Aarav Sharma", bloodGroup: "O+", location: "Kathmandu" },
-  { id: "dn2", name: "Priya Thapa", bloodGroup: "A+", location: "Lalitpur" },
-  { id: "dn3", name: "Rohan Karki", bloodGroup: "B-", location: "Bhaktapur" },
-  { id: "dn4", name: "Sita Poudel", bloodGroup: "AB+", location: "Pokhara" },
-  { id: "dn5", name: "Bikash Rai", bloodGroup: "O-", location: "Kathmandu" },
-  { id: "dn6", name: "Anita Gurung", bloodGroup: "A-", location: "Chitwan" },
-  { id: "dn7", name: "Dipesh Pokhrel", bloodGroup: "B+", location: "Butwal" },
-  { id: "dn8", name: "Kamala Tamang", bloodGroup: "AB-", location: "Dharan" },
-];
-
-const MOCK_EVENTS_INIT: BloodEvent[] = [
-  {
-    id: "ev1", title: "Community Blood Drive",
-    date: "2025-05-15", location: "Ratna Park, Kathmandu",
-    description: "Annual community blood drive open to all healthy adults. Walk-ins welcome.",
-    status: "Upcoming", participants: ["dn1", "dn2"], volunteers: ["dn3"],
-  },
-  {
-    id: "ev2", title: "Hospital Collection Day",
-    date: "2025-04-02", location: "Bir Hospital, Kathmandu",
-    description: "Emergency collection to replenish hospital reserves.",
-    status: "Running", participants: ["dn4", "dn5", "dn6"], volunteers: ["dn7", "dn8"],
-  },
-  {
-    id: "ev3", title: "University Camp",
-    date: "2025-03-20", location: "TU Campus, Kirtipur",
-    description: "Student-led donation camp in partnership with the university health center.",
-    status: "Completed", participants: ["dn1", "dn3", "dn5"], volunteers: ["dn2"],
-  },
-  {
-    id: "ev4", title: "Corporate Donation Drive",
-    date: "2025-04-10", location: "Durbarmarg Office Hub",
-    description: "Partnering with local businesses to encourage employees to donate.",
-    status: "Upcoming", participants: ["dn7"], volunteers: [],
-  },
-];
-
-// ─── STATUS CONFIG ────────────────────────────────────────────────────────────
-const STATUS_CONFIG: Record<EventStatus, {
+// Add icons to status config
+const STATUS_CONFIG_WITH_ICONS: Record<EventStatus, {
   label: string;
   styles: string;
   icon: React.ReactNode;
   barColor: string;
+  bg: string;
+  text: string;
+  border: string;
 }> = {
   Upcoming: {
-    label: "Upcoming",
-    styles: "bg-blue-50 text-blue-700 border-blue-200",
+    ...EVENT_STATUS_CONFIG.Upcoming,
     icon: <Clock size={11} />,
-    barColor: "bg-blue-500"
   },
   Running: {
-    label: "Running",
-    styles: "bg-green-50 text-green-700 border-green-200",
+    ...EVENT_STATUS_CONFIG.Running,
     icon: <PlayCircle size={11} />,
-    barColor: "bg-green-500"
   },
   Completed: {
-    label: "Completed",
-    styles: "bg-slate-50 text-slate-600 border-slate-200",
+    ...EVENT_STATUS_CONFIG.Completed,
     icon: <CheckCircle2 size={11} />,
-    barColor: "bg-slate-400"
   },
 };
 
 const ALL_STATUSES: EventStatus[] = ["Upcoming", "Running", "Completed"];
-let eventCounter = MOCK_EVENTS_INIT.length + 1;
-
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
-const getInitials = (name: string) =>
-  name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-
-const getDonorById = (id: string) => MOCK_DONORS.find((d) => d.id === id);
+let eventCounter = MOCK_EVENTS.length + 1;
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
 function useToast() {
@@ -114,7 +55,7 @@ function useToast() {
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function EventsPage() {
-  const [events, setEvents] = useState<BloodEvent[]>(MOCK_EVENTS_INIT);
+  const [events, setEvents] = useState<BloodEvent[]>(MOCK_EVENTS);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sheetEvent, setSheetEvent] = useState<BloodEvent | null>(null);
@@ -233,7 +174,7 @@ export default function EventsPage() {
         <div className="flex flex-wrap gap-2">
           {(["all", ...ALL_STATUSES] as const).map((key) => {
             const isActive = filterStatus === key;
-            const cfg = key !== "all" ? STATUS_CONFIG[key] : null;
+            const cfg = key !== "all" ? STATUS_CONFIG_WITH_ICONS[key] : null;
             return (
               <button
   key={key}
@@ -280,7 +221,7 @@ export default function EventsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((ev) => {
-              const cfg = STATUS_CONFIG[ev.status];
+              const cfg = STATUS_CONFIG_WITH_ICONS[ev.status];
               return (
                 <div
                   key={ev.id}
@@ -497,7 +438,7 @@ export default function EventsPage() {
                 <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Update Status</p>
                 <div className="flex gap-2">
                   {ALL_STATUSES.map((st) => {
-                    const cfg = STATUS_CONFIG[st];
+                    const cfg = STATUS_CONFIG_WITH_ICONS[st];
                     const isActive = sheetEvent.status === st;
                     return (
                       <button

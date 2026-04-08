@@ -12,118 +12,31 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast as sonnerToast } from "sonner";
-
-// ─── TYPES ────────────────────────────────────────────────────────────────────
-type BloodGroup = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
-type PackStatus = "Available" | "Used" | "Expired";
-
-type Donor = {
-  id: string;
-  name: string;
-  bloodGroup: BloodGroup;
-};
-
-type BloodPack = {
-  id: string;
-  packCode: string;
-  bloodGroup: BloodGroup;
-  donorId: string;
-  collectionDate: string;
-  expiryDate: string;
-  status: PackStatus;
-};
-
-type StockByGroup = {
-  [key: string]: {
-    available: number;
-    used: number;
-    expired: number;
-  };
-};
-
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
-const BLOOD_GROUPS: BloodGroup[] = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-
-const MOCK_DONORS: Donor[] = [
-  { id: "d1", name: "Aarav Sharma",   bloodGroup: "A+"  },
-  { id: "d2", name: "Priya Thapa",    bloodGroup: "O+"  },
-  { id: "d3", name: "Bikash Karki",   bloodGroup: "B+"  },
-  { id: "d4", name: "Sita Rai",       bloodGroup: "AB+" },
-  { id: "d5", name: "Rohan Adhikari", bloodGroup: "O-"  },
-  { id: "d6", name: "Menuka Gurung",  bloodGroup: "B-"  },
-  { id: "d7", name: "Dipesh Pokhrel", bloodGroup: "A-"  },
-  { id: "d8", name: "Kamala Tamang",  bloodGroup: "AB-" },
-];
-
-const MOCK_BLOOD_PACKS_INIT: BloodPack[] = [
-  { id: "bp01", packCode: "BP-20240101", bloodGroup: "A+",  donorId: "d1", collectionDate: "2024-01-01", expiryDate: "2024-04-01", status: "Available" },
-  { id: "bp02", packCode: "BP-20240102", bloodGroup: "O+",  donorId: "d2", collectionDate: "2024-01-02", expiryDate: "2024-04-02", status: "Available" },
-  { id: "bp03", packCode: "BP-20240103", bloodGroup: "B+",  donorId: "d3", collectionDate: "2024-01-03", expiryDate: "2024-04-03", status: "Used"      },
-  { id: "bp04", packCode: "BP-20240104", bloodGroup: "AB+", donorId: "d4", collectionDate: "2024-01-04", expiryDate: "2024-04-04", status: "Available" },
-  { id: "bp05", packCode: "BP-20240105", bloodGroup: "O-",  donorId: "d5", collectionDate: "2024-01-05", expiryDate: "2024-04-05", status: "Expired"   },
-  { id: "bp06", packCode: "BP-20240106", bloodGroup: "B-",  donorId: "d6", collectionDate: "2024-01-06", expiryDate: "2024-04-06", status: "Available" },
-  { id: "bp07", packCode: "BP-20240107", bloodGroup: "A-",  donorId: "d7", collectionDate: "2024-01-07", expiryDate: "2024-04-07", status: "Available" },
-  { id: "bp08", packCode: "BP-20240108", bloodGroup: "AB-", donorId: "d8", collectionDate: "2024-01-08", expiryDate: "2024-04-08", status: "Used"      },
-  { id: "bp09", packCode: "BP-20240109", bloodGroup: "A+",  donorId: "d1", collectionDate: "2024-02-01", expiryDate: "2024-05-01", status: "Available" },
-  { id: "bp10", packCode: "BP-20240110", bloodGroup: "O+",  donorId: "d2", collectionDate: "2024-02-02", expiryDate: "2024-05-02", status: "Available" },
-  { id: "bp11", packCode: "BP-20240111", bloodGroup: "B+",  donorId: "d3", collectionDate: "2024-02-10", expiryDate: "2024-05-10", status: "Available" },
-  { id: "bp12", packCode: "BP-20240112", bloodGroup: "O-",  donorId: "d5", collectionDate: "2024-02-15", expiryDate: "2024-05-15", status: "Available" },
-];
+import {
+  BLOOD_GROUPS,
+  MOCK_DONORS,
+  MOCK_BLOOD_PACKS,
+  PACK_STATUS_CONFIG,
+  getStockByGroup,
+  getLowStockGroups,
+  getDonorById,
+  type BloodGroup,
+  type PackStatus,
+  type BloodPack,
+  type Donor,
+  type StockByGroup,
+} from "@/lib/data";
 
 const LOW_STOCK_THRESHOLD = 2;
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
-const getStockByGroup = (packs: BloodPack[]): StockByGroup => {
-  const map: StockByGroup = {};
-  BLOOD_GROUPS.forEach((g) => { map[g] = { available: 0, used: 0, expired: 0 }; });
-  packs.forEach((p) => {
-    if (!map[p.bloodGroup]) map[p.bloodGroup] = { available: 0, used: 0, expired: 0 };
-    if (p.status === "Available") map[p.bloodGroup].available++;
-    else if (p.status === "Used")    map[p.bloodGroup].used++;
-    else if (p.status === "Expired") map[p.bloodGroup].expired++;
-  });
-  return map;
-};
-
-const getLowStockGroups = (packs: BloodPack[]): BloodGroup[] =>
-  BLOOD_GROUPS.filter((g) => {
-    const avail = packs.filter((p) => p.bloodGroup === g && p.status === "Available").length;
-    return avail < LOW_STOCK_THRESHOLD;
-  });
-
-const getDonorById = (id: string): Donor | undefined => MOCK_DONORS.find((d) => d.id === id);
-
-let packCounter = MOCK_BLOOD_PACKS_INIT.length + 1;
+let packCounter = MOCK_BLOOD_PACKS.length + 1;
 const generatePackCode = () => {
   const n = String(packCounter).padStart(5, "0");
   return `BP-${new Date().getFullYear()}${n}`;
 };
 
-// ─── STATUS CONFIG ────────────────────────────────────────────────────────────
-const STATUS_CONFIG = {
-  Available: {
-    dot:    "#22c55e",
-    bg:     "rgba(21,128,61,0.08)",
-    text:   "#15803d",
-    border: "rgba(21,128,61,0.25)",
-  },
-  Used: {
-    dot:    "#94a3b8",
-    bg:     "rgba(148,163,184,0.12)",
-    text:   "#64748b",
-    border: "rgba(148,163,184,0.3)",
-  },
-  Expired: {
-    dot:    "#991B1B",
-    bg:     "rgba(127,29,29,0.07)",
-    text:   "#7F1D1D",
-    border: "rgba(127,29,29,0.25)",
-  },
-};
-
-
 export default function BloodStockPage() {
-  const [bloodPacks, setBloodPacks]     = useState<BloodPack[]>(MOCK_BLOOD_PACKS_INIT);
+  const [bloodPacks, setBloodPacks]     = useState<BloodPack[]>(MOCK_BLOOD_PACKS);
   const [filterGroup, setFilterGroup]   = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery]   = useState<string>("");
@@ -424,7 +337,7 @@ export default function BloodStockPage() {
           <TableBody>
             {filtered.slice(0, 20).map((p) => {
               const donor = getDonorById(p.donorId);
-              const ss    = STATUS_CONFIG[p.status] ?? STATUS_CONFIG.Available;
+              const ss    = PACK_STATUS_CONFIG[p.status] ?? PACK_STATUS_CONFIG.Available;
               return (
                 <TableRow key={p.id}>
                   <TableCell>

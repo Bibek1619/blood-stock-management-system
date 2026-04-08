@@ -5,49 +5,9 @@ import {
   Plus, Search, Phone, Mail, Eye, Users, Heart, X, MapPin, 
   Droplets, Calendar, Award, ChevronRight,
 } from "lucide-react";
-
-// ─── TYPES ────────────────────────────────────────────────────────────────────
-type BloodGroup = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
-
-type Donor = {
-  id: string;
-  name: string;
-  phone: string;
-  email?: string;
-  bloodGroup: BloodGroup;
-  location: string;
-  lastDonationDate: string;
-  totalDonations: number;
-};
-
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
-const BLOOD_GROUPS: BloodGroup[] = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-
-const MOCK_DONORS: Donor[] = [
-  { id: "dn1", name: "Aarav Sharma", phone: "9841234567", email: "aarav@email.com", bloodGroup: "O+", location: "Kathmandu", lastDonationDate: "2024-03-15", totalDonations: 5 },
-  { id: "dn2", name: "Priya Thapa", phone: "9851234568", email: "priya@email.com", bloodGroup: "A+", location: "Lalitpur", lastDonationDate: "2024-03-10", totalDonations: 3 },
-  { id: "dn3", name: "Rohan Karki", phone: "9861234569", bloodGroup: "B-", location: "Bhaktapur", lastDonationDate: "2024-02-28", totalDonations: 1 },
-  { id: "dn4", name: "Sita Poudel", phone: "9871234570", email: "sita@email.com", bloodGroup: "AB+", location: "Pokhara", lastDonationDate: "2024-03-12", totalDonations: 7 },
-  { id: "dn5", name: "Bikash Rai", phone: "9881234571", bloodGroup: "O-", location: "Kathmandu", lastDonationDate: "2024-03-08", totalDonations: 2 },
-  { id: "dn6", name: "Anita Gurung", phone: "9891234572", email: "anita@email.com", bloodGroup: "A-", location: "Chitwan", lastDonationDate: "2024-03-05", totalDonations: 4 },
-  { id: "dn7", name: "Dipesh Pokhrel", phone: "9801234573", bloodGroup: "B+", location: "Butwal", lastDonationDate: "2024-02-20", totalDonations: 6 },
-  { id: "dn8", name: "Kamala Tamang", phone: "9811234574", email: "kamala@email.com", bloodGroup: "AB-", location: "Dharan", lastDonationDate: "2024-03-01", totalDonations: 3 },
-  { id: "dn9", name: "Rajesh Shrestha", phone: "9821234575", bloodGroup: "O+", location: "Kathmandu", lastDonationDate: "2024-03-14", totalDonations: 8 },
-  { id: "dn10", name: "Sunita Magar", phone: "9831234576", email: "sunita@email.com", bloodGroup: "A+", location: "Lalitpur", lastDonationDate: "2024-03-11", totalDonations: 2 },
-];
+import { BLOOD_GROUPS, MOCK_DONORS, getInitials, getDonorTier, type BloodGroup, type Donor } from "@/lib/data";
 
 let donorCounter = MOCK_DONORS.length + 1;
-
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
-const getInitials = (name: string) =>
-  name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-
-const getDonorTier = (donations: number) => {
-  if (donations >= 7) return { label: "Platinum", color: "text-purple-700", bg: "bg-purple-50", border: "border-purple-200" };
-  if (donations >= 5) return { label: "Gold", color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200" };
-  if (donations >= 3) return { label: "Silver", color: "text-slate-700", bg: "bg-slate-50", border: "border-slate-200" };
-  return { label: "Bronze", color: "text-amber-900", bg: "bg-amber-100", border: "border-amber-300" };
-};
 
 // ─── TOAST (simple) ───────────────────────────────────────────────────────────
 function useToast() {

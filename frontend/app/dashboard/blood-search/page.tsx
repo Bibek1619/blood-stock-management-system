@@ -4,69 +4,17 @@ import {
   Phone, Bell, MapPin, Droplets, Search,
   Users, X, Navigation, Filter, Award, Calendar, ChevronRight,
 } from "lucide-react";
-
-// ─── TYPES ────────────────────────────────────────────────────────────────────
-type BloodGroup = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
-
-type Donor = {
-  id: string;
-  name: string;
-  bloodGroup: BloodGroup;
-  location: string;
-  lat: number;
-  lng: number;
-  lastDonationDate: string;
-  totalDonations: number;
-  phone: string;
-};
-
-// ─── MOCK DATA (Kathmandu Valley donors) ──────────────────────────────────────
-const BLOOD_GROUPS: BloodGroup[] = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-const LOW_STOCK: BloodGroup[] = ["A-", "B-", "AB-", "O-"];
-
-const MOCK_DONORS: Donor[] = [
-  { id: "dn1", name: "Aarav Sharma", bloodGroup: "O+", location: "Thamel, Kathmandu", lat: 27.7154, lng: 85.3123, lastDonationDate: "2024-03-15", totalDonations: 5, phone: "9841234567" },
-  { id: "dn2", name: "Priya Thapa", bloodGroup: "A+", location: "Lalitpur", lat: 27.6644, lng: 85.3188, lastDonationDate: "2024-03-10", totalDonations: 3, phone: "9851234568" },
-  { id: "dn3", name: "Rohan Karki", bloodGroup: "B-", location: "Bhaktapur", lat: 27.6710, lng: 85.4298, lastDonationDate: "2024-02-28", totalDonations: 1, phone: "9861234569" },
-  { id: "dn4", name: "Sita Poudel", bloodGroup: "AB+", location: "Patan", lat: 27.6726, lng: 85.3250, lastDonationDate: "2024-03-12", totalDonations: 7, phone: "9871234570" },
-  { id: "dn5", name: "Bikash Rai", bloodGroup: "O-", location: "Koteshwor, Kathmandu", lat: 27.6867, lng: 85.3560, lastDonationDate: "2024-03-08", totalDonations: 2, phone: "9881234571" },
-  { id: "dn6", name: "Anita Gurung", bloodGroup: "A-", location: "Chabahil, Kathmandu", lat: 27.7172, lng: 85.3480, lastDonationDate: "2024-03-05", totalDonations: 4, phone: "9891234572" },
-  { id: "dn7", name: "Dipesh Pokhrel", bloodGroup: "B+", location: "Balaju, Kathmandu", lat: 27.7310, lng: 85.2990, lastDonationDate: "2024-02-20", totalDonations: 6, phone: "9801234573" },
-  { id: "dn8", name: "Kamala Tamang", bloodGroup: "AB-", location: "Kirtipur", lat: 27.6785, lng: 85.2780, lastDonationDate: "2024-03-01", totalDonations: 3, phone: "9811234574" },
-  { id: "dn9", name: "Rajesh Shrestha", bloodGroup: "O+", location: "Baneshwor, Kathmandu", lat: 27.6929, lng: 85.3370, lastDonationDate: "2024-03-14", totalDonations: 8, phone: "9821234575" },
-  { id: "dn10", name: "Sunita Magar", bloodGroup: "A+", location: "Kalanki, Kathmandu", lat: 27.6952, lng: 85.2810, lastDonationDate: "2024-03-11", totalDonations: 2, phone: "9831234576" },
-  { id: "dn11", name: "Suresh Adhikari", bloodGroup: "B+", location: "Gongabu, Kathmandu", lat: 27.7368, lng: 85.3180, lastDonationDate: "2024-01-18", totalDonations: 4, phone: "9841111222" },
-  { id: "dn12", name: "Maya Lama", bloodGroup: "O-", location: "Naxal, Kathmandu", lat: 27.7183, lng: 85.3294, lastDonationDate: "2024-02-05", totalDonations: 2, phone: "9852223333" },
-  { id: "dn13", name: "Prakash KC", bloodGroup: "A-", location: "Tripureshwor", lat: 27.6982, lng: 85.3104, lastDonationDate: "2024-03-22", totalDonations: 9, phone: "9863334444" },
-  { id: "dn14", name: "Nirmala Basnet", bloodGroup: "AB+", location: "Maharajgunj", lat: 27.7356, lng: 85.3378, lastDonationDate: "2024-03-19", totalDonations: 3, phone: "9874445555" },
-  { id: "dn15", name: "Binod Shrestha", bloodGroup: "B-", location: "Bhaisepati, Lalitpur", lat: 27.6480, lng: 85.3010, lastDonationDate: "2024-02-14", totalDonations: 5, phone: "9885556666" },
-];
-
-const DEFAULT_CENTER = { lat: 27.7172, lng: 85.3240 }; // Kathmandu center
-
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
-const getInitials = (name: string) =>
-  name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-
-const getDonorTier = (donations: number) => {
-  if (donations >= 7) return { label: "Platinum", styles: "text-purple-700 bg-purple-50 border-purple-200" };
-  if (donations >= 5) return { label: "Gold", styles: "text-amber-700 bg-amber-50 border-amber-200" };
-  if (donations >= 3) return { label: "Silver", styles: "text-slate-700 bg-slate-50 border-slate-200" };
-  return { label: "Bronze", styles: "text-amber-900 bg-amber-100 border-amber-300" };
-};
-
-// Haversine distance in km
-function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-    Math.cos((lat2 * Math.PI) / 180) *
-    Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
+import {
+  BLOOD_GROUPS,
+  MOCK_DONORS,
+  LOW_STOCK_GROUPS,
+  DEFAULT_MAP_CENTER,
+  getInitials,
+  getDonorTier,
+  haversineKm,
+  type BloodGroup,
+  type Donor,
+} from "@/lib/data";
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
 function useToast() {
@@ -103,7 +51,7 @@ export default function BloodSearchPage() {
   const filtered = MOCK_DONORS.filter((d) => {
     if (selectedGroup !== "all" && d.bloodGroup !== selectedGroup) return false;
     if (locationQuery && !d.location.toLowerCase().includes(locationQuery.toLowerCase())) return false;
-    if (clickedPos) {
+    if (clickedPos && d.lat !== undefined && d.lng !== undefined) {
       const dist = haversineKm(clickedPos.lat, clickedPos.lng, d.lat, d.lng);
       if (dist > radius) return false;
     }
@@ -140,7 +88,7 @@ export default function BloodSearchPage() {
     leafletRef.current = L;
 
     const map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: true }).setView(
-      [DEFAULT_CENTER.lat, DEFAULT_CENTER.lng],
+      [DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng],
       13
     );
 
@@ -214,6 +162,7 @@ export default function BloodSearchPage() {
     MOCK_DONORS.forEach((d) => {
       if (selectedGroup !== "all" && d.bloodGroup !== selectedGroup) return;
       if (locationQuery && !d.location.toLowerCase().includes(locationQuery.toLowerCase())) return;
+      if (d.lat === undefined || d.lng === undefined) return;
 
       const dist = haversineKm(clickedPos.lat, clickedPos.lng, d.lat, d.lng);
       const inRadius = dist <= radius;
@@ -280,12 +229,12 @@ export default function BloodSearchPage() {
         </div>
 
         {/* Low Stock Suggestions */}
-        {LOW_STOCK.length > 0 && (
+        {LOW_STOCK_GROUPS.length > 0 && (
           <div className="flex flex-wrap items-center gap-2.5 bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
             <Droplets size={15} className="text-red-800" />
             <span className="text-sm font-medium text-red-800">Suggested — search donors for low-stock groups:</span>
             <div className="flex flex-wrap gap-2">
-              {LOW_STOCK.map((g) => (
+              {LOW_STOCK_GROUPS.map((g) => (
                 <button
                   key={g}
                   onClick={() => setSelectedGroup(selectedGroup === g ? "all" : g)}
@@ -463,7 +412,7 @@ export default function BloodSearchPage() {
                     <span>Last: {d.lastDonationDate}</span>
                     <span>·</span>
                     <span>{d.totalDonations}× donated</span>
-                    {clickedPos && (
+                    {clickedPos && d.lat !== undefined && d.lng !== undefined && (
                       <>
                         <span>·</span>
                         <span className="text-red-800 font-semibold">
@@ -530,7 +479,7 @@ export default function BloodSearchPage() {
         {/* ── Donor Detail Sheet ── */}
         {sheetDonor && (() => {
           const tier = getDonorTier(sheetDonor.totalDonations);
-          const dist = clickedPos
+          const dist = clickedPos && sheetDonor.lat !== undefined && sheetDonor.lng !== undefined
             ? haversineKm(clickedPos.lat, clickedPos.lng, sheetDonor.lat, sheetDonor.lng)
             : null;
 
