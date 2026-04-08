@@ -13,39 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast as sonnerToast } from "sonner";
-
-// ─── TYPES ────────────────────────────────────────────────────────────────────
-type BloodGroup = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
-type DonationType = "person" | "organization";
-
-type Donation = {
-  id: string;
-  donationType: DonationType;
-  name: string;
-  bloodGroup: BloodGroup;
-  units: number;
-  donationDate: string;
-  location: string;
-  contact?: string;
-};
-
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
-const BLOOD_GROUPS: BloodGroup[] = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-
-const MOCK_DONATIONS: Donation[] = [
-  { id: "d1", donationType: "person", name: "Aarav Sharma", bloodGroup: "O+", units: 1, donationDate: "2024-03-15", location: "Kathmandu Blood Bank", contact: "9841234567" },
-  { id: "d2", donationType: "person", name: "Priya Thapa", bloodGroup: "A+", units: 1, donationDate: "2024-03-14", location: "Patan Hospital", contact: "9851234568" },
-  { id: "d3", donationType: "organization", name: "Red Cross Nepal", bloodGroup: "B+", units: 5, donationDate: "2024-03-13", location: "Central Blood Bank", contact: "01-4228094" },
-  { id: "d4", donationType: "person", name: "Rohan Karki", bloodGroup: "AB+", units: 1, donationDate: "2024-03-12", location: "Bir Hospital", contact: "9861234569" },
-  { id: "d5", donationType: "person", name: "Sita Poudel", bloodGroup: "O-", units: 1, donationDate: "2024-03-11", location: "Kathmandu Blood Bank", contact: "9871234570" },
-  { id: "d6", donationType: "organization", name: "Lions Club Kathmandu", bloodGroup: "A-", units: 3, donationDate: "2024-03-10", location: "Teaching Hospital", contact: "01-4412303" },
-  { id: "d7", donationType: "person", name: "Bikash Rai", bloodGroup: "B-", units: 1, donationDate: "2024-03-09", location: "Patan Hospital", contact: "9881234571" },
-  { id: "d8", donationType: "person", name: "Anita Gurung", bloodGroup: "AB-", units: 1, donationDate: "2024-03-08", location: "Bir Hospital", contact: "9891234572" },
-  { id: "d9", donationType: "person", name: "Dipesh Pokhrel", bloodGroup: "O+", units: 1, donationDate: "2024-03-07", location: "Kathmandu Blood Bank", contact: "9801234573" },
-  { id: "d10", donationType: "organization", name: "Rotary Club Lalitpur", bloodGroup: "A+", units: 4, donationDate: "2024-03-06", location: "Central Blood Bank", contact: "01-5522334" },
-  { id: "d11", donationType: "person", name: "Kamala Tamang", bloodGroup: "B+", units: 1, donationDate: "2024-03-05", location: "Teaching Hospital", contact: "9811234574" },
-  { id: "d12", donationType: "person", name: "Rajesh Shrestha", bloodGroup: "O+", units: 1, donationDate: "2024-03-04", location: "Patan Hospital", contact: "9821234575" },
-];
+import { BLOOD_GROUPS, MOCK_DONATIONS, type BloodGroup, type DonationType, type Donation } from "@/lib/data";
 
 let donationCounter = MOCK_DONATIONS.length + 1;
 
