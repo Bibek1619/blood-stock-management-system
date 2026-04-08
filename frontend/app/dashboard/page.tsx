@@ -13,26 +13,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from 'next/link';
+import { MOCK_BLOOD_STOCK, MOCK_DONORS, MOCK_EVENTS, PIE_COLORS, EVENT_STATUS_CONFIG, LOW_STOCK_THRESHOLD, type BloodStock, type Donor, type BloodEvent } from "@/lib/data";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type BloodStock = {
-  bloodGroup: string;
-  units: number;
-};
-
-type Donor = {
-  name: string;
-  bloodGroup: string;
-  location: string;
-  totalDonations: number;
-};
-
-type Event = {
-  title: string;
-  location: string;
-  status: 'Upcoming' | 'Running' | 'Completed';
-};
-
 type ChartData = {
   name: string;
   units: number;
@@ -41,43 +24,6 @@ type ChartData = {
 type PieData = {
   name: string;
   value: number;
-};
-
-// ── Mock Data ──────────────────────────────────────────────────────────────────
-const MOCK_BLOOD_STOCK: BloodStock[] = [
-  { bloodGroup: 'A+',  units: 12 },
-  { bloodGroup: 'A-',  units: 4  },
-  { bloodGroup: 'B+',  units: 8  },
-  { bloodGroup: 'B-',  units: 2  },
-  { bloodGroup: 'O+',  units: 15 },
-  { bloodGroup: 'O-',  units: 3  },
-  { bloodGroup: 'AB+', units: 6  },
-  { bloodGroup: 'AB-', units: 1  },
-];
-
-const MOCK_DONORS: Donor[] = [
-  { name: 'Aarav Sharma',  bloodGroup: 'O+',  location: 'Kathmandu', totalDonations: 5 },
-  { name: 'Priya Thapa',   bloodGroup: 'A+',  location: 'Lalitpur',  totalDonations: 3 },
-  { name: 'Rohan Karki',   bloodGroup: 'B-',  location: 'Bhaktapur', totalDonations: 1 },
-  { name: 'Sita Poudel',   bloodGroup: 'AB+', location: 'Pokhara',   totalDonations: 7 },
-  { name: 'Bikash Rai',    bloodGroup: 'O-',  location: 'Kathmandu', totalDonations: 2 },
-  { name: 'Anita Gurung',  bloodGroup: 'A-',  location: 'Chitwan',   totalDonations: 4 },
-];
-
-const MOCK_EVENTS: Event[] = [
-  { title: 'Community Blood Drive',    location: 'Ratna Park, Kathmandu', status: 'Upcoming'  },
-  { title: 'Hospital Collection Day',  location: 'Bir Hospital',          status: 'Running'   },
-  { title: 'University Camp',          location: 'TU Campus, Kirtipur',   status: 'Upcoming'  },
-  { title: 'Corporate Donation Drive', location: 'Durbarmarg Office Hub', status: 'Completed' },
-];
-
-// ── Config ─────────────────────────────────────────────────────────────────────
-const PIE_COLORS = ['#7F1D1D','#991B1B','#B91C1C','#C04040','#DC2626','#E04A4A','#EF4444','#F87171'];
-
-const EVENT_STATUS = {
-  Upcoming:  { bg: 'rgba(59,130,246,0.08)',  text: '#1d4ed8', border: 'rgba(59,130,246,0.2)'  },
-  Running:   { bg: 'rgba(21,128,61,0.08)',   text: '#15803d', border: 'rgba(21,128,61,0.2)'   },
-  Completed: { bg: 'rgba(100,116,139,0.08)', text: '#475569', border: 'rgba(100,116,139,0.2)' },
 };
 
 // ── Custom Tooltip ─────────────────────────────────────────────────────────────
@@ -101,7 +47,7 @@ export default function DashboardPage() {
   const [lowStockAlerts, setLowStockAlerts]         = useState<BloodStock[]>([]);
   const [bloodDistribution, setBloodDistribution]   = useState<PieData[]>([]);
   const [recentDonors, setRecentDonors]             = useState<Donor[]>([]);
-  const [recentEvents, setRecentEvents]             = useState<Event[]>([]);
+  const [recentEvents, setRecentEvents]             = useState<BloodEvent[]>([]);
   const [loading, setLoading]                       = useState(true);
 
   useEffect(() => {
@@ -110,7 +56,7 @@ export default function DashboardPage() {
       const donors       = MOCK_DONORS;
       const events       = MOCK_EVENTS;
 
-      const lowStock = bloodAllData.filter((p) => p.units < 5);
+      const lowStock = bloodAllData.filter((p) => p.units < LOW_STOCK_THRESHOLD);
       setLowStockAlerts(lowStock);
       setBloodData(bloodAllData.map((p) => ({ name: p.bloodGroup, units: p.units })));
       setBloodDistribution(bloodAllData.map((p) => ({ name: p.bloodGroup, value: p.units })));
@@ -392,7 +338,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="flex flex-col gap-2">
               {recentEvents.map((event, i) => {
-                const es = EVENT_STATUS[event.status] ?? EVENT_STATUS.Completed;
+                const es = EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG] ?? EVENT_STATUS_CONFIG.Completed;
                 return (
                   <div key={i} className="flex items-center justify-between p-2.5 px-3 bg-slate-50 rounded-[9px] border border-slate-100 gap-2.5">
                     <div className="flex-1 min-w-0">
