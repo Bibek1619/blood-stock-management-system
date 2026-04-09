@@ -1,0 +1,377 @@
+// Blood Bank Management System - Complete Database Schema
+// Analyzed from all frontend pages and requirements
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// USER & AUTHENTICATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String
+  role      Role     @default(DONOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  donor             Donor?
+  donations         Donation[]
+  certificates      Certificate[]
+  eventParticipations EventParticipant[]
+  eventVolunteers   EventVolunteer[]
+  bloodIssues       BloodIssue[]
+
+  @@index([email])
+  @@index([phone])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DONOR MANAGEMENT (from donors page)
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Donor {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  bloodGroup      BloodGroup
+  location        String
+  city            String?
+  address         String?
+  dateOfBirth     DateTime?
+  
+  // Geolocation for blood search map
+  latitude        Float?
+  longitude       Float?
+  
+  // Donation tracking
+  lastDonationDate DateTime?
+  totalDonations  Int       @default(0)
+  isEligible      Boolean   @default(true)
+  
+  // Medical info
+  weight          Float?
+  medicalNotes    String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bloodPacks      BloodPack[]
+
+  @@index([bloodGroup])
+  @@index([location])
+  @@index([isEligible])
+  @@index([latitude, longitude])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BLOOD STOCK MANAGEMENT (from blood-stock page)
+// ═══════════════════════════════════════════════════════════════════════════
+
+model BloodPack {
+  id              String      @id @default(cuid())
+  packCode        String      @unique
+  bloodGroup      BloodGroup
+  donorId         String?
+  
+  // Dates
+  collectionDate  DateTime
+  expiryDate      DateTime
+  
+  // Status tracking
+  status          PackStatus  @default(AVAILABLE)
+  
+  // Location
+  storageLocation String?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  donor           Donor?      @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  bloodIssueItems BloodIssueItem[]
+
+  @@index([bloodGroup])
+  @@index([status])
+  @@index([expiryDate])
+  @@index([packCode])
+}
+
+// Aggregate stock view (for dashboard)
+model BloodStockSummary {
+  id          String     @id @default(cuid())
+  bloodGroup  BloodGroup @unique
+  available   Int        @default(0)
+  used        Int        @default(0)
+  expired     Int        @default(0)
+  total       Int        @default(0)
+  lastUpdated DateTime   @default(now())
+  
+  @@index([bloodGroup])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BLOOD DONATION & ISSUANCE (from blood-donate pages)
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Donation {
+  id              String         @id @default(cuid())
+  userId          String
+  donorId         String?
+  
+  // Donation details
+  bloodGroup      BloodGroup
+  units           Int            @default(1)
+  donationDate    DateTime       @default(now())
+  location        String
+  
+  // Type: person or organization
+  donationType    DonationType   @default(PERSON)
+  
+  // Status
+  status          DonationStatus @default(COMPLETED)
+  
+  // Additional info
+  notes           String?
+  contact         String?
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([bloodGroup])
+  @@index([donationDate])
+  @@index([donationType])
+}
+
+// Blood Issue/Distribution (from donate-form page)
+model BloodIssue {
+  id              String         @id @default(cuid())
+  issueCode       String         @unique
+  
+  // Recipient details
+  recipientName   String
+  recipientType   RecipientType  @default(PERSON)
+  bloodGroup      BloodGroup
+  unitsRequested  Int
+  unitsIssued     Int
+  
+  // Contact
+  contact         String
+  
+  // Issue details
+  issueDate       DateTime       @default(now())
+  issuedBy        String?
+  
+  // Status
+  status          IssueStatus    @default(COMPLETED)
+  
+  notes           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  issuedBy_user   User?          @relation(fields: [issuedBy], references: [id], onDelete: SetNull)
+  bloodPacksIssued BloodIssueItem[]
+
+  @@index([bloodGroup])
+  @@index([issueDate])
+  @@index([recipientType])
+}
+
+// Junction table for blood packs issued
+model BloodIssueItem {
+  id            String     @id @default(cuid())
+  bloodIssueId  String
+  bloodPackId   String
+  createdAt     DateTime   @default(now())
+
+  bloodIssue    BloodIssue @relation(fields: [bloodIssueId], references: [id], onDelete: Cascade)
+  bloodPack     BloodPack  @relation(fields: [bloodPackId], references: [id], onDelete: Cascade)
+
+  @@unique([bloodIssueId, bloodPackId])
+  @@index([bloodIssueId])
+  @@index([bloodPackId])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EVENTS MANAGEMENT (from events page)
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Event {
+  id              String      @id @default(cuid())
+  title           String
+  description     String?
+  location        String
+  eventDate       DateTime
+  
+  // Status
+  status          EventStatus @default(UPCOMING)
+  
+  // Capacity
+  capacity        Int?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  participants    EventParticipant[]
+  volunteers      EventVolunteer[]
+
+  @@index([eventDate])
+  @@index([status])
+}
+
+// Event participants (donors who will donate)
+model EventParticipant {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String
+  status    ParticipantStatus @default(REGISTERED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+}
+
+// Event volunteers (helpers)
+model EventVolunteer {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String
+  role      String?
+  status    VolunteerStatus @default(REGISTERED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CERTIFICATES (from certificates page)
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Certificate {
+  id                String          @id @default(cuid())
+  certificateNumber String          @unique
+  
+  // Type: donation or volunteer
+  type              CertificateType @default(DONATION)
+  
+  // Recipient
+  userId            String
+  recipientName     String
+  
+  // For volunteer certificates
+  eventTitle        String?
+  volunteerId       String?
+  
+  // Issue details
+  issueDate         DateTime        @default(now())
+  
+  createdAt         DateTime        @default(now())
+
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([certificateNumber])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════════════════════════════════════════
+
+enum Role {
+  DONOR
+  ADMIN
+  STAFF
+}
+
+enum BloodGroup {
+  A_POSITIVE
+  A_NEGATIVE
+  B_POSITIVE
+  B_NEGATIVE
+  AB_POSITIVE
+  AB_NEGATIVE
+  O_POSITIVE
+  O_NEGATIVE
+}
+
+enum PackStatus {
+  AVAILABLE
+  USED
+  EXPIRED
+  RESERVED
+}
+
+enum DonationType {
+  PERSON
+  ORGANIZATION
+}
+
+enum RecipientType {
+  PERSON
+  ORGANIZATION
+  HOSPITAL
+}
+
+enum DonationStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum IssueStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum EventStatus {
+  UPCOMING
+  RUNNING
+  COMPLETED
+  CANCELLED
+}
+
+enum ParticipantStatus {
+  REGISTERED
+  ATTENDED
+  CANCELLED
+  NO_SHOW
+}
+
+enum VolunteerStatus {
+  REGISTERED
+  ATTENDED
+  CANCELLED
+  NO_SHOW
+}
+
+enum CertificateType {
+  DONATION
+  VOLUNTEER
+}
+ 
