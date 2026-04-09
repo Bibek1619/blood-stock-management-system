@@ -1,46 +1,26 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
-  Heart, Plus, Search, Calendar, User, Building2, Droplets, TrendingUp, Users, CheckCircle2
+  Heart, Plus, Search, User, Building2, Droplets, TrendingUp, CheckCircle2
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { toast as sonnerToast } from "sonner";
-import { BLOOD_GROUPS, MOCK_DONATIONS, type BloodGroup, type DonationType, type Donation } from "@/lib/data";
-
-let donationCounter = MOCK_DONATIONS.length + 1;
+import { BLOOD_GROUPS } from "@/lib/data";
+import { useData } from "@/lib/data-store";
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function BloodDonatePage() {
-  const [donations, setDonations] = useState<Donation[]>(MOCK_DONATIONS);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const router = useRouter();
+  const { donations } = useData();
   const [filterType, setFilterType] = useState<string>("all");
   const [filterBloodGroup, setFilterBloodGroup] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [newDonation, setNewDonation] = useState<{
-    donationType: string;
-    name: string;
-    bloodGroup: string;
-    units: string;
-    donationDate: string;
-    location: string;
-    contact: string;
-  }>({
-    donationType: "person",
-    name: "",
-    bloodGroup: "",
-    units: "1",
-    donationDate: new Date().toISOString().split('T')[0],
-    location: "",
-    contact: "",
-  });
 
   // Calculate stats
   const totalUnits = donations.reduce((sum, d) => sum + d.units, 0);
@@ -52,43 +32,12 @@ export default function BloodDonatePage() {
   const filteredDonations = donations.filter((d) => {
     if (filterType !== "all" && d.donationType !== filterType) return false;
     if (filterBloodGroup !== "all" && d.bloodGroup !== filterBloodGroup) return false;
-    if (searchQuery && !d.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (searchQuery && !d.recipientName.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
-  const handleAddDonation = () => {
-    if (!newDonation.name || !newDonation.bloodGroup || !newDonation.location) {
-      sonnerToast.error("Please fill all required fields");
-      return;
-    }
-
-    const donation: Donation = {
-      id: `d${donationCounter++}`,
-      donationType: newDonation.donationType as DonationType,
-      name: newDonation.name,
-      bloodGroup: newDonation.bloodGroup as BloodGroup,
-      units: parseInt(newDonation.units) || 1,
-      donationDate: newDonation.donationDate,
-      location: newDonation.location,
-      contact: newDonation.contact || undefined,
-    };
-
-    setDonations([donation, ...donations]);
-    setDialogOpen(false);
-    setNewDonation({
-      donationType: "person",
-      name: "",
-      bloodGroup: "",
-      units: "1",
-      donationDate: new Date().toISOString().split('T')[0],
-      location: "",
-      contact: "",
-    });
-    sonnerToast.success(`Successfully recorded ${donation.units} unit(s) from ${donation.name}`);
-  };
-
   return (
-    <div className="w-full p-6 md:p-8 bg-background min-h-[calc(100vh-3.5rem)]">
+    <div className="w-full p-6 md:p-8 bg-background min-h-[calc(100vh-3.5rem)]" suppressHydrationWarning>
       {/* ── Page Header ── */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -100,115 +49,12 @@ export default function BloodDonatePage() {
             <p className="text-[13px] text-slate-500 mt-[2px]">Track and manage blood donation records</p>
           </div>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#7F1D1D] hover:bg-[#991B1B]">
-              <Plus size={14} className="mr-1.5" /> Record Donation
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <div className="flex items-center gap-2.5">
-                <div className="w-[34px] h-[34px] rounded-[9px] bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.2)] flex items-center justify-center">
-                  <Heart size={16} color="#7F1D1D" />
-                </div>
-                <DialogTitle>Record Blood Donation</DialogTitle>
-              </div>
-            </DialogHeader>
-            <div className="flex flex-col gap-4 mt-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="donationType">Donation Type <span className="text-[#7F1D1D]">*</span></Label>
-                <Select value={newDonation.donationType} onValueChange={(value) => setNewDonation({ ...newDonation, donationType: value })}>
-                  <SelectTrigger id="donationType">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="person">Individual Donor</SelectItem>
-                    <SelectItem value="organization">Organization</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="name">
-                  {newDonation.donationType === "person" ? "Donor Name" : "Organization Name"} <span className="text-[#7F1D1D]">*</span>
-                </Label>
-                <Input
-                  id="name"
-                  placeholder={newDonation.donationType === "person" ? "Enter donor name" : "Enter organization name"}
-                  value={newDonation.name}
-                  onChange={(e) => setNewDonation({ ...newDonation, name: e.target.value })}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="bloodGroup">Blood Group <span className="text-[#7F1D1D]">*</span></Label>
-                  <Select value={newDonation.bloodGroup} onValueChange={(value) => setNewDonation({ ...newDonation, bloodGroup: value })}>
-                    <SelectTrigger id="bloodGroup">
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BLOOD_GROUPS.map((g) => (
-                        <SelectItem key={g} value={g}>{g}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="units">Units <span className="text-[#7F1D1D]">*</span></Label>
-                  <Input
-                    id="units"
-                    type="number"
-                    min="1"
-                    value={newDonation.units}
-                    onChange={(e) => setNewDonation({ ...newDonation, units: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="location">Location <span className="text-[#7F1D1D]">*</span></Label>
-                <Input
-                  id="location"
-                  placeholder="e.g., Kathmandu Blood Bank"
-                  value={newDonation.location}
-                  onChange={(e) => setNewDonation({ ...newDonation, location: e.target.value })}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="donationDate">Donation Date <span className="text-[#7F1D1D]">*</span></Label>
-                  <Input
-                    id="donationDate"
-                    type="date"
-                    value={newDonation.donationDate}
-                    onChange={(e) => setNewDonation({ ...newDonation, donationDate: e.target.value })}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="contact">Contact (Optional)</Label>
-                  <Input
-                    id="contact"
-                    placeholder="Phone number"
-                    value={newDonation.contact}
-                    onChange={(e) => setNewDonation({ ...newDonation, contact: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <Button 
-                className="w-full bg-[#7F1D1D] hover:bg-[#991B1B] mt-2"
-                onClick={handleAddDonation}
-              >
-                Record Donation
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          className="bg-[#7F1D1D] hover:bg-[#991B1B]"
+          onClick={() => router.push('/dashboard/blood-donate/donate-form')}
+        >
+          <Plus size={14} className="mr-1.5" /> Record Donation
+        </Button>
       </div>
 
       {/* ── Summary Stat Cards ── */}
@@ -292,8 +138,8 @@ export default function BloodDonatePage() {
                     {donation.donationType === "person" ? <User size={18} /> : <Building2 size={18} />}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">{donation.name}</p>
-                    <p className="text-xs text-slate-500">{donation.location} · {new Date(donation.donationDate).toLocaleDateString()}</p>
+                    <p className="text-sm font-semibold text-slate-900">{donation.recipientName}</p>
+                    <p className="text-xs text-slate-500">{new Date(donation.donationDate).toLocaleDateString()}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -393,14 +239,14 @@ export default function BloodDonatePage() {
                         {donation.donationType === "person" ? "Individual" : "Organization"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-medium">{donation.name}</TableCell>
+                    <TableCell className="font-medium">{donation.recipientName}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="bg-[rgba(127,29,29,0.08)] text-[#7F1D1D] border-[rgba(127,29,29,0.2)]">
                         {donation.bloodGroup}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-slate-600">{donation.location}</TableCell>
-                    <TableCell className="text-xs text-slate-500">{donation.contact || "—"}</TableCell>
+                    <TableCell className="text-sm text-slate-600">—</TableCell>
+                    <TableCell className="text-xs text-slate-500">—</TableCell>
                     <TableCell className="text-right font-semibold">{donation.units}</TableCell>
                   </TableRow>
                 ))

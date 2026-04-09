@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import { Plus, MoreHorizontal, Search, AlertTriangle, Droplets, X, TrendingDown, CheckCircle2, Clock } from "lucide-react";
+import { Plus, MoreHorizontal, Search, AlertTriangle, Droplets, TrendingDown, CheckCircle2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,29 +14,21 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { toast as sonnerToast } from "sonner";
 import {
   BLOOD_GROUPS,
-  MOCK_DONORS,
-  MOCK_BLOOD_PACKS,
   PACK_STATUS_CONFIG,
   getStockByGroup,
   getLowStockGroups,
-  getDonorById,
   type BloodGroup,
   type PackStatus,
   type BloodPack,
-  type Donor,
-  type StockByGroup,
 } from "@/lib/data";
+import { useData } from "@/lib/data-store";
 
 const LOW_STOCK_THRESHOLD = 2;
 
-let packCounter = MOCK_BLOOD_PACKS.length + 1;
-const generatePackCode = () => {
-  const n = String(packCounter).padStart(5, "0");
-  return `BP-${new Date().getFullYear()}${n}`;
-};
+let packCounter = 1000;
 
 export default function BloodStockPage() {
-  const [bloodPacks, setBloodPacks]     = useState<BloodPack[]>(MOCK_BLOOD_PACKS);
+  const { bloodPacks, addBloodPack, updateBloodPackStatus, donors } = useData();
   const [filterGroup, setFilterGroup]   = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery]   = useState<string>("");
@@ -72,30 +64,29 @@ export default function BloodStockPage() {
       sonnerToast.error("Please fill all required fields");
       return;
     }
-    const pack: BloodPack = {
-      id:             `bp${Date.now()}`,
-      packCode:       generatePackCode(),
+    
+    addBloodPack({
       bloodGroup:     newPack.bloodGroup as BloodGroup,
       donorId:        newPack.donorId,
       collectionDate: newPack.collectionDate,
       expiryDate:     newPack.expiryDate,
       status:         "Available" as PackStatus,
-    };
+    });
+    
     packCounter++;
-    setBloodPacks((prev) => [pack, ...prev]);
     setDialogOpen(false);
     setNewPack({ bloodGroup: "", collectionDate: "", expiryDate: "", donorId: "", status: "Available" });
     sonnerToast.success("Blood pack added successfully");
   };
 
   const updateStatus = (id: string, status: PackStatus) => {
-    setBloodPacks((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
+    updateBloodPackStatus(id, status);
     setOpenMenuId(null);
     sonnerToast.success(`Marked as ${status}`);
   };
 
   return (
-    <div className="w-full p-2 md:p-2 bg-background min-h-[calc(100vh-3.5rem)]">
+    <div className="w-full p-2 md:p-2 bg-background min-h-[calc(100vh-3.5rem)]" suppressHydrationWarning>
       {/* ── Page Header ── */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -145,7 +136,7 @@ export default function BloodStockPage() {
                     <SelectValue placeholder="Select donor (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    {MOCK_DONORS.map((d) => (
+                    {donors.map((d) => (
                       <SelectItem key={d.id} value={d.id}>{d.name} ({d.bloodGroup})</SelectItem>
                     ))}
                   </SelectContent>
@@ -336,7 +327,7 @@ export default function BloodStockPage() {
           </TableHeader>
           <TableBody>
             {filtered.slice(0, 20).map((p) => {
-              const donor = getDonorById(p.donorId);
+              const donor = donors.find(d => d.id === p.donorId);
               const ss    = PACK_STATUS_CONFIG[p.status] ?? PACK_STATUS_CONFIG.Available;
               return (
                 <TableRow key={p.id}>
@@ -439,7 +430,7 @@ export default function BloodStockPage() {
                   onChange={(e) => setNewPack({ ...newPack, donorId: e.target.value })}
                 >
                   <option value="">Select donor (optional)</option>
-                  {MOCK_DONORS.map((d) => (
+                  {donors.map((d) => (
                     <option key={d.id} value={d.id}>{d.name} ({d.bloodGroup})</option>
                   ))}
                 </select>

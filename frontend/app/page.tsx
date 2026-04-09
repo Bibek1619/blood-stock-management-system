@@ -4,7 +4,7 @@ import { Droplets, ArrowRight } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-red-950 via-red-900 to-rose-950 flex items-center justify-center overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-red-950 via-red-900 to-rose-950 flex items-center justify-center overflow-hidden" suppressHydrationWarning>
       {/* Subtle Background Animation */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-red-500/20 rounded-full blur-3xl animate-pulse" />

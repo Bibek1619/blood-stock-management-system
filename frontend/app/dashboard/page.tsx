@@ -13,7 +13,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from 'next/link';
-import { MOCK_BLOOD_STOCK, MOCK_DONORS, MOCK_EVENTS, PIE_COLORS, EVENT_STATUS_CONFIG, LOW_STOCK_THRESHOLD, type BloodStock, type Donor, type BloodEvent } from "@/lib/data";
+import { MOCK_DONORS, MOCK_EVENTS, PIE_COLORS, EVENT_STATUS_CONFIG, LOW_STOCK_THRESHOLD, type Donor, type BloodEvent } from "@/lib/data";
+import { useData } from "@/lib/data-store";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type ChartData = {
@@ -39,12 +40,14 @@ const CustomBarTooltip = ({ active, payload, label }: any) => {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function DashboardPage() {
+  const { bloodPacks, getStockByGroup } = useData();
+  
   const [stats, setStats] = useState({
     totalDonors: 0, totalBloodUnits: 0, lowStockUnits: 0,
     upcomingEvents: 0, totalDonations: 0, activeDonors: 0,
   });
   const [bloodData, setBloodData]                   = useState<ChartData[]>([]);
-  const [lowStockAlerts, setLowStockAlerts]         = useState<BloodStock[]>([]);
+  const [lowStockAlerts, setLowStockAlerts]         = useState<{ bloodGroup: string; units: number }[]>([]);
   const [bloodDistribution, setBloodDistribution]   = useState<PieData[]>([]);
   const [recentDonors, setRecentDonors]             = useState<Donor[]>([]);
   const [recentEvents, setRecentEvents]             = useState<BloodEvent[]>([]);
@@ -52,9 +55,15 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const bloodAllData = MOCK_BLOOD_STOCK;
+      const stockByGroup = getStockByGroup();
       const donors       = MOCK_DONORS;
       const events       = MOCK_EVENTS;
+
+      // Convert stock data to array format
+      const bloodAllData = Object.entries(stockByGroup).map(([bloodGroup, data]) => ({
+        bloodGroup,
+        units: data.available
+      }));
 
       const lowStock = bloodAllData.filter((p) => p.units < LOW_STOCK_THRESHOLD);
       setLowStockAlerts(lowStock);
@@ -73,7 +82,7 @@ export default function DashboardPage() {
       setLoading(false);
     }, 400);
     return () => clearTimeout(timer);
-  }, []);
+  }, [bloodPacks, getStockByGroup]);
 
   if (loading) {
     return (

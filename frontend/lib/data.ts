@@ -174,7 +174,7 @@ function generatePackCode(bloodGroup: string, index: number): string {
   return `BP-${bloodGroup}-${year}-${String(index).padStart(4, "0")}`;
 }
 
-// Generate blood packs based on stock counts
+// Generate blood packs based on stock counts (deterministic - no random)
 function generateBloodPacks(): BloodPack[] {
   const stockCounts: Record<BloodGroup, number> = {
     "A+": 12, "A-": 3, "B+": 8, "B-": 2,
@@ -184,20 +184,26 @@ function generateBloodPacks(): BloodPack[] {
   const packs: BloodPack[] = [];
   let packIndex = 1;
 
-  BLOOD_GROUPS.forEach((bg) => {
+  BLOOD_GROUPS.forEach((bg, bgIndex) => {
     for (let i = 0; i < stockCounts[bg]; i++) {
-      const collDate = new Date(2026, Math.floor(Math.random() * 3), Math.floor(Math.random() * 28) + 1);
+      // Use deterministic dates based on index instead of random
+      const dayOffset = (packIndex % 28) + 1;
+      const monthOffset = (packIndex % 3);
+      const collDate = new Date(2026, monthOffset, dayOffset);
       const expDate = new Date(collDate);
       expDate.setDate(expDate.getDate() + 42);
 
-      const statuses: PackStatus[] = ["Available", "Available", "Available", "Available", "Used", "Expired"];
-      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      // Deterministic status - most are Available (only mark a few as Used/Expired)
+      let status: PackStatus = "Available";
+      // Only mark specific pack indices as Used or Expired (not based on modulo of packIndex)
+      if (packIndex === 25 || packIndex === 40) status = "Used";
+      else if (packIndex === 50) status = "Expired";
 
       packs.push({
         id: `bp${packIndex}`,
         packCode: generatePackCode(bg, packIndex),
         bloodGroup: bg,
-        donorId: MOCK_DONORS[Math.floor(Math.random() * MOCK_DONORS.length)].id,
+        donorId: MOCK_DONORS[(packIndex - 1) % MOCK_DONORS.length].id,
         collectionDate: collDate.toISOString().split("T")[0],
         expiryDate: expDate.toISOString().split("T")[0],
         status,

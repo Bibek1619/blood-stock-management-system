@@ -36,7 +36,7 @@ export default function DashboardLayout({
           </header>
 
           {/* ── Page content ────────────────────────────────────────── */}
-          <div className="flex flex-1 flex-col gap-4 p-6 md:p-8 bg-[#fafafc]">
+          <div className="flex flex-1 flex-col gap-4 p-6 md:p-8 bg-[#fafafc]" suppressHydrationWarning>
             {children}
           </div>
         </SidebarInset>

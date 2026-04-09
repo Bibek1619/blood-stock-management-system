@@ -4,7 +4,9 @@ import type { Certificate } from "@/lib/data-store";
 /* ─────────────────────────────────────────────
 
 ───────────────────────────────────────────── */
-export function CertificatePreview({ cert }: { cert: Certificate }) {
+export function CertificatePreview({ cert }: { cert: Certificate | null }) {
+  if (!cert) return null;
+  
   return (
    <div
   style={{
@@ -52,7 +54,7 @@ export function CertificatePreview({ cert }: { cert: Certificate }) {
           ))}
         </div>
         <p className="text-center text-[12px] text-gray-500 pb-5">
-          मिति: {cert.date} | प्रमाणपत्र नं: {cert.id.toUpperCase()}
+          मिति: {cert.date} {' | '} प्रमाणपत्र नं: {cert.id.toUpperCase()}
         </p>
       </div>
     </div>
@@ -151,7 +153,9 @@ function BloodDrop() {
 /* ─────────────────────────────────────────────
    ID Card - Preview (with Tailwind)
 ───────────────────────────────────────────── */
-export function IDCardPreview({ cert }: { cert: Certificate }) {
+export function IDCardPreview({ cert }: { cert: Certificate | null }) {
+  if (!cert) return null;
+  
   return (
     <div
      className="border-2 border-slate-200 rounded-xl overflow-hidden w-full max-w-lg mx-auto shadow-xl"
