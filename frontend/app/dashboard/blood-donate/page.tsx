@@ -22,7 +22,7 @@ export default function BloodDonatePage() {
   const [filterBloodGroup, setFilterBloodGroup] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Calculate stats
+  // Calculate stats=
   const totalUnits = donations.reduce((sum, d) => sum + d.units, 0);
   const totalDonors = donations.filter(d => d.donationType === "person").length;
   const totalOrganizations = donations.filter(d => d.donationType === "organization").length;
