@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import { prisma } from "../lib/prisma";
+import routes from "./routes/index";
+import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -14,7 +16,11 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "Blood Donation API is running" });
 });
 
-// Routes will be added here
+// API Routes
+app.use("/api", routes);
+
+// Error handler (must be last)
+app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {
