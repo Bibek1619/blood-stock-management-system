@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import {
   Heart, Users, Droplet, Calendar, AlertCircle,
-  TrendingUp, Activity, ArrowRight,
+  TrendingUp, Activity, ArrowRight, Home,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -15,6 +15,14 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from 'next/link';
 import { MOCK_DONORS, MOCK_EVENTS, PIE_COLORS, EVENT_STATUS_CONFIG, LOW_STOCK_THRESHOLD, type Donor, type BloodEvent } from "@/lib/data";
 import { useData } from "@/lib/data-store";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type ChartData = {
@@ -94,6 +102,18 @@ export default function DashboardPage() {
 
   return (
     <div className="w-full p-6 md:p-8 bg-slate-50 min-h-[calc(100vh-3.5rem)]">
+      {/* Breadcrumbs */}
+      <div className="mb-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbPage className="flex items-center gap-1">
+                <Home size={14} /> Dashboard
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
 
       {/* ── Page Header ── */}
       <div className="flex items-start justify-between mb-6">

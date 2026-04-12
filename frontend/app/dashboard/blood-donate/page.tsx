@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Heart, Plus, Search, User, Building2, Droplets, TrendingUp, CheckCircle2
+  Heart, Plus, Search, User, Building2, Droplets, TrendingUp, CheckCircle2, Home
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { BLOOD_GROUPS } from "@/lib/data";
 import { useData } from "@/lib/data-store";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function BloodDonatePage() {
@@ -38,6 +46,23 @@ export default function BloodDonatePage() {
 
   return (
     <div className="w-full p-6 md:p-8 bg-background min-h-[calc(100vh-3.5rem)]" suppressHydrationWarning>
+      {/* ── Breadcrumbs ── */}
+      <div className="mb-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/dashboard" className="flex items-center gap-1">
+                <Home size={14} /> Dashboard
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Blood Donations</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+
       {/* ── Page Header ── */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">

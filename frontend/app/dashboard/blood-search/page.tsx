@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Phone, Bell, MapPin, Droplets, Search,
-  Users, X, Navigation, Filter, Award, Calendar, ChevronRight,
+  Users, X, Navigation, Filter, Award, Calendar, ChevronRight, Home,
 } from "lucide-react";
 import {
   BLOOD_GROUPS,
@@ -15,6 +15,14 @@ import {
   type BloodGroup,
   type Donor,
 } from "@/lib/data";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
 function useToast() {
@@ -194,6 +202,22 @@ export default function BloodSearchPage() {
   return (
     <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
       <div className="max-w-[1300px] mx-auto">
+        {/* Breadcrumbs */}
+        <div className="mb-4">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard" className="flex items-center gap-1">
+                  <Home size={14} /> Dashboard
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Blood Search</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
         {/* Toast */}
         <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-50">
           {toasts.map((t) => (

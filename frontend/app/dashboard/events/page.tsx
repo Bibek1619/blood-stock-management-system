@@ -1,19 +1,22 @@
 'use client';
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
-  Plus, CalendarDays, MapPin, Users, UserPlus,
-  X, Clock, CheckCircle2, PlayCircle, ChevronRight, Trash2,
+  Plus, CalendarDays, MapPin, Users,
+  X, Clock, CheckCircle2, PlayCircle, ChevronRight, Home,
 } from "lucide-react";
 import {
-  MOCK_DONORS,
-  MOCK_EVENTS,
   EVENT_STATUS_CONFIG,
-  getInitials,
-  getDonorById,
   type EventStatus,
-  type BloodEvent,
-  type Donor,
 } from "@/lib/data";
+import { useData } from "@/lib/data-store";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 // Add icons to status config
 const STATUS_CONFIG_WITH_ICONS: Record<EventStatus, {
@@ -40,9 +43,10 @@ const STATUS_CONFIG_WITH_ICONS: Record<EventStatus, {
 };
 
 const ALL_STATUSES: EventStatus[] = ["Upcoming", "Running", "Completed"];
-let eventCounter = MOCK_EVENTS.length + 1;
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
+import { useState } from "react";
+
 function useToast() {
   const [toasts, setToasts] = useState<{ id: number; msg: string; type: string }[]>([]);
   const add = (msg: string, type = "success") => {
@@ -55,12 +59,10 @@ function useToast() {
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function EventsPage() {
-  const [events, setEvents] = useState<BloodEvent[]>(MOCK_EVENTS);
+  const router = useRouter();
+  const { events, addEvent } = useData();
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [sheetEvent, setSheetEvent] = useState<BloodEvent | null>(null);
-  const [addDonorId, setAddDonorId] = useState("");
-  const [addRole, setAddRole] = useState<"participants" | "volunteers">("participants");
   const [newEvent, setNewEvent] = useState({
     title: "", date: "", location: "", description: "", status: "Upcoming" as EventStatus,
   });
@@ -84,50 +86,14 @@ export default function EventsPage() {
       toast("Title, date and location are required", "error");
       return;
     }
-    const ev: BloodEvent = {
-      id: `ev${eventCounter++}`,
+    addEvent({
       ...newEvent,
       participants: [],
       volunteers: [],
-    };
-    setEvents((prev) => [ev, ...prev]);
+    });
     setDialogOpen(false);
     setNewEvent({ title: "", date: "", location: "", description: "", status: "Upcoming" });
     toast("Event created successfully");
-  };
-
-  const updateStatus = (eventId: string, status: EventStatus) => {
-    setEvents((prev) => prev.map((e) => (e.id === eventId ? { ...e, status } : e)));
-    if (sheetEvent?.id === eventId) setSheetEvent((e) => e ? { ...e, status } : e);
-    toast(`Status updated to ${status}`);
-  };
-
-  const handleAddPerson = () => {
-    if (!addDonorId || !sheetEvent) return;
-    setEvents((prev) => prev.map((e) => {
-      if (e.id !== sheetEvent.id) return e;
-      const list = [...new Set([...e[addRole], addDonorId])];
-      return { ...e, [addRole]: list };
-    }));
-    setSheetEvent((e) => {
-      if (!e) return e;
-      const list = [...new Set([...e[addRole], addDonorId])];
-      return { ...e, [addRole]: list };
-    });
-    setAddDonorId("");
-    toast(`${addRole === "participants" ? "Participant" : "Volunteer"} added`);
-  };
-
-  const handleRemovePerson = (role: "participants" | "volunteers", donorId: string) => {
-    if (!sheetEvent) return;
-    setEvents((prev) => prev.map((e) => {
-      if (e.id !== sheetEvent.id) return e;
-      return { ...e, [role]: e[role].filter((id) => id !== donorId) };
-    }));
-    setSheetEvent((e) => {
-      if (!e) return e;
-      return { ...e, [role]: e[role].filter((id) => id !== donorId) };
-    });
   };
 
   return (
@@ -146,6 +112,23 @@ export default function EventsPage() {
             {t.msg}
           </div>
         ))}
+      </div>
+
+      {/* ── Breadcrumbs ── */}
+      <div className="max-w-7xl mx-auto mb-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/dashboard" className="flex items-center gap-1">
+                <Home size={14} /> Dashboard
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Events</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
       </div>
 
       {/* ── Page Header ── */}
@@ -225,7 +208,7 @@ export default function EventsPage() {
               return (
                 <div
                   key={ev.id}
-                  onClick={() => setSheetEvent(ev)}
+                  onClick={() => router.push(`/dashboard/events/${ev.id}`)}
                   className="bg-white border border-slate-200 rounded-xl overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
                 >
                   {/* Status bar at top */}
@@ -363,210 +346,6 @@ export default function EventsPage() {
               >
                 Create Event
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Event Detail Sheet ── */}
-      {sheetEvent && (
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-end z-50"
-          onClick={() => setSheetEvent(null)}
-        >
-          <div
-            className="w-full max-w-md bg-white h-full overflow-y-auto shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Sheet Banner */}
-            <div className="relative bg-gradient-to-br from-red-800 via-red-900 to-red-950 p-6 pb-10 text-center">
-              <button
-                onClick={() => setSheetEvent(null)}
-                className="absolute top-4 right-4 p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
-              >
-                <X size={16} className="text-white" />
-              </button>
-
-              <div className="w-16 h-16 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center mx-auto mb-3">
-                <CalendarDays size={28} className="text-white/90" />
-              </div>
-
-              <h2 className="text-xl font-bold text-white mb-2">{sheetEvent.title}</h2>
-              
-              <div className="flex items-center justify-center gap-2 text-xs text-white/80">
-                <span className="flex items-center gap-1">
-                  <CalendarDays size={11} /> {sheetEvent.date}
-                </span>
-                <span className="w-1 h-1 rounded-full bg-white/40" />
-                <span className="flex items-center gap-1">
-                  <MapPin size={11} /> {sheetEvent.location}
-                </span>
-              </div>
-            </div>
-
-            {/* Stats Strip */}
-            <div className="flex items-center justify-around bg-white border border-slate-100 rounded-xl mx-4 -mt-6 p-4 shadow-lg relative z-10">
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-lg font-bold text-red-800">{sheetEvent.participants.length}</span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-wide">Participants</span>
-              </div>
-              <div className="w-px h-8 bg-slate-200" />
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-lg font-bold text-red-800">{sheetEvent.volunteers.length}</span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-wide">Volunteers</span>
-              </div>
-              <div className="w-px h-8 bg-slate-200" />
-              <div className="flex flex-col items-center gap-1">
-                <span className={`text-lg font-bold ${
-                  sheetEvent.status === "Upcoming" ? "text-blue-700" :
-                  sheetEvent.status === "Running" ? "text-green-700" : "text-slate-600"
-                }`}>
-                  {sheetEvent.status}
-                </span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-wide">Status</span>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Description */}
-              {sheetEvent.description && (
-                <p className="text-sm text-slate-600 leading-relaxed">{sheetEvent.description}</p>
-              )}
-
-              {/* ── Change Status ── */}
-              <div>
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Update Status</p>
-                <div className="flex gap-2">
-                  {ALL_STATUSES.map((st) => {
-                    const cfg = STATUS_CONFIG_WITH_ICONS[st];
-                    const isActive = sheetEvent.status === st;
-                    return (
-                      <button
-                        key={st}
-                        onClick={() => updateStatus(sheetEvent.id, st)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-xs font-semibold transition-all ${
-                          isActive ? `${cfg.styles} border` : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                        }`}
-                      >
-                        <span className="flex">{cfg.icon}</span> {st}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* ── Participants ── */}
-              <div>
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  Participants
-                  <span className="inline-flex items-center justify-center bg-red-50 text-red-800 rounded-full px-2 py-0.5 text-[10px] font-bold">
-                    {sheetEvent.participants.length}
-                  </span>
-                </p>
-                <div className="bg-slate-50 border border-slate-100 rounded-xl overflow-hidden">
-                  {sheetEvent.participants.length === 0 ? (
-                    <p className="text-xs text-slate-500 p-3">No participants yet</p>
-                  ) : (
-                    sheetEvent.participants.map((pid) => {
-                      const d = getDonorById(pid);
-                      return d ? (
-                        <div key={pid} className="flex items-center gap-3 p-3 border-b border-slate-100 last:border-0">
-                          <div className="w-8 h-8 rounded-full bg-red-50 border border-red-100 text-red-800 text-[11px] font-bold flex items-center justify-center flex-shrink-0">
-                            {getInitials(d.name)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="block text-sm font-semibold text-slate-900 truncate">{d.name}</span>
-                            <span className="block text-xs text-slate-500">{d.bloodGroup} · {d.location}</span>
-                          </div>
-                          <span className="px-2 py-1 bg-red-50 text-red-800 border border-red-200 rounded text-[10px] font-bold">
-                            {d.bloodGroup}
-                          </span>
-                          <button
-                            onClick={() => handleRemovePerson("participants", pid)}
-                            className="p-1.5 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
-                          >
-                            <Trash2 size={11} className="text-slate-400 hover:text-red-600" />
-                          </button>
-                        </div>
-                      ) : null;
-                    })
-                  )}
-                </div>
-              </div>
-
-              {/* ── Volunteers ── */}
-              <div>
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  Volunteers
-                  <span className="inline-flex items-center justify-center bg-red-50 text-red-800 rounded-full px-2 py-0.5 text-[10px] font-bold">
-                    {sheetEvent.volunteers.length}
-                  </span>
-                </p>
-                <div className="bg-slate-50 border border-slate-100 rounded-xl overflow-hidden">
-                  {sheetEvent.volunteers.length === 0 ? (
-                    <p className="text-xs text-slate-500 p-3">No volunteers yet</p>
-                  ) : (
-                    sheetEvent.volunteers.map((vid) => {
-                      const d = getDonorById(vid);
-                      return d ? (
-                        <div key={vid} className="flex items-center gap-3 p-3 border-b border-slate-100 last:border-0">
-                          <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 text-blue-800 text-[11px] font-bold flex items-center justify-center flex-shrink-0">
-                            {getInitials(d.name)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="block text-sm font-semibold text-slate-900 truncate">{d.name}</span>
-                            <span className="block text-xs text-slate-500">{d.bloodGroup} · {d.location}</span>
-                          </div>
-                          <button
-                            onClick={() => handleRemovePerson("volunteers", vid)}
-                            className="p-1.5 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
-                          >
-                            <Trash2 size={11} className="text-slate-400 hover:text-red-600" />
-                          </button>
-                        </div>
-                      ) : null;
-                    })
-                  )}
-                </div>
-              </div>
-
-              {/* ── Add Person ── */}
-              <div>
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Add Person</p>
-                <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 space-y-3">
-                  <div className="flex gap-2">
-                    <select
-                      value={addRole}
-                      onChange={(e) => setAddRole(e.target.value as "participants" | "volunteers")}
-                      className="h-9 px-3 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                    >
-                      <option value="participants">Participant</option>
-                      <option value="volunteers">Volunteer</option>
-                    </select>
-                    <select
-                      value={addDonorId}
-                      onChange={(e) => setAddDonorId(e.target.value)}
-                      className="flex-1 h-9 px-3 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                    >
-                      <option value="">Select donor…</option>
-                      {MOCK_DONORS.filter((d) =>
-                        !sheetEvent.participants.includes(d.id) && !sheetEvent.volunteers.includes(d.id)
-                      ).map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.name} ({d.bloodGroup})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <button
-                    onClick={handleAddPerson}
-                    disabled={!addDonorId}
-                    className="w-full flex items-center justify-center gap-2 bg-red-800 hover:bg-red-900 disabled:bg-slate-300 disabled:cursor-not-allowed text-white py-2.5 rounded-lg text-sm font-semibold transition-colors"
-                  >
-                    <UserPlus size={14} /> Add Person
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>

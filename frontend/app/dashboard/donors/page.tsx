@@ -3,9 +3,17 @@
 import { useState } from "react";
 import {
   Plus, Search, Phone, Mail, Eye, Users, Heart, X, MapPin, 
-  Droplets, Calendar, Award, ChevronRight,
+  Droplets, Calendar, Award, ChevronRight, Home,
 } from "lucide-react";
 import { BLOOD_GROUPS, MOCK_DONORS, getInitials, getDonorTier, type BloodGroup, type Donor } from "@/lib/data";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 let donorCounter = MOCK_DONORS.length + 1;
 
@@ -87,6 +95,23 @@ export default function DonorsPage() {
               {t.msg}
             </div>
           ))}
+        </div>
+
+        {/* ── Breadcrumbs ── */}
+        <div className="mb-4">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard" className="flex items-center gap-1">
+                  <Home size={14} /> Dashboard
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Donors</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
         </div>
 
         {/* ── Page Header ── */}
