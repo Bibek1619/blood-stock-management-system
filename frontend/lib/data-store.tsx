@@ -59,8 +59,13 @@ interface DataStore {
   addBloodPack: (pack: Omit<BloodPack, "id" | "packCode">) => void;
   updateBloodPackStatus: (id: string, status: BloodPack["status"]) => void;
   addEvent: (event: Omit<BloodEvent, "id">) => void;
+  updateEvent: (eventId: string, data: Partial<Omit<BloodEvent, "id" | "participants" | "volunteers">>) => void;
+  updateEventStatus: (eventId: string, status: BloodEvent["status"]) => void;
   addParticipant: (eventId: string, donorId: string) => void;
+  removeParticipant: (eventId: string, donorId: string) => void;
   addVolunteer: (eventId: string, donorId: string) => void;
+  removeVolunteer: (eventId: string, donorId: string) => void;
+  getEventById: (id: string) => BloodEvent | undefined;
   addCertificate: (cert: Omit<Certificate, "id">) => void;
   donations: Donation[];
   addDonation: (donation: Omit<Donation, "id" | "createdAt">) => void;
@@ -100,13 +105,31 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setEvents((prev) => [...prev, { ...event, id: `e${Date.now()}` }]);
   }, []);
 
+  const updateEvent = useCallback((eventId: string, data: Partial<Omit<BloodEvent, "id" | "participants" | "volunteers">>) => {
+    setEvents((prev) => prev.map((e) => (e.id === eventId ? { ...e, ...data } : e)));
+  }, []);
+
+  const updateEventStatus = useCallback((eventId: string, status: BloodEvent["status"]) => {
+    setEvents((prev) => prev.map((e) => (e.id === eventId ? { ...e, status } : e)));
+  }, []);
+
   const addParticipant = useCallback((eventId: string, donorId: string) => {
     setEvents((prev) => prev.map((e) => (e.id === eventId ? { ...e, participants: [...new Set([...e.participants, donorId])] } : e)));
+  }, []);
+
+  const removeParticipant = useCallback((eventId: string, donorId: string) => {
+    setEvents((prev) => prev.map((e) => (e.id === eventId ? { ...e, participants: e.participants.filter((id) => id !== donorId) } : e)));
   }, []);
 
   const addVolunteer = useCallback((eventId: string, donorId: string) => {
     setEvents((prev) => prev.map((e) => (e.id === eventId ? { ...e, volunteers: [...new Set([...e.volunteers, donorId])] } : e)));
   }, []);
+
+  const removeVolunteer = useCallback((eventId: string, donorId: string) => {
+    setEvents((prev) => prev.map((e) => (e.id === eventId ? { ...e, volunteers: e.volunteers.filter((id) => id !== donorId) } : e)));
+  }, []);
+
+  const getEventById = useCallback((id: string) => events.find((e) => e.id === id), [events]);
 
   const addCertificate = useCallback((cert: Omit<Certificate, "id">) => {
     setCertificates((prev) => [...prev, { ...cert, id: `c${Date.now()}` }]);
@@ -166,7 +189,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const getDonorById = useCallback((id: string) => donors.find((d) => d.id === id), [donors]);
 
   return (
-    <DataContext.Provider value={{ donors, bloodPacks, events, certificates, bloodGroups: BLOOD_GROUPS, addDonor, addBloodPack, updateBloodPackStatus, addEvent, addParticipant, addVolunteer, addCertificate, donations, addDonation, updateDonation, deleteDonation, getStockByGroup, getLowStockGroups, getDonorById }}>
+    <DataContext.Provider value={{ donors, bloodPacks, events, certificates, bloodGroups: BLOOD_GROUPS, addDonor, addBloodPack, updateBloodPackStatus, addEvent, updateEvent, updateEventStatus, addParticipant, removeParticipant, addVolunteer, removeVolunteer, getEventById, addCertificate, donations, addDonation, updateDonation, deleteDonation, getStockByGroup, getLowStockGroups, getDonorById }}>
       {children}
     </DataContext.Provider>
   );
