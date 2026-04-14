@@ -53,11 +53,15 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Donor: 'Donor',
-  BloodStock: 'BloodStock',
+  BloodPack: 'BloodPack',
+  BloodStockSummary: 'BloodStockSummary',
   Donation: 'Donation',
-  Certificate: 'Certificate',
+  BloodIssue: 'BloodIssue',
+  BloodIssueItem: 'BloodIssueItem',
   Event: 'Event',
-  EventRegistration: 'EventRegistration'
+  EventParticipant: 'EventParticipant',
+  EventVolunteer: 'EventVolunteer',
+  Certificate: 'Certificate'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -93,15 +97,18 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 export const DonorScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  bloodType: 'bloodType',
-  dateOfBirth: 'dateOfBirth',
-  address: 'address',
+  bloodGroup: 'bloodGroup',
+  location: 'location',
   city: 'city',
-  state: 'state',
-  zipCode: 'zipCode',
-  lastDonation: 'lastDonation',
+  address: 'address',
+  dateOfBirth: 'dateOfBirth',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  lastDonationDate: 'lastDonationDate',
   totalDonations: 'totalDonations',
   isEligible: 'isEligible',
+  weight: 'weight',
+  medicalNotes: 'medicalNotes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -109,29 +116,47 @@ export const DonorScalarFieldEnum = {
 export type DonorScalarFieldEnum = (typeof DonorScalarFieldEnum)[keyof typeof DonorScalarFieldEnum]
 
 
-export const BloodStockScalarFieldEnum = {
+export const BloodPackScalarFieldEnum = {
   id: 'id',
-  bloodType: 'bloodType',
-  quantity: 'quantity',
-  lastUpdated: 'lastUpdated',
+  packCode: 'packCode',
+  bloodGroup: 'bloodGroup',
+  donorId: 'donorId',
+  collectionDate: 'collectionDate',
   expiryDate: 'expiryDate',
-  location: 'location',
+  status: 'status',
+  storageLocation: 'storageLocation',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type BloodStockScalarFieldEnum = (typeof BloodStockScalarFieldEnum)[keyof typeof BloodStockScalarFieldEnum]
+export type BloodPackScalarFieldEnum = (typeof BloodPackScalarFieldEnum)[keyof typeof BloodPackScalarFieldEnum]
+
+
+export const BloodStockSummaryScalarFieldEnum = {
+  id: 'id',
+  bloodGroup: 'bloodGroup',
+  available: 'available',
+  used: 'used',
+  expired: 'expired',
+  total: 'total',
+  lastUpdated: 'lastUpdated'
+} as const
+
+export type BloodStockSummaryScalarFieldEnum = (typeof BloodStockSummaryScalarFieldEnum)[keyof typeof BloodStockSummaryScalarFieldEnum]
 
 
 export const DonationScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  bloodType: 'bloodType',
-  quantity: 'quantity',
+  donorId: 'donorId',
+  bloodGroup: 'bloodGroup',
+  units: 'units',
   donationDate: 'donationDate',
   location: 'location',
+  donationType: 'donationType',
   status: 'status',
   notes: 'notes',
+  contact: 'contact',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -139,16 +164,34 @@ export const DonationScalarFieldEnum = {
 export type DonationScalarFieldEnum = (typeof DonationScalarFieldEnum)[keyof typeof DonationScalarFieldEnum]
 
 
-export const CertificateScalarFieldEnum = {
+export const BloodIssueScalarFieldEnum = {
   id: 'id',
-  userId: 'userId',
-  donationId: 'donationId',
+  issueCode: 'issueCode',
+  recipientName: 'recipientName',
+  recipientType: 'recipientType',
+  bloodGroup: 'bloodGroup',
+  unitsRequested: 'unitsRequested',
+  unitsIssued: 'unitsIssued',
+  contact: 'contact',
   issueDate: 'issueDate',
-  certificateNumber: 'certificateNumber',
+  issuedBy: 'issuedBy',
+  status: 'status',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BloodIssueScalarFieldEnum = (typeof BloodIssueScalarFieldEnum)[keyof typeof BloodIssueScalarFieldEnum]
+
+
+export const BloodIssueItemScalarFieldEnum = {
+  id: 'id',
+  bloodIssueId: 'bloodIssueId',
+  bloodPackId: 'bloodPackId',
   createdAt: 'createdAt'
 } as const
 
-export type CertificateScalarFieldEnum = (typeof CertificateScalarFieldEnum)[keyof typeof CertificateScalarFieldEnum]
+export type BloodIssueItemScalarFieldEnum = (typeof BloodIssueItemScalarFieldEnum)[keyof typeof BloodIssueItemScalarFieldEnum]
 
 
 export const EventScalarFieldEnum = {
@@ -157,11 +200,8 @@ export const EventScalarFieldEnum = {
   description: 'description',
   location: 'location',
   eventDate: 'eventDate',
-  startTime: 'startTime',
-  endTime: 'endTime',
-  capacity: 'capacity',
-  registered: 'registered',
   status: 'status',
+  capacity: 'capacity',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -169,16 +209,44 @@ export const EventScalarFieldEnum = {
 export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
 
 
-export const EventRegistrationScalarFieldEnum = {
+export const EventParticipantScalarFieldEnum = {
   id: 'id',
-  userId: 'userId',
   eventId: 'eventId',
+  userId: 'userId',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type EventRegistrationScalarFieldEnum = (typeof EventRegistrationScalarFieldEnum)[keyof typeof EventRegistrationScalarFieldEnum]
+export type EventParticipantScalarFieldEnum = (typeof EventParticipantScalarFieldEnum)[keyof typeof EventParticipantScalarFieldEnum]
+
+
+export const EventVolunteerScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  userId: 'userId',
+  role: 'role',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventVolunteerScalarFieldEnum = (typeof EventVolunteerScalarFieldEnum)[keyof typeof EventVolunteerScalarFieldEnum]
+
+
+export const CertificateScalarFieldEnum = {
+  id: 'id',
+  certificateNumber: 'certificateNumber',
+  type: 'type',
+  userId: 'userId',
+  recipientName: 'recipientName',
+  eventTitle: 'eventTitle',
+  volunteerId: 'volunteerId',
+  issueDate: 'issueDate',
+  createdAt: 'createdAt'
+} as const
+
+export type CertificateScalarFieldEnum = (typeof CertificateScalarFieldEnum)[keyof typeof CertificateScalarFieldEnum]
 
 
 export const SortOrder = {

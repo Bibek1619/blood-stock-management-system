@@ -11,18 +11,46 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Health check
-app.get("/health", (req, res) => {
-  res.json({ status: "ok", message: "Blood Donation API is running" });
+app.get("/health", async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ 
+      status: "ok", 
+      message: "Blood Donation API is running",
+      database: "connected"
+    });
+  } catch (error) {
+    res.status(503).json({ 
+      status: "error", 
+      message: "Database connection failed",
+      database: "disconnected",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
 });
 
-// API Routes
 app.use("/api", routes);
-
-// Error handler (must be last)
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+async function startServer() {
+  try {
+    await prisma.$connect();
+    await prisma.$queryRaw`SELECT 1`;
+    console.log("✅ Database connected");
+    
+    app.listen(PORT, () => {
+      console.log(`🚀 Server: http://localhost:${PORT}`);
+      console.log(`📍 Health: http://localhost:${PORT}/health`);
+    });
+  } catch (error) {
+    console.error("❌ Database connection failed:", error instanceof Error ? error.message : error);
+    process.exit(1);
+  }
+}
+
+process.on("SIGINT", async () => {
+  await prisma.$disconnect();
+  process.exit(0);
 });
+
+startServer();

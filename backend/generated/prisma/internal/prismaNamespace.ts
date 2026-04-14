@@ -386,11 +386,15 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Donor: 'Donor',
-  BloodStock: 'BloodStock',
+  BloodPack: 'BloodPack',
+  BloodStockSummary: 'BloodStockSummary',
   Donation: 'Donation',
-  Certificate: 'Certificate',
+  BloodIssue: 'BloodIssue',
+  BloodIssueItem: 'BloodIssueItem',
   Event: 'Event',
-  EventRegistration: 'EventRegistration'
+  EventParticipant: 'EventParticipant',
+  EventVolunteer: 'EventVolunteer',
+  Certificate: 'Certificate'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -406,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "donor" | "bloodStock" | "donation" | "certificate" | "event" | "eventRegistration"
+    modelProps: "user" | "donor" | "bloodPack" | "bloodStockSummary" | "donation" | "bloodIssue" | "bloodIssueItem" | "event" | "eventParticipant" | "eventVolunteer" | "certificate"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -558,77 +562,151 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    BloodStock: {
-      payload: Prisma.$BloodStockPayload<ExtArgs>
-      fields: Prisma.BloodStockFieldRefs
+    BloodPack: {
+      payload: Prisma.$BloodPackPayload<ExtArgs>
+      fields: Prisma.BloodPackFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.BloodStockFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockPayload> | null
+          args: Prisma.BloodPackFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodPackPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.BloodStockFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockPayload>
+          args: Prisma.BloodPackFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodPackPayload>
         }
         findFirst: {
-          args: Prisma.BloodStockFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockPayload> | null
+          args: Prisma.BloodPackFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodPackPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.BloodStockFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockPayload>
+          args: Prisma.BloodPackFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodPackPayload>
         }
         findMany: {
-          args: Prisma.BloodStockFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockPayload>[]
+          args: Prisma.BloodPackFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodPackPayload>[]
         }
         create: {
-          args: Prisma.BloodStockCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockPayload>
+          args: Prisma.BloodPackCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodPackPayload>
         }
         createMany: {
-          args: Prisma.BloodStockCreateManyArgs<ExtArgs>
+          args: Prisma.BloodPackCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.BloodStockCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockPayload>[]
+          args: Prisma.BloodPackCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodPackPayload>[]
         }
         delete: {
-          args: Prisma.BloodStockDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockPayload>
+          args: Prisma.BloodPackDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodPackPayload>
         }
         update: {
-          args: Prisma.BloodStockUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockPayload>
+          args: Prisma.BloodPackUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodPackPayload>
         }
         deleteMany: {
-          args: Prisma.BloodStockDeleteManyArgs<ExtArgs>
+          args: Prisma.BloodPackDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.BloodStockUpdateManyArgs<ExtArgs>
+          args: Prisma.BloodPackUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.BloodStockUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockPayload>[]
+          args: Prisma.BloodPackUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodPackPayload>[]
         }
         upsert: {
-          args: Prisma.BloodStockUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockPayload>
+          args: Prisma.BloodPackUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodPackPayload>
         }
         aggregate: {
-          args: Prisma.BloodStockAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateBloodStock>
+          args: Prisma.BloodPackAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBloodPack>
         }
         groupBy: {
-          args: Prisma.BloodStockGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.BloodStockGroupByOutputType>[]
+          args: Prisma.BloodPackGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BloodPackGroupByOutputType>[]
         }
         count: {
-          args: Prisma.BloodStockCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.BloodStockCountAggregateOutputType> | number
+          args: Prisma.BloodPackCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BloodPackCountAggregateOutputType> | number
+        }
+      }
+    }
+    BloodStockSummary: {
+      payload: Prisma.$BloodStockSummaryPayload<ExtArgs>
+      fields: Prisma.BloodStockSummaryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BloodStockSummaryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockSummaryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BloodStockSummaryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockSummaryPayload>
+        }
+        findFirst: {
+          args: Prisma.BloodStockSummaryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockSummaryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BloodStockSummaryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockSummaryPayload>
+        }
+        findMany: {
+          args: Prisma.BloodStockSummaryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockSummaryPayload>[]
+        }
+        create: {
+          args: Prisma.BloodStockSummaryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockSummaryPayload>
+        }
+        createMany: {
+          args: Prisma.BloodStockSummaryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BloodStockSummaryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockSummaryPayload>[]
+        }
+        delete: {
+          args: Prisma.BloodStockSummaryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockSummaryPayload>
+        }
+        update: {
+          args: Prisma.BloodStockSummaryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockSummaryPayload>
+        }
+        deleteMany: {
+          args: Prisma.BloodStockSummaryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BloodStockSummaryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BloodStockSummaryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockSummaryPayload>[]
+        }
+        upsert: {
+          args: Prisma.BloodStockSummaryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodStockSummaryPayload>
+        }
+        aggregate: {
+          args: Prisma.BloodStockSummaryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBloodStockSummary>
+        }
+        groupBy: {
+          args: Prisma.BloodStockSummaryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BloodStockSummaryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BloodStockSummaryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BloodStockSummaryCountAggregateOutputType> | number
         }
       }
     }
@@ -706,77 +784,151 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Certificate: {
-      payload: Prisma.$CertificatePayload<ExtArgs>
-      fields: Prisma.CertificateFieldRefs
+    BloodIssue: {
+      payload: Prisma.$BloodIssuePayload<ExtArgs>
+      fields: Prisma.BloodIssueFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.CertificateFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload> | null
+          args: Prisma.BloodIssueFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssuePayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.CertificateFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>
+          args: Prisma.BloodIssueFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssuePayload>
         }
         findFirst: {
-          args: Prisma.CertificateFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload> | null
+          args: Prisma.BloodIssueFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssuePayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.CertificateFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>
+          args: Prisma.BloodIssueFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssuePayload>
         }
         findMany: {
-          args: Prisma.CertificateFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>[]
+          args: Prisma.BloodIssueFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssuePayload>[]
         }
         create: {
-          args: Prisma.CertificateCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>
+          args: Prisma.BloodIssueCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssuePayload>
         }
         createMany: {
-          args: Prisma.CertificateCreateManyArgs<ExtArgs>
+          args: Prisma.BloodIssueCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.CertificateCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>[]
+          args: Prisma.BloodIssueCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssuePayload>[]
         }
         delete: {
-          args: Prisma.CertificateDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>
+          args: Prisma.BloodIssueDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssuePayload>
         }
         update: {
-          args: Prisma.CertificateUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>
+          args: Prisma.BloodIssueUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssuePayload>
         }
         deleteMany: {
-          args: Prisma.CertificateDeleteManyArgs<ExtArgs>
+          args: Prisma.BloodIssueDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.CertificateUpdateManyArgs<ExtArgs>
+          args: Prisma.BloodIssueUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.CertificateUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>[]
+          args: Prisma.BloodIssueUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssuePayload>[]
         }
         upsert: {
-          args: Prisma.CertificateUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>
+          args: Prisma.BloodIssueUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssuePayload>
         }
         aggregate: {
-          args: Prisma.CertificateAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateCertificate>
+          args: Prisma.BloodIssueAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBloodIssue>
         }
         groupBy: {
-          args: Prisma.CertificateGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CertificateGroupByOutputType>[]
+          args: Prisma.BloodIssueGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BloodIssueGroupByOutputType>[]
         }
         count: {
-          args: Prisma.CertificateCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CertificateCountAggregateOutputType> | number
+          args: Prisma.BloodIssueCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BloodIssueCountAggregateOutputType> | number
+        }
+      }
+    }
+    BloodIssueItem: {
+      payload: Prisma.$BloodIssueItemPayload<ExtArgs>
+      fields: Prisma.BloodIssueItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BloodIssueItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssueItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BloodIssueItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssueItemPayload>
+        }
+        findFirst: {
+          args: Prisma.BloodIssueItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssueItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BloodIssueItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssueItemPayload>
+        }
+        findMany: {
+          args: Prisma.BloodIssueItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssueItemPayload>[]
+        }
+        create: {
+          args: Prisma.BloodIssueItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssueItemPayload>
+        }
+        createMany: {
+          args: Prisma.BloodIssueItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BloodIssueItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssueItemPayload>[]
+        }
+        delete: {
+          args: Prisma.BloodIssueItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssueItemPayload>
+        }
+        update: {
+          args: Prisma.BloodIssueItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssueItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.BloodIssueItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BloodIssueItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BloodIssueItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssueItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.BloodIssueItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BloodIssueItemPayload>
+        }
+        aggregate: {
+          args: Prisma.BloodIssueItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBloodIssueItem>
+        }
+        groupBy: {
+          args: Prisma.BloodIssueItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BloodIssueItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BloodIssueItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BloodIssueItemCountAggregateOutputType> | number
         }
       }
     }
@@ -854,77 +1006,225 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    EventRegistration: {
-      payload: Prisma.$EventRegistrationPayload<ExtArgs>
-      fields: Prisma.EventRegistrationFieldRefs
+    EventParticipant: {
+      payload: Prisma.$EventParticipantPayload<ExtArgs>
+      fields: Prisma.EventParticipantFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.EventRegistrationFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventRegistrationPayload> | null
+          args: Prisma.EventParticipantFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.EventRegistrationFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventRegistrationPayload>
+          args: Prisma.EventParticipantFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>
         }
         findFirst: {
-          args: Prisma.EventRegistrationFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventRegistrationPayload> | null
+          args: Prisma.EventParticipantFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.EventRegistrationFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventRegistrationPayload>
+          args: Prisma.EventParticipantFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>
         }
         findMany: {
-          args: Prisma.EventRegistrationFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventRegistrationPayload>[]
+          args: Prisma.EventParticipantFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>[]
         }
         create: {
-          args: Prisma.EventRegistrationCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventRegistrationPayload>
+          args: Prisma.EventParticipantCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>
         }
         createMany: {
-          args: Prisma.EventRegistrationCreateManyArgs<ExtArgs>
+          args: Prisma.EventParticipantCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.EventRegistrationCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventRegistrationPayload>[]
+          args: Prisma.EventParticipantCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>[]
         }
         delete: {
-          args: Prisma.EventRegistrationDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventRegistrationPayload>
+          args: Prisma.EventParticipantDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>
         }
         update: {
-          args: Prisma.EventRegistrationUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventRegistrationPayload>
+          args: Prisma.EventParticipantUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>
         }
         deleteMany: {
-          args: Prisma.EventRegistrationDeleteManyArgs<ExtArgs>
+          args: Prisma.EventParticipantDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.EventRegistrationUpdateManyArgs<ExtArgs>
+          args: Prisma.EventParticipantUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.EventRegistrationUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventRegistrationPayload>[]
+          args: Prisma.EventParticipantUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>[]
         }
         upsert: {
-          args: Prisma.EventRegistrationUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventRegistrationPayload>
+          args: Prisma.EventParticipantUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>
         }
         aggregate: {
-          args: Prisma.EventRegistrationAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateEventRegistration>
+          args: Prisma.EventParticipantAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEventParticipant>
         }
         groupBy: {
-          args: Prisma.EventRegistrationGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.EventRegistrationGroupByOutputType>[]
+          args: Prisma.EventParticipantGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventParticipantGroupByOutputType>[]
         }
         count: {
-          args: Prisma.EventRegistrationCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.EventRegistrationCountAggregateOutputType> | number
+          args: Prisma.EventParticipantCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventParticipantCountAggregateOutputType> | number
+        }
+      }
+    }
+    EventVolunteer: {
+      payload: Prisma.$EventVolunteerPayload<ExtArgs>
+      fields: Prisma.EventVolunteerFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EventVolunteerFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventVolunteerPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EventVolunteerFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventVolunteerPayload>
+        }
+        findFirst: {
+          args: Prisma.EventVolunteerFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventVolunteerPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EventVolunteerFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventVolunteerPayload>
+        }
+        findMany: {
+          args: Prisma.EventVolunteerFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventVolunteerPayload>[]
+        }
+        create: {
+          args: Prisma.EventVolunteerCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventVolunteerPayload>
+        }
+        createMany: {
+          args: Prisma.EventVolunteerCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EventVolunteerCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventVolunteerPayload>[]
+        }
+        delete: {
+          args: Prisma.EventVolunteerDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventVolunteerPayload>
+        }
+        update: {
+          args: Prisma.EventVolunteerUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventVolunteerPayload>
+        }
+        deleteMany: {
+          args: Prisma.EventVolunteerDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EventVolunteerUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EventVolunteerUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventVolunteerPayload>[]
+        }
+        upsert: {
+          args: Prisma.EventVolunteerUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventVolunteerPayload>
+        }
+        aggregate: {
+          args: Prisma.EventVolunteerAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEventVolunteer>
+        }
+        groupBy: {
+          args: Prisma.EventVolunteerGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventVolunteerGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EventVolunteerCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventVolunteerCountAggregateOutputType> | number
+        }
+      }
+    }
+    Certificate: {
+      payload: Prisma.$CertificatePayload<ExtArgs>
+      fields: Prisma.CertificateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CertificateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CertificateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>
+        }
+        findFirst: {
+          args: Prisma.CertificateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CertificateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>
+        }
+        findMany: {
+          args: Prisma.CertificateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>[]
+        }
+        create: {
+          args: Prisma.CertificateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>
+        }
+        createMany: {
+          args: Prisma.CertificateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CertificateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>[]
+        }
+        delete: {
+          args: Prisma.CertificateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>
+        }
+        update: {
+          args: Prisma.CertificateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>
+        }
+        deleteMany: {
+          args: Prisma.CertificateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CertificateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CertificateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>[]
+        }
+        upsert: {
+          args: Prisma.CertificateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CertificatePayload>
+        }
+        aggregate: {
+          args: Prisma.CertificateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCertificate>
+        }
+        groupBy: {
+          args: Prisma.CertificateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CertificateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CertificateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CertificateCountAggregateOutputType> | number
         }
       }
     }
@@ -984,15 +1284,18 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 export const DonorScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  bloodType: 'bloodType',
-  dateOfBirth: 'dateOfBirth',
-  address: 'address',
+  bloodGroup: 'bloodGroup',
+  location: 'location',
   city: 'city',
-  state: 'state',
-  zipCode: 'zipCode',
-  lastDonation: 'lastDonation',
+  address: 'address',
+  dateOfBirth: 'dateOfBirth',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  lastDonationDate: 'lastDonationDate',
   totalDonations: 'totalDonations',
   isEligible: 'isEligible',
+  weight: 'weight',
+  medicalNotes: 'medicalNotes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1000,29 +1303,47 @@ export const DonorScalarFieldEnum = {
 export type DonorScalarFieldEnum = (typeof DonorScalarFieldEnum)[keyof typeof DonorScalarFieldEnum]
 
 
-export const BloodStockScalarFieldEnum = {
+export const BloodPackScalarFieldEnum = {
   id: 'id',
-  bloodType: 'bloodType',
-  quantity: 'quantity',
-  lastUpdated: 'lastUpdated',
+  packCode: 'packCode',
+  bloodGroup: 'bloodGroup',
+  donorId: 'donorId',
+  collectionDate: 'collectionDate',
   expiryDate: 'expiryDate',
-  location: 'location',
+  status: 'status',
+  storageLocation: 'storageLocation',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type BloodStockScalarFieldEnum = (typeof BloodStockScalarFieldEnum)[keyof typeof BloodStockScalarFieldEnum]
+export type BloodPackScalarFieldEnum = (typeof BloodPackScalarFieldEnum)[keyof typeof BloodPackScalarFieldEnum]
+
+
+export const BloodStockSummaryScalarFieldEnum = {
+  id: 'id',
+  bloodGroup: 'bloodGroup',
+  available: 'available',
+  used: 'used',
+  expired: 'expired',
+  total: 'total',
+  lastUpdated: 'lastUpdated'
+} as const
+
+export type BloodStockSummaryScalarFieldEnum = (typeof BloodStockSummaryScalarFieldEnum)[keyof typeof BloodStockSummaryScalarFieldEnum]
 
 
 export const DonationScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  bloodType: 'bloodType',
-  quantity: 'quantity',
+  donorId: 'donorId',
+  bloodGroup: 'bloodGroup',
+  units: 'units',
   donationDate: 'donationDate',
   location: 'location',
+  donationType: 'donationType',
   status: 'status',
   notes: 'notes',
+  contact: 'contact',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1030,16 +1351,34 @@ export const DonationScalarFieldEnum = {
 export type DonationScalarFieldEnum = (typeof DonationScalarFieldEnum)[keyof typeof DonationScalarFieldEnum]
 
 
-export const CertificateScalarFieldEnum = {
+export const BloodIssueScalarFieldEnum = {
   id: 'id',
-  userId: 'userId',
-  donationId: 'donationId',
+  issueCode: 'issueCode',
+  recipientName: 'recipientName',
+  recipientType: 'recipientType',
+  bloodGroup: 'bloodGroup',
+  unitsRequested: 'unitsRequested',
+  unitsIssued: 'unitsIssued',
+  contact: 'contact',
   issueDate: 'issueDate',
-  certificateNumber: 'certificateNumber',
+  issuedBy: 'issuedBy',
+  status: 'status',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BloodIssueScalarFieldEnum = (typeof BloodIssueScalarFieldEnum)[keyof typeof BloodIssueScalarFieldEnum]
+
+
+export const BloodIssueItemScalarFieldEnum = {
+  id: 'id',
+  bloodIssueId: 'bloodIssueId',
+  bloodPackId: 'bloodPackId',
   createdAt: 'createdAt'
 } as const
 
-export type CertificateScalarFieldEnum = (typeof CertificateScalarFieldEnum)[keyof typeof CertificateScalarFieldEnum]
+export type BloodIssueItemScalarFieldEnum = (typeof BloodIssueItemScalarFieldEnum)[keyof typeof BloodIssueItemScalarFieldEnum]
 
 
 export const EventScalarFieldEnum = {
@@ -1048,11 +1387,8 @@ export const EventScalarFieldEnum = {
   description: 'description',
   location: 'location',
   eventDate: 'eventDate',
-  startTime: 'startTime',
-  endTime: 'endTime',
-  capacity: 'capacity',
-  registered: 'registered',
   status: 'status',
+  capacity: 'capacity',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1060,16 +1396,44 @@ export const EventScalarFieldEnum = {
 export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
 
 
-export const EventRegistrationScalarFieldEnum = {
+export const EventParticipantScalarFieldEnum = {
   id: 'id',
-  userId: 'userId',
   eventId: 'eventId',
+  userId: 'userId',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type EventRegistrationScalarFieldEnum = (typeof EventRegistrationScalarFieldEnum)[keyof typeof EventRegistrationScalarFieldEnum]
+export type EventParticipantScalarFieldEnum = (typeof EventParticipantScalarFieldEnum)[keyof typeof EventParticipantScalarFieldEnum]
+
+
+export const EventVolunteerScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  userId: 'userId',
+  role: 'role',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventVolunteerScalarFieldEnum = (typeof EventVolunteerScalarFieldEnum)[keyof typeof EventVolunteerScalarFieldEnum]
+
+
+export const CertificateScalarFieldEnum = {
+  id: 'id',
+  certificateNumber: 'certificateNumber',
+  type: 'type',
+  userId: 'userId',
+  recipientName: 'recipientName',
+  eventTitle: 'eventTitle',
+  volunteerId: 'volunteerId',
+  issueDate: 'issueDate',
+  createdAt: 'createdAt'
+} as const
+
+export type CertificateScalarFieldEnum = (typeof CertificateScalarFieldEnum)[keyof typeof CertificateScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1145,16 +1509,30 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
- * Reference to a field of type 'BloodType'
+ * Reference to a field of type 'BloodGroup'
  */
-export type EnumBloodTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BloodType'>
+export type EnumBloodGroupFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BloodGroup'>
     
 
 
 /**
- * Reference to a field of type 'BloodType[]'
+ * Reference to a field of type 'BloodGroup[]'
  */
-export type ListEnumBloodTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BloodType[]'>
+export type ListEnumBloodGroupFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BloodGroup[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 
@@ -1180,6 +1558,34 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'PackStatus'
+ */
+export type EnumPackStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PackStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PackStatus[]'
+ */
+export type ListEnumPackStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PackStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DonationType'
+ */
+export type EnumDonationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationType'>
+    
+
+
+/**
+ * Reference to a field of type 'DonationType[]'
+ */
+export type ListEnumDonationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationType[]'>
+    
+
+
+/**
  * Reference to a field of type 'DonationStatus'
  */
 export type EnumDonationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationStatus'>
@@ -1190,6 +1596,34 @@ export type EnumDonationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$P
  * Reference to a field of type 'DonationStatus[]'
  */
 export type ListEnumDonationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'RecipientType'
+ */
+export type EnumRecipientTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecipientType'>
+    
+
+
+/**
+ * Reference to a field of type 'RecipientType[]'
+ */
+export type ListEnumRecipientTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecipientType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'IssueStatus'
+ */
+export type EnumIssueStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IssueStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'IssueStatus[]'
+ */
+export type ListEnumIssueStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IssueStatus[]'>
     
 
 
@@ -1208,30 +1642,44 @@ export type ListEnumEventStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$
 
 
 /**
- * Reference to a field of type 'RegistrationStatus'
+ * Reference to a field of type 'ParticipantStatus'
  */
-export type EnumRegistrationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RegistrationStatus'>
+export type EnumParticipantStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ParticipantStatus'>
     
 
 
 /**
- * Reference to a field of type 'RegistrationStatus[]'
+ * Reference to a field of type 'ParticipantStatus[]'
  */
-export type ListEnumRegistrationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RegistrationStatus[]'>
+export type ListEnumParticipantStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ParticipantStatus[]'>
     
 
 
 /**
- * Reference to a field of type 'Float'
+ * Reference to a field of type 'VolunteerStatus'
  */
-export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+export type EnumVolunteerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VolunteerStatus'>
     
 
 
 /**
- * Reference to a field of type 'Float[]'
+ * Reference to a field of type 'VolunteerStatus[]'
  */
-export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+export type ListEnumVolunteerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VolunteerStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'CertificateType'
+ */
+export type EnumCertificateTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CertificateType'>
+    
+
+
+/**
+ * Reference to a field of type 'CertificateType[]'
+ */
+export type ListEnumCertificateTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CertificateType[]'>
     
 
 /**
@@ -1331,11 +1779,15 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   donor?: Prisma.DonorOmit
-  bloodStock?: Prisma.BloodStockOmit
+  bloodPack?: Prisma.BloodPackOmit
+  bloodStockSummary?: Prisma.BloodStockSummaryOmit
   donation?: Prisma.DonationOmit
-  certificate?: Prisma.CertificateOmit
+  bloodIssue?: Prisma.BloodIssueOmit
+  bloodIssueItem?: Prisma.BloodIssueItemOmit
   event?: Prisma.EventOmit
-  eventRegistration?: Prisma.EventRegistrationOmit
+  eventParticipant?: Prisma.EventParticipantOmit
+  eventVolunteer?: Prisma.EventVolunteerOmit
+  certificate?: Prisma.CertificateOmit
 }
 
 /* Types for Logging */

@@ -18,7 +18,7 @@ export const Role = {
 export type Role = (typeof Role)[keyof typeof Role]
 
 
-export const BloodType = {
+export const BloodGroup = {
   A_POSITIVE: 'A_POSITIVE',
   A_NEGATIVE: 'A_NEGATIVE',
   B_POSITIVE: 'B_POSITIVE',
@@ -29,7 +29,34 @@ export const BloodType = {
   O_NEGATIVE: 'O_NEGATIVE'
 } as const
 
-export type BloodType = (typeof BloodType)[keyof typeof BloodType]
+export type BloodGroup = (typeof BloodGroup)[keyof typeof BloodGroup]
+
+
+export const PackStatus = {
+  AVAILABLE: 'AVAILABLE',
+  USED: 'USED',
+  EXPIRED: 'EXPIRED',
+  RESERVED: 'RESERVED'
+} as const
+
+export type PackStatus = (typeof PackStatus)[keyof typeof PackStatus]
+
+
+export const DonationType = {
+  PERSON: 'PERSON',
+  ORGANIZATION: 'ORGANIZATION'
+} as const
+
+export type DonationType = (typeof DonationType)[keyof typeof DonationType]
+
+
+export const RecipientType = {
+  PERSON: 'PERSON',
+  ORGANIZATION: 'ORGANIZATION',
+  HOSPITAL: 'HOSPITAL'
+} as const
+
+export type RecipientType = (typeof RecipientType)[keyof typeof RecipientType]
 
 
 export const DonationStatus = {
@@ -42,9 +69,18 @@ export const DonationStatus = {
 export type DonationStatus = (typeof DonationStatus)[keyof typeof DonationStatus]
 
 
+export const IssueStatus = {
+  PENDING: 'PENDING',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type IssueStatus = (typeof IssueStatus)[keyof typeof IssueStatus]
+
+
 export const EventStatus = {
   UPCOMING: 'UPCOMING',
-  ONGOING: 'ONGOING',
+  RUNNING: 'RUNNING',
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED'
 } as const
@@ -52,11 +88,29 @@ export const EventStatus = {
 export type EventStatus = (typeof EventStatus)[keyof typeof EventStatus]
 
 
-export const RegistrationStatus = {
+export const ParticipantStatus = {
   REGISTERED: 'REGISTERED',
   ATTENDED: 'ATTENDED',
   CANCELLED: 'CANCELLED',
   NO_SHOW: 'NO_SHOW'
 } as const
 
-export type RegistrationStatus = (typeof RegistrationStatus)[keyof typeof RegistrationStatus]
+export type ParticipantStatus = (typeof ParticipantStatus)[keyof typeof ParticipantStatus]
+
+
+export const VolunteerStatus = {
+  REGISTERED: 'REGISTERED',
+  ATTENDED: 'ATTENDED',
+  CANCELLED: 'CANCELLED',
+  NO_SHOW: 'NO_SHOW'
+} as const
+
+export type VolunteerStatus = (typeof VolunteerStatus)[keyof typeof VolunteerStatus]
+
+
+export const CertificateType = {
+  DONATION: 'DONATION',
+  VOLUNTEER: 'VOLUNTEER'
+} as const
+
+export type CertificateType = (typeof CertificateType)[keyof typeof CertificateType]

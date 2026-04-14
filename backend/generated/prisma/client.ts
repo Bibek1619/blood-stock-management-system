@@ -52,27 +52,47 @@ export type User = Prisma.UserModel
  */
 export type Donor = Prisma.DonorModel
 /**
- * Model BloodStock
+ * Model BloodPack
  * 
  */
-export type BloodStock = Prisma.BloodStockModel
+export type BloodPack = Prisma.BloodPackModel
+/**
+ * Model BloodStockSummary
+ * 
+ */
+export type BloodStockSummary = Prisma.BloodStockSummaryModel
 /**
  * Model Donation
  * 
  */
 export type Donation = Prisma.DonationModel
 /**
- * Model Certificate
+ * Model BloodIssue
  * 
  */
-export type Certificate = Prisma.CertificateModel
+export type BloodIssue = Prisma.BloodIssueModel
+/**
+ * Model BloodIssueItem
+ * 
+ */
+export type BloodIssueItem = Prisma.BloodIssueItemModel
 /**
  * Model Event
  * 
  */
 export type Event = Prisma.EventModel
 /**
- * Model EventRegistration
+ * Model EventParticipant
  * 
  */
-export type EventRegistration = Prisma.EventRegistrationModel
+export type EventParticipant = Prisma.EventParticipantModel
+/**
+ * Model EventVolunteer
+ * 
+ */
+export type EventVolunteer = Prisma.EventVolunteerModel
+/**
+ * Model Certificate
+ * 
+ */
+export type Certificate = Prisma.CertificateModel

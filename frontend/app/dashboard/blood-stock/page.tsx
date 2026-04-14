@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import { Plus, MoreHorizontal, Search, AlertTriangle, Droplets, TrendingDown, CheckCircle2, Clock, Home } from "lucide-react";
+import { Plus, MoreHorizontal, Search, AlertTriangle, Droplets, TrendingDown, CheckCircle2, Clock, Home, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
