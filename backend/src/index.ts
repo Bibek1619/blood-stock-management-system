@@ -10,6 +10,13 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Debug middleware to log requests
+app.use((req, _res, next) => {
+  console.log(`${req.method} ${req.path}`, req.body);
+  next();
+});
 
 app.get("/health", async (_req, res) => {
   try {

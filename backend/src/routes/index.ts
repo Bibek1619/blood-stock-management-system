@@ -1,4 +1,5 @@
 import { Router } from "express";
+import authRoutes from "./authRoutes";
 import userRoutes from "./userRoutes";
 import donorRoutes from "./donorRoutes";
 import donationRoutes from "./donationRoutes";
@@ -9,6 +10,7 @@ import certificateRoutes from "./certificateRoutes";
 
 const router = Router();
 
+router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 router.use("/donors", donorRoutes);
 router.use("/donations", donationRoutes);

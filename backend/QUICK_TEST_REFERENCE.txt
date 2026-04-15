@@ -1,0 +1,94 @@
+═══════════════════════════════════════════════════════════════════
+  BLOOD DONATION AUTH API - QUICK TEST REFERENCE
+═══════════════════════════════════════════════════════════════════
+
+SERVER: http://localhost:3001
+
+═══════════════════════════════════════════════════════════════════
+1. REGISTER USER
+═══════════════════════════════════════════════════════════════════
+POST http://localhost:3001/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "phone": "+1234567890",
+  "role": "DONOR"
+}
+
+═══════════════════════════════════════════════════════════════════
+2. LOGIN USER
+═══════════════════════════════════════════════════════════════════
+POST http://localhost:3001/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+→ COPY THE TOKEN FROM RESPONSE!
+
+═══════════════════════════════════════════════════════════════════
+3. GET PROFILE (Protected)
+═══════════════════════════════════════════════════════════════════
+GET http://localhost:3001/api/auth/profile
+Authorization: Bearer YOUR_TOKEN_HERE
+
+═══════════════════════════════════════════════════════════════════
+4. UPDATE PROFILE (Protected)
+═══════════════════════════════════════════════════════════════════
+PUT http://localhost:3001/api/auth/profile
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "John Updated",
+  "phone": "+9876543210"
+}
+
+═══════════════════════════════════════════════════════════════════
+5. HEALTH CHECK
+═══════════════════════════════════════════════════════════════════
+GET http://localhost:3001/health
+
+═══════════════════════════════════════════════════════════════════
+ROLES AVAILABLE
+═══════════════════════════════════════════════════════════════════
+- DONOR (default)
+- ADMIN
+- STAFF
+
+═══════════════════════════════════════════════════════════════════
+MORE TEST USERS
+═══════════════════════════════════════════════════════════════════
+
+ADMIN USER:
+{
+  "name": "Admin User",
+  "email": "admin@bloodbank.com",
+  "password": "admin123",
+  "phone": "+1234567891",
+  "role": "ADMIN"
+}
+
+STAFF USER:
+{
+  "name": "Sarah Johnson",
+  "email": "sarah.staff@bloodbank.com",
+  "password": "staff123",
+  "phone": "+1234567892",
+  "role": "STAFF"
+}
+
+═══════════════════════════════════════════════════════════════════
+FILES TO CHECK
+═══════════════════════════════════════════════════════════════════
+✅ AUTH_SETUP_COMPLETE.md - Full summary
+✅ POSTMAN_TEST_DATA.md - Detailed test data
+✅ Blood_Donation_Auth_API.postman_collection.json - Import to Postman
+✅ AUTH_API.md - Complete API documentation
+
+═══════════════════════════════════════════════════════════════════
