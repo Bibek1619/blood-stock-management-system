@@ -45,12 +45,9 @@ export default function BecomeDonorPage() {
         throw new Error(data.message || 'Registration failed');
       }
 
-      // Store token and user data
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      // Redirect to donor form to complete profile
-      router.push('/donor-form');
+      // Registration successful - redirect to login
+      alert('Registration successful! Please login to complete your donor profile.');
+      router.push('/login');
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -197,7 +194,7 @@ export default function BecomeDonorPage() {
                   className="w-full h-12 bg-red-600 hover:bg-red-700 text-lg font-semibold"
                   disabled={loading}
                 >
-                  {loading ? "Creating Account..." : "Continue to Medical Info"}
+                  {loading ? "Creating Account..." : "Register"}
                 </Button>
               </form>
 
