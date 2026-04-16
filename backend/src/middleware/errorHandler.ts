@@ -1,5 +1,8 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from 'express';
 
+/**
+ * Custom error class for operational errors
+ */
 export class AppError extends Error {
   statusCode: number;
   isOperational: boolean;
@@ -12,22 +15,66 @@ export class AppError extends Error {
   }
 }
 
+/**
+ * Global error handler middleware
+ */
 export const errorHandler = (
   err: Error | AppError,
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): void => {
+  // Handle operational errors
   if (err instanceof AppError) {
-    return res.status(err.statusCode).json({
-      status: "error",
+    res.status(err.statusCode).json({
+      success: false,
       message: err.message,
     });
+    return;
   }
 
-  console.error("ERROR:", err);
+  // Handle JSON parsing errors (body-parser)
+  if (err instanceof SyntaxError && 'body' in err) {
+    res.status(400).json({
+      success: false,
+      message: 'Invalid JSON format in request body. Please check your JSON syntax.',
+      hint: 'Make sure all property names are in double quotes and there are no trailing commas.',
+    });
+    return;
+  }
+
+  // Handle Prisma errors
+  if (err.name === 'PrismaClientKnownRequestError') {
+    res.status(400).json({
+      success: false,
+      message: 'Database operation failed',
+    });
+    return;
+  }
+
+  // Handle validation errors
+  if (err.name === 'ValidationError') {
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+    return;
+  }
+
+  // Log unexpected errors
+  console.error('❌ Unexpected Error:', {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    body: req.body,
+  });
+
+  // Send generic error response
   res.status(500).json({
-    status: "error",
-    message: "Internal server error",
+    success: false,
+    message: process.env.NODE_ENV === 'production' 
+      ? 'Internal server error' 
+      : err.message,
   });
 };

@@ -683,10 +683,6 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type DonorCreateNestedOneWithoutBloodPacksInput = {
   create?: Prisma.XOR<Prisma.DonorCreateWithoutBloodPacksInput, Prisma.DonorUncheckedCreateWithoutBloodPacksInput>
   connectOrCreate?: Prisma.DonorCreateOrConnectWithoutBloodPacksInput

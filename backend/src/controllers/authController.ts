@@ -3,46 +3,73 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../../lib/prisma';
 
-const generateToken = (userId: string): string => {
+const TOKEN_EXPIRY = '30d';
+
+// Generate JWT
+const generateToken = (id: string): string => {
   if (!process.env.JWT_SECRET) {
-    throw new Error('JWT_SECRET is not defined');
+    throw new Error('JWT_SECRET missing');
   }
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: '30d',
+
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: TOKEN_EXPIRY,
   });
 };
 
+// Validators
+const isValidEmail = (email: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+const isValidPassword = (password: string) =>
+  password.length >= 6;
+
+// ================= REGISTER =================
 export const registerUser = async (req: Request, res: Response) => {
   try {
     const { name, email, password, phone, role } = req.body;
 
-    // Validate required fields
     if (!name || !email || !password || !phone) {
-      return res.status(400).json({ 
-        message: 'Please provide all required fields: name, email, password, phone' 
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required',
       });
     }
 
-    // Check if user already exists
+    if (!isValidEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format',
+      });
+    }
+
+    if (!isValidPassword(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters',
+      });
+    }
+
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: email.toLowerCase() },
     });
 
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(409).json({
+        success: false,
+        message: 'Email already exists',
+      });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = await prisma.user.create({
       data: {
-        name,
-        email,
+        name: name.trim(),
+        email: email.toLowerCase(),
         password: hashedPassword,
-        phone,
-        role: role || 'DONOR', // Default to DONOR if not specified
+        phone: phone.trim(),
+        role: role || 'DONOR',
+        isVerified: false, // User needs to complete donor profile
       },
       select: {
         id: true,
@@ -50,73 +77,88 @@ export const registerUser = async (req: Request, res: Response) => {
         email: true,
         phone: true,
         role: true,
+        isVerified: true,
         createdAt: true,
       },
     });
 
-    // Generate token
-    const token = generateToken(user.id);
-
     res.status(201).json({
-      user,
-      token,
+      success: true,
+      message: 'User registered successfully. Please login to complete your profile.',
+      data: { user },
     });
-  } catch (error) {
-    console.error('Error in registerUser:', error instanceof Error ? error.message : error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (err) {
+    console.error('REGISTER ERROR:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+    });
   }
 };
 
+// ================= LOGIN =================
 export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    // Validate required fields
     if (!email || !password) {
-      return res.status(400).json({ 
-        message: 'Please provide email and password' 
+      return res.status(400).json({
+        success: false,
+        message: 'Email & password required',
       });
     }
 
-    // Find user by email
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: email.toLowerCase() },
     });
 
     if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials',
+      });
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials',
+      });
     }
 
-    // Generate token
     const token = generateToken(user.id);
 
-    res.status(200).json({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
+    res.json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          isVerified: user.isVerified,
+        },
+        token,
       },
-      token,
     });
-  } catch (error) {
-    console.error('Error in loginUser:', error instanceof Error ? error.message : error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (err) {
+    console.error('LOGIN ERROR:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+    });
   }
 };
 
+// ================= GET PROFILE =================
 export const getUserProfile = async (req: Request, res: Response) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ message: 'Not authenticated' });
+      return res.status(401).json({ success: false });
     }
 
     const user = await prisma.user.findUnique({
@@ -127,35 +169,42 @@ export const getUserProfile = async (req: Request, res: Response) => {
         email: true,
         phone: true,
         role: true,
+        isVerified: true,
         createdAt: true,
-        updatedAt: true,
       },
     });
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.status(200).json({ user });
-  } catch (error) {
-    console.error('Error in getUserProfile:', error instanceof Error ? error.message : error);
-    res.status(500).json({ message: 'Server error' });
+    res.json({
+      success: true,
+      data: user,
+    });
+  } catch (err) {
+    console.error('PROFILE ERROR:', err);
+    res.status(500).json({ success: false });
   }
 };
 
+// ================= UPDATE PROFILE =================
 export const updateUserProfile = async (req: Request, res: Response) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ message: 'Not authenticated' });
+      return res.status(401).json({ success: false });
     }
 
     const { name, phone } = req.body;
 
+    if (!name && !phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nothing to update',
+      });
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
       data: {
-        ...(name && { name }),
-        ...(phone && { phone }),
+        ...(name && { name: name.trim() }),
+        ...(phone && { phone: phone.trim() }),
       },
       select: {
         id: true,
@@ -163,13 +212,16 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         email: true,
         phone: true,
         role: true,
-        updatedAt: true,
       },
     });
 
-    res.status(200).json({ user: updatedUser });
-  } catch (error) {
-    console.error('Error in updateUserProfile:', error instanceof Error ? error.message : error);
-    res.status(500).json({ message: 'Server error' });
+    res.json({
+      success: true,
+      message: 'Profile updated',
+      data: updatedUser,
+    });
+  } catch (err) {
+    console.error('UPDATE ERROR:', err);
+    res.status(500).json({ success: false });
   }
 };

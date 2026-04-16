@@ -56,6 +56,7 @@ export const createDonor = async (req: Request, res: Response) => {
     throw new AppError("Donor profile already exists for this user", 400);
   }
 
+  // Create donor profile
   const donor = await prisma.donor.create({
     data: {
       userId,
@@ -73,7 +74,17 @@ export const createDonor = async (req: Request, res: Response) => {
     },
   });
 
-  res.status(201).json({ status: "success", data: donor });
+  // Mark user as verified after completing donor profile
+  await prisma.user.update({
+    where: { id: userId },
+    data: { isVerified: true },
+  });
+
+  res.status(201).json({ 
+    status: "success", 
+    message: "Donor profile completed successfully",
+    data: donor 
+  });
 };
 
 export const updateDonor = async (req: Request, res: Response) => {

@@ -74,6 +74,18 @@ export default function DonorFormPage() {
     try {
       const token = localStorage.getItem('token');
       
+      // Convert blood group format (A+ -> A_POSITIVE)
+      const bloodGroupMap: Record<string, string> = {
+        'A+': 'A_POSITIVE',
+        'A-': 'A_NEGATIVE',
+        'B+': 'B_POSITIVE',
+        'B-': 'B_NEGATIVE',
+        'AB+': 'AB_POSITIVE',
+        'AB-': 'AB_NEGATIVE',
+        'O+': 'O_POSITIVE',
+        'O-': 'O_NEGATIVE',
+      };
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/donors`, {
         method: 'POST',
         headers: {
@@ -82,10 +94,10 @@ export default function DonorFormPage() {
         },
         body: JSON.stringify({
           userId: user.id,
-          bloodGroup: form.bloodGroup,
+          bloodGroup: bloodGroupMap[form.bloodGroup],
           dateOfBirth: form.dateOfBirth,
           weight: parseFloat(form.weight),
-          location: form.location,
+          location: form.location || form.city,
           city: form.city,
           address: form.address,
         }),
@@ -97,7 +109,12 @@ export default function DonorFormPage() {
         throw new Error(data.message || 'Failed to create donor profile');
       }
 
+      // Update user data in localStorage
+      const updatedUser = { ...user, isVerified: true };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+
       // Success! Redirect to dashboard
+      alert('Donor profile completed successfully! Welcome to the blood donation community.');
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');
