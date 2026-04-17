@@ -8,22 +8,49 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { getUser, isAuthenticated } from '@/lib/auth';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const demoUser = {
-    name: 'Bibek',
-    email: 'bibek@gmail.com',
-    role: 'admin',
-  };
+  const router = useRouter();
+  const [authorized, setAuthorized] = useState(false);
+
+  useEffect(() => {
+    // Check if user is logged in
+    if (isAuthenticated()) {
+      const user = getUser();
+      
+      // If user is a DONOR, redirect to /home
+      if (user && user.role === 'DONOR') {
+        router.push('/home');
+        return;
+      }
+    }
+
+    // Allow access to:
+    // - Non-logged-in users
+    // - ADMIN users
+    // - STAFF users
+    setAuthorized(true);
+  }, [router]);
+
+  if (!authorized) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
 
   return (
     <DataProvider>
       <SidebarProvider>
-        <DashboardNav user={demoUser} />
+        <DashboardNav />
 
         <SidebarInset>
           {/* ── Top header bar ──────────────────────────────────────── */}

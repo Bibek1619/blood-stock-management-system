@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
-  Plus, Search, Phone, Mail, Eye, Users, Heart, X, MapPin, 
-  Droplets, Calendar, Award, ChevronRight, Home,
+  Search, Phone, Mail, Eye, Users, Heart, MapPin, 
+  Droplets, Calendar, Award, Home, Loader2,
 } from "lucide-react";
-import { BLOOD_GROUPS, MOCK_DONORS, getInitials, getDonorTier, type BloodGroup, type Donor } from "@/lib/data";
+import { BLOOD_GROUPS, getInitials, getDonorTier } from "@/lib/data";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,8 +15,44 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { useDonors } from "@/lib/queries/donors";
 
-let donorCounter = MOCK_DONORS.length + 1;
+// Utility function to format blood group
+const formatBloodGroup = (bloodGroup: string): string => {
+  const mapping: Record<string, string> = {
+    'A_POSITIVE': 'A+',
+    'A_NEGATIVE': 'A-',
+    'B_POSITIVE': 'B+',
+    'B_NEGATIVE': 'B-',
+    'AB_POSITIVE': 'AB+',
+    'AB_NEGATIVE': 'AB-',
+    'O_POSITIVE': 'O+',
+    'O_NEGATIVE': 'O-',
+  };
+  return mapping[bloodGroup] || bloodGroup;
+};
+
+// Extended Donor type with user info
+interface Donor {
+  id: string;
+  userId: string;
+  bloodGroup: string;
+  location: string;
+  city?: string;
+  address?: string;
+  dateOfBirth?: string;
+  weight?: number;
+  lastDonationDate?: string;
+  totalDonations: number;
+  isEligible: boolean;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    isVerified: boolean;
+  };
+}
 
 // ─── TOAST (simple) ───────────────────────────────────────────────────────────
 function useToast() {
@@ -30,26 +67,48 @@ function useToast() {
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function DonorsPage() {
-  const [donors, setDonors] = useState<Donor[]>(MOCK_DONORS);
+  const router = useRouter();
   const [filterGroup, setFilterGroup] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [sheetDonor, setSheetDonor] = useState<Donor | null>(null);
-  const [newDonor, setNewDonor] = useState({
-    name: "", phone: "", email: "", bloodGroup: "",
-    location: "", lastDonationDate: "", totalDonations: 0,
-  });
+  const [activeTab, setActiveTab] = useState<"all" | "event" | "web">("all");
 
   const { toasts, toast } = useToast();
 
-  const filtered = donors.filter((d) => {
+  // Fetch donors using TanStack Query
+  const { data: donors = [], isLoading, error } = useDonors();
+
+  // Show error toast if fetch fails
+  if (error) {
+    toast('Failed to load donors', 'error');
+  }
+
+  // Filter donors based on active tab
+  const getFilteredDonorsByTab = () => {
+    switch (activeTab) {
+      case "event":
+        // Event donors: those who have participated in events (totalDonations > 0)
+        return donors.filter(d => d.totalDonations > 0);
+      case "web":
+        // Web donors: registered through website and verified
+        return donors.filter(d => d.user?.isVerified === true);
+      default:
+        return donors;
+    }
+  };
+
+  const tabFilteredDonors = getFilteredDonorsByTab();
+
+  const filtered = tabFilteredDonors.filter((d) => {
     if (filterGroup !== "all" && d.bloodGroup !== filterGroup) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
+      const name = d.user?.name || '';
+      const location = d.location || '';
+      const phone = d.user?.phone || '';
       return (
-        d.name.toLowerCase().includes(q) ||
-        d.location.toLowerCase().includes(q) ||
-        d.phone.includes(q)
+        name.toLowerCase().includes(q) ||
+        location.toLowerCase().includes(q) ||
+        phone.includes(q)
       );
     }
     return true;
@@ -122,14 +181,53 @@ export default function DonorsPage() {
             </div>
             <div>
               <h1 className="text-[22px] font-extrabold text-slate-900 m-0 tracking-tight">Donors</h1>
-              <p className="text-[13px] text-slate-600 mt-0.5">{donors.length} registered donors</p>
+              <p className="text-[13px] text-slate-600 mt-0.5">
+                {isLoading ? "Loading..." : `${donors.length} registered donors`}
+              </p>
             </div>
           </div>
+        </div>
+
+        {/* ── Tabs ── */}
+        <div className="flex items-center gap-2 mb-4 border-b border-slate-200">
           <button
-            className="flex items-center gap-1.5 bg-[#7F1D1D] text-white border-none rounded-lg px-4 py-2 text-sm font-semibold cursor-pointer hover:bg-[#991B1B] transition-colors"
-            onClick={() => setDialogOpen(true)}
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+              activeTab === "all"
+                ? "border-[#7F1D1D] text-[#7F1D1D]"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+            onClick={() => setActiveTab("all")}
           >
-            <Plus size={14} /> Add Donor
+            All Donors
+            <span className="ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-xs font-bold text-slate-700">
+              {donors.length}
+            </span>
+          </button>
+          <button
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+              activeTab === "event"
+                ? "border-[#7F1D1D] text-[#7F1D1D]"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+            onClick={() => setActiveTab("event")}
+          >
+            Event Donors
+            <span className="ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-xs font-bold text-slate-700">
+              {donors.filter(d => d.totalDonations > 0).length}
+            </span>
+          </button>
+          <button
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+              activeTab === "web"
+                ? "border-[#7F1D1D] text-[#7F1D1D]"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+            onClick={() => setActiveTab("web")}
+          >
+            Web Donors
+            <span className="ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-xs font-bold text-slate-700">
+              {donors.filter(d => d.user?.isVerified === true).length}
+            </span>
           </button>
         </div>
 
@@ -174,55 +272,81 @@ export default function DonorsPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.length > 0 ? (
-              filtered.map((d) => (
-                <tr key={d.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                  <td className="px-3.5 py-3 text-sm text-slate-900">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-[34px] h-[34px] rounded-full flex-shrink-0 bg-[#7F1D1D]/10 border border-[#7F1D1D]/20 flex items-center justify-center text-xs font-bold text-[#7F1D1D]">
-                        {getInitials(d.name)}
+            {isLoading ? (
+              <tr>
+                <td colSpan={7} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader2 size={32} className="text-[#7F1D1D] animate-spin" />
+                    <p className="text-sm font-semibold text-slate-600 m-0">Loading donors...</p>
+                  </div>
+                </td>
+              </tr>
+            ) : filtered.length > 0 ? (
+              filtered.map((d) => {
+                const name = d.user?.name || 'Unknown';
+                const phone = d.user?.phone || 'N/A';
+                const email = d.user?.email;
+                const bloodGroup = formatBloodGroup(d.bloodGroup);
+                
+                return (
+                  <tr key={d.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td className="px-3.5 py-3 text-sm text-slate-900">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-[34px] h-[34px] rounded-full flex-shrink-0 bg-[#7F1D1D]/10 border border-[#7F1D1D]/20 flex items-center justify-center text-xs font-bold text-[#7F1D1D]">
+                          {getInitials(name)}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-sm text-slate-900">{name}</span>
+                          {d.user?.isVerified && (
+                            <span className="text-[10px] text-green-600 font-medium">✓ Verified</span>
+                          )}
+                        </div>
                       </div>
-                      <span className="font-semibold text-sm text-slate-900">{d.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-3.5 py-3">
-                    <span className="inline-block px-2 py-0.5 rounded-md bg-[#7F1D1D]/10 text-[#7F1D1D] border border-[#7F1D1D]/20 text-[11px] font-bold">
-                      {d.bloodGroup}
-                    </span>
-                  </td>
-                  <td className="px-3.5 py-3 text-xs text-slate-600 hidden md:table-cell">{d.phone}</td>
-                  <td className="px-3.5 py-3 text-xs text-slate-600 hidden md:table-cell">{d.location}</td>
-                  <td className="px-3.5 py-3 text-xs hidden md:table-cell">{d.lastDonationDate}</td>
-                  <td className="px-3.5 py-3 hidden lg:table-cell">
-                    <span className="text-xs font-bold text-[#7F1D1D]">{d.totalDonations}×</span>
-                  </td>
-                  <td className="px-3.5 py-3">
-                    <div className="flex items-center gap-0.5">
-                      <button
-                        className="bg-transparent border-none cursor-pointer p-1.5 rounded-lg text-slate-400 hover:bg-[#7F1D1D]/10 hover:text-[#7F1D1D] transition-all flex items-center"
-                        title="View"
-                        onClick={() => setSheetDonor(d)}
-                      >
-                        <Eye size={13} />
-                      </button>
-                      <button
-                        className="bg-transparent border-none cursor-pointer p-1.5 rounded-lg text-slate-400 hover:bg-[#7F1D1D]/10 hover:text-[#7F1D1D] transition-all flex items-center hidden md:inline-flex"
-                        title="Call"
-                        onClick={() => toast(`Calling ${d.name}…`, "info")}
-                      >
-                        <Phone size={13} />
-                      </button>
-                      <button
-                        className="bg-transparent border-none cursor-pointer p-1.5 rounded-lg text-slate-400 hover:bg-[#7F1D1D]/10 hover:text-[#7F1D1D] transition-all flex items-center hidden md:inline-flex"
-                        title="Notify"
-                        onClick={() => toast(`Notification sent to ${d.name}`, "info")}
-                      >
-                        <Mail size={13} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    <td className="px-3.5 py-3">
+                      <span className="inline-block px-2 py-0.5 rounded-md bg-[#7F1D1D]/10 text-[#7F1D1D] border border-[#7F1D1D]/20 text-[11px] font-bold">
+                        {bloodGroup}
+                      </span>
+                    </td>
+                    <td className="px-3.5 py-3 text-xs text-slate-600 hidden md:table-cell">{phone}</td>
+                    <td className="px-3.5 py-3 text-xs text-slate-600 hidden md:table-cell">{d.location || d.city || 'N/A'}</td>
+                    <td className="px-3.5 py-3 text-xs hidden md:table-cell">
+                      {d.lastDonationDate ? new Date(d.lastDonationDate).toLocaleDateString() : '—'}
+                    </td>
+                    <td className="px-3.5 py-3 hidden lg:table-cell">
+                      <span className="text-xs font-bold text-[#7F1D1D]">{d.totalDonations}×</span>
+                    </td>
+                    <td className="px-3.5 py-3">
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          className="bg-transparent border-none cursor-pointer p-1.5 rounded-lg text-slate-400 hover:bg-[#7F1D1D]/10 hover:text-[#7F1D1D] transition-all flex items-center text-xs font-medium gap-1"
+                          title="View Profile"
+                          onClick={() => router.push(`/dashboard/donors/${d.id}`)}
+                        >
+                          <Eye size={13} />
+                          <span className="hidden sm:inline">View Profile</span>
+                        </button>
+                        <button
+                          className="bg-transparent border-none cursor-pointer p-1.5 rounded-lg text-slate-400 hover:bg-[#7F1D1D]/10 hover:text-[#7F1D1D] transition-all flex items-center hidden md:inline-flex"
+                          title="Call"
+                          onClick={() => toast(`Calling ${name}…`, "info")}
+                        >
+                          <Phone size={13} />
+                        </button>
+                        {email && (
+                          <button
+                            className="bg-transparent border-none cursor-pointer p-1.5 rounded-lg text-slate-400 hover:bg-[#7F1D1D]/10 hover:text-[#7F1D1D] transition-all flex items-center hidden md:inline-flex"
+                            title="Email"
+                            onClick={() => toast(`Email sent to ${name}`, "info")}
+                          >
+                            <Mail size={13} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan={7} className="text-center py-12">
@@ -231,7 +355,11 @@ export default function DonorsPage() {
                       <Heart size={22} className="text-slate-300" />
                     </div>
                     <p className="text-sm font-semibold text-slate-600 m-0">No donors found</p>
-                    <p className="text-xs text-slate-400 m-0">Try adjusting your filters</p>
+                    <p className="text-xs text-slate-400 m-0">
+                      {activeTab === "web" && "No verified web donors yet"}
+                      {activeTab === "event" && "No event participants yet"}
+                      {activeTab === "all" && "Try adjusting your filters"}
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -239,269 +367,11 @@ export default function DonorsPage() {
           </tbody>
         </table>
         <div className="px-3.5 py-2.5 border-t border-slate-100 text-xs text-slate-400">
-          Showing {filtered.length} of {donors.length} donors
+          Showing {filtered.length} of {tabFilteredDonors.length} donors
+          {activeTab === "event" && " (participated in events)"}
+          {activeTab === "web" && " (registered online)"}
         </div>
       </div>
-
-      {/* ── Add Donor Dialog ── */}
-      {dialogOpen && (
-        <div
-          className="fixed inset-0 bg-black/35 flex items-center justify-center z-[200]"
-          onClick={() => setDialogOpen(false)}
-        >
-          <div
-            className="bg-white rounded-[14px] w-full max-w-[440px] p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2.5">
-                <div className="w-[34px] h-[34px] rounded-[9px] bg-[#7F1D1D]/10 border border-[#7F1D1D]/20 flex items-center justify-center">
-                  <Users size={16} className="text-[#7F1D1D]" />
-                </div>
-                <h2 className="text-base font-bold text-slate-900 m-0">Register Donor</h2>
-              </div>
-              <button
-                className="bg-transparent border-none cursor-pointer text-slate-400 flex p-0.5 rounded-md hover:bg-slate-100"
-                onClick={() => setDialogOpen(false)}
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="flex flex-col gap-3.5">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-700">
-                  Full Name <span className="text-[#7F1D1D]">*</span>
-                </label>
-                <input
-                  className="h-[38px] border border-slate-300 rounded-lg px-2.5 text-sm outline-none text-slate-900 focus:border-[#7F1D1D] focus:ring-1 focus:ring-[#7F1D1D]"
-                  placeholder="Enter full name"
-                  value={newDonor.name}
-                  onChange={(e) => setNewDonor({ ...newDonor, name: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-700">
-                    Blood Group <span className="text-[#7F1D1D]">*</span>
-                  </label>
-                  <select
-                    className="h-[38px] border border-slate-300 rounded-lg px-2.5 text-sm outline-none text-slate-900 focus:border-[#7F1D1D] focus:ring-1 focus:ring-[#7F1D1D]"
-                    value={newDonor.bloodGroup}
-                    onChange={(e) => setNewDonor({ ...newDonor, bloodGroup: e.target.value })}
-                  >
-                    <option value="">Select</option>
-                    {BLOOD_GROUPS.map((g) => (
-                      <option key={g} value={g}>{g}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-700">
-                    Phone <span className="text-[#7F1D1D]">*</span>
-                  </label>
-                  <input
-                    className="h-[38px] border border-slate-300 rounded-lg px-2.5 text-sm outline-none text-slate-900 focus:border-[#7F1D1D] focus:ring-1 focus:ring-[#7F1D1D]"
-                    placeholder="98XXXXXXXX"
-                    value={newDonor.phone}
-                    onChange={(e) => setNewDonor({ ...newDonor, phone: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-700">Email</label>
-                <input
-                  className="h-[38px] border border-slate-300 rounded-lg px-2.5 text-sm outline-none text-slate-900 focus:border-[#7F1D1D] focus:ring-1 focus:ring-[#7F1D1D]"
-                  type="email"
-                  placeholder="donor@email.com"
-                  value={newDonor.email}
-                  onChange={(e) => setNewDonor({ ...newDonor, email: e.target.value })}
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-700">Location</label>
-                <input
-                  className="h-[38px] border border-slate-300 rounded-lg px-2.5 text-sm outline-none text-slate-900 focus:border-[#7F1D1D] focus:ring-1 focus:ring-[#7F1D1D]"
-                  placeholder="City / District"
-                  value={newDonor.location}
-                  onChange={(e) => setNewDonor({ ...newDonor, location: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-700">Last Donation</label>
-                  <input
-                    className="h-[38px] border border-slate-300 rounded-lg px-2.5 text-sm outline-none text-slate-900 focus:border-[#7F1D1D] focus:ring-1 focus:ring-[#7F1D1D]"
-                    type="date"
-                    value={newDonor.lastDonationDate}
-                    onChange={(e) => setNewDonor({ ...newDonor, lastDonationDate: e.target.value })}
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-700">Total Donations</label>
-                  <input
-                    className="h-[38px] border border-slate-300 rounded-lg px-2.5 text-sm outline-none text-slate-900 focus:border-[#7F1D1D] focus:ring-1 focus:ring-[#7F1D1D]"
-                    type="number"
-                    min="0"
-                    value={newDonor.totalDonations}
-                    onChange={(e) => setNewDonor({ ...newDonor, totalDonations: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
-              </div>
-              <button
-                className="w-full bg-[#7F1D1D] text-white border-none rounded-lg py-2.5 text-sm font-semibold cursor-pointer mt-1 hover:bg-[#991B1B] transition-colors"
-                onClick={handleAdd}
-              >
-                Register Donor
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Donor Detail Sheet ── */}
-      {sheetDonor && (
-        <div
-          className="fixed inset-0 bg-black/30 flex justify-end z-[300]"
-          onClick={() => setSheetDonor(null)}
-        >
-          <div
-            className="w-full max-w-[420px] bg-white h-screen overflow-y-auto flex flex-col shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Banner */}
-            <div className="bg-gradient-to-br from-[#7F1D1D] via-[#991B1B] to-[#B91C1C] px-5 pt-5 pb-7 flex flex-col items-center relative">
-              <button
-                className="absolute top-3.5 right-3.5 bg-white/15 border-none rounded-lg p-1.5 cursor-pointer text-white flex items-center hover:bg-white/25 transition-colors"
-                onClick={() => setSheetDonor(null)}
-              >
-                <X size={16} />
-              </button>
-              <div className="w-[72px] h-[72px] rounded-full bg-white/15 border-[3px] border-white/30 flex items-center justify-center text-[26px] font-extrabold text-white mb-3">
-                {getInitials(sheetDonor.name)}
-              </div>
-              <h2 className="text-xl font-extrabold text-white m-0 mb-2.5 text-center">{sheetDonor.name}</h2>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 bg-white/18 border border-white/30 rounded-full px-2.5 py-1 text-xs font-bold text-white">
-                  <Droplets size={11} /> {sheetDonor.bloodGroup}
-                </span>
-                {(() => {
-                  const tier = getDonorTier(sheetDonor.totalDonations);
-                  return (
-                    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold bg-white ${tier.color} ${tier.border}`}>
-                      <Award size={11} /> {tier.label} Donor
-                    </span>
-                  );
-                })()}
-              </div>
-            </div>
-
-            {/* Stats Strip */}
-            <div className="flex items-center justify-around bg-white border border-slate-100 rounded-[14px] mx-4 -mt-[18px] py-3.5 px-2.5 shadow-lg relative z-10">
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-[17px] font-extrabold text-[#7F1D1D]">{sheetDonor.totalDonations}</span>
-                <span className="text-[10px] text-slate-700 uppercase tracking-wider font-bold">Total Donations</span>
-              </div>
-              <div className="w-px h-8 bg-slate-100" />
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-[17px] font-extrabold text-[#7F1D1D]">{sheetDonor.totalDonations * 450} ml</span>
-                <span className="text-[10px] text-slate-700 font-bold uppercase tracking-wider">Blood Donated</span>
-              </div>
-              <div className="w-px h-8 bg-slate-100" />
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-[17px] font-extrabold text-[#7F1D1D]">{sheetDonor.totalDonations * 3}</span>
-                <span className="text-[10px] text-slate-700 font-bold uppercase tracking-wider">Lives Impacted</span>
-              </div>
-            </div>
-
-            {/* Body */}
-            <div className="px-5 py-6 flex-1">
-              <p className="text-[11px]  text-slate-800 font-extrabold uppercase tracking-wider m-0 mb-2.5 ">Contact Information</p>
-              <div className="bg-slate-50 border border-slate-100 rounded-xl overflow-hidden">
-                <div className="flex items-center gap-3 px-3.5 py-3">
-                  <div className="w-[30px] h-[30px] rounded-lg flex-shrink-0 bg-[#7F1D1D]/10 border border-[#7F1D1D]/20 flex items-center justify-center">
-                    <Phone size={13} className="text-[#7F1D1D]" />
-                  </div>
-                  <div className="flex flex-col flex-1 gap-0.5">
-                    <span className="text-[11px] text-slate-400 font-medium">Phone</span>
-                    <span className="text-sm text-slate-900 font-semibold">{sheetDonor.phone}</span>
-                  </div>
-                  <ChevronRight size={14} className="text-slate-300" />
-                </div>
-                <div className="h-px bg-slate-100 mx-3.5" />
-                <div className="flex items-center gap-3 px-3.5 py-3">
-                  <div className="w-[30px] h-[30px] rounded-lg flex-shrink-0 bg-[#7F1D1D]/10 border border-[#7F1D1D]/20 flex items-center justify-center">
-                    <Mail size={13} className="text-[#7F1D1D]" />
-                  </div>
-                  <div className="flex flex-col flex-1 gap-0.5">
-                    <span className="text-[11px] text-slate-400 font-medium">Email</span>
-                    <span className="text-sm text-slate-900 font-semibold">{sheetDonor.email || "—"}</span>
-                  </div>
-                  {sheetDonor.email && <ChevronRight size={14} className="text-slate-300" />}
-                </div>
-                <div className="h-px bg-slate-100 mx-3.5" />
-                <div className="flex items-center gap-3 px-3.5 py-3">
-                  <div className="w-[30px] h-[30px] rounded-lg flex-shrink-0 bg-[#7F1D1D]/10 border border-[#7F1D1D]/20 flex items-center justify-center">
-                    <MapPin size={13} className="text-[#7F1D1D]" />
-                  </div>
-                  <div className="flex flex-col flex-1 gap-0.5">
-                    <span className="text-[11px] text-slate-400 font-medium">Location</span>
-                    <span className="text-sm text-slate-900 font-semibold">{sheetDonor.location || "—"}</span>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider m-0 mb-2.5 mt-5">Donation History</p>
-              <div className="bg-slate-50 border border-slate-100 rounded-xl overflow-hidden">
-                <div className="flex items-center gap-3 px-3.5 py-3">
-                  <div className="w-[30px] h-[30px] rounded-lg flex-shrink-0 bg-[#7F1D1D]/10 border border-[#7F1D1D]/20 flex items-center justify-center">
-                    <Calendar size={13} className="text-[#7F1D1D]" />
-                  </div>
-                  <div className="flex flex-col flex-1 gap-0.5">
-                    <span className="text-[11px] text-slate-400 font-medium">Last Donation</span>
-                    <span className="text-sm text-slate-900 font-semibold">{sheetDonor.lastDonationDate || "—"}</span>
-                  </div>
-                </div>
-                <div className="h-px bg-slate-100 mx-3.5" />
-                <div className="flex items-center gap-3 px-3.5 py-3">
-                  <div className="w-[30px] h-[30px] rounded-lg flex-shrink-0 bg-[#7F1D1D]/10 border border-[#7F1D1D]/20 flex items-center justify-center">
-                    <Droplets size={13} className="text-[#7F1D1D]" />
-                  </div>
-                  <div className="flex flex-col flex-1 gap-0.5">
-                    <span className="text-[11px] text-slate-400 font-medium">Blood Group</span>
-                    <span className="text-sm text-slate-900 font-semibold">{sheetDonor.bloodGroup}</span>
-                  </div>
-                </div>
-                <div className="h-px bg-slate-100 mx-3.5" />
-                <div className="flex items-center gap-3 px-3.5 py-3">
-                  <div className="w-[30px] h-[30px] rounded-lg flex-shrink-0 bg-[#7F1D1D]/10 border border-[#7F1D1D]/20 flex items-center justify-center">
-                    <Award size={13} className="text-[#7F1D1D]" />
-                  </div>
-                  <div className="flex flex-col flex-1 gap-0.5">
-                    <span className="text-[11px] text-slate-400 font-medium">Total Donations</span>
-                    <span className="text-sm text-[#7F1D1D] font-bold">{sheetDonor.totalDonations}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex  gap-2.5 mt-6">
-                <button
-                  className="flex items-center justify-center gap-2 bg-[#7F1D1D] text-white border-none rounded-[10px] py-3 text-sm font-semibold cursor-pointer w-full hover:bg-[#991B1B] transition-colors"
-                  onClick={() => toast(`Calling ${sheetDonor.name}…`, "info")}
-                >
-                  <Phone size={14} /> Call 
-                </button>
-                <button
-                  className="flex items-center justify-center gap-2 bg-white text-slate-700 border border-slate-200 rounded-[10px] py-3 text-sm font-semibold cursor-pointer w-full hover:bg-slate-300 transition-colors"
-                  onClick={() => toast(`Notification sent to ${sheetDonor.name}`, "info")}
-                >
-                  <Mail size={14} /> notify
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
     </div>
   );

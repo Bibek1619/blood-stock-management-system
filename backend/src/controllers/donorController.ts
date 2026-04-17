@@ -18,6 +18,7 @@ export const getAllDonors = async (req: Request, res: Response) => {
           name: true,
           email: true,
           phone: true,
+          isVerified: true,
         },
       },
     },

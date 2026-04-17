@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -44,6 +45,8 @@ import {
   LogOut,
   User,
 } from 'lucide-react';
+import { getUser, clearAuth, isAuthenticated } from '@/lib/auth';
+import type { User as UserType } from '@/lib/auth';
 
 // ── Nav config ────────────────────────────────────────────────────────────────
 const NAV_MAIN = [
@@ -62,17 +65,29 @@ const NAV_MAIN = [
   { icon: Award, label: 'Certificates', href: '/dashboard/certificates' },
 ];
 
-interface DashboardNavProps {
-  user?: { name: string; email: string; role: string };
-}
-
-export const DashboardNav = ({ user }: DashboardNavProps) => {
+export const DashboardNav = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const [user, setUser] = useState<UserType | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  const displayName = user?.name ?? 'Bibek';
-  const displayEmail = user?.email ?? 'bibek@gmail.com';
-  const initials = displayName.charAt(0).toUpperCase();
+  useEffect(() => {
+    setMounted(true);
+    if (isAuthenticated()) {
+      const userData = getUser();
+      setUser(userData);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    clearAuth();
+    setUser(null);
+    router.push('/');
+  };
+
+  const displayName = user?.name ?? 'Guest';
+  const displayEmail = user?.email ?? 'Not logged in';
+  const initials = user ? user.name.charAt(0).toUpperCase() : 'G';
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -157,37 +172,53 @@ export const DashboardNav = ({ user }: DashboardNavProps) => {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <SidebarMenuButton
-                    size="lg"
-                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                  >
-                    <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
-                      {initials}
-                    </div>
-                    <div className="flex flex-col gap-0.5 leading-none text-left min-w-0">
-                      <span className="font-medium text-sm truncate">{displayName}</span>
-                      <span className="text-xs text-muted-foreground truncate">{displayEmail}</span>
-                    </div>
-                    <ChevronDown className="ml-auto size-4 shrink-0" />
-                  </SidebarMenuButton>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent side="top" align="end" className="w-56">
-                  <DropdownMenuItem>
-                    <User className="mr-2 size-4" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => router.push('/')}
-                    className="text-red-600 focus:text-red-600"
-                  >
-                    <LogOut className="mr-2 size-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <SidebarMenuButton
+                      size="lg"
+                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    >
+                      <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
+                        {initials}
+                      </div>
+                      <div className="flex flex-col gap-0.5 leading-none text-left min-w-0">
+                        <span className="font-medium text-sm truncate">{displayName}</span>
+                        <span className="text-xs text-muted-foreground truncate">{displayEmail}</span>
+                      </div>
+                      <ChevronDown className="ml-auto size-4 shrink-0" />
+                    </SidebarMenuButton>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent side="top" align="end" className="w-56">
+                    <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
+                      <User className="mr-2 size-4" />
+                      View Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <LogOut className="mr-2 size-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <SidebarMenuButton
+                  size="lg"
+                  onClick={() => router.push('/login')}
+                  className="cursor-pointer hover:bg-sidebar-accent"
+                >
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-gray-300 text-gray-600 text-sm font-semibold">
+                    {initials}
+                  </div>
+                  <div className="flex flex-col gap-0.5 leading-none text-left min-w-0">
+                    <span className="font-medium text-sm truncate">{displayName}</span>
+                    <span className="text-xs text-muted-foreground truncate">Click to login</span>
+                  </div>
+                </SidebarMenuButton>
+              )}
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>

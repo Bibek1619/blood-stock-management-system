@@ -40,6 +40,8 @@ export const API_PATHS = {
     CREATE: "/api/donations",
     UPDATE: (id: string) => `/api/donations/${id}`,
     DELETE: (id: string) => `/api/donations/${id}`,
+    COLLECT: "/api/donations/collect",
+    SEARCH_DONORS: "/api/donations/search/donors",
   },
 
   /**
@@ -54,11 +56,11 @@ export const API_PATHS = {
    * Blood Pack Endpoints
    */
   BLOOD_PACK: {
-    GET_ALL: "/api/blood-packs",
-    GET_BY_ID: (id: string) => `/api/blood-packs/${id}`,
-    CREATE: "/api/blood-packs",
-    UPDATE: (id: string) => `/api/blood-packs/${id}`,
-    DELETE: (id: string) => `/api/blood-packs/${id}`,
+    GET_ALL: "/api/blood-stock",
+    GET_BY_ID: (id: string) => `/api/blood-stock/${id}`,
+    CREATE: "/api/blood-stock",
+    UPDATE: (id: string) => `/api/blood-stock/${id}`,
+    DELETE: (id: string) => `/api/blood-stock/${id}`,
   },
 
   /**

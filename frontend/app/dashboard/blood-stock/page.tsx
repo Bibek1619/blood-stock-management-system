@@ -1,27 +1,16 @@
 'use client';
 
-import { useState } from "react";
-import { Plus, MoreHorizontal, Search, AlertTriangle, Droplets, TrendingDown, CheckCircle2, Clock, Home, X } from "lucide-react";
+import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { Plus, MoreHorizontal, Search, AlertTriangle, Droplets, TrendingDown, CheckCircle2, Clock, Home, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { toast as sonnerToast } from "sonner";
-import {
-  BLOOD_GROUPS,
-  PACK_STATUS_CONFIG,
-  getStockByGroup,
-  getLowStockGroups,
-  type BloodGroup,
-  type PackStatus,
-  type BloodPack,
-} from "@/lib/data";
-import { useData } from "@/lib/data-store";
+import { toast } from "sonner";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -30,72 +19,117 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { useBloodPacks, useBloodStockSummary, useUpdateBloodPackStatus } from "@/lib/queries/bloodStock";
 
+const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const LOW_STOCK_THRESHOLD = 2;
 
-let packCounter = 1000;
+// Blood group mapping from DB format to display format
+const bloodGroupMap: Record<string, string> = {
+  'A_POSITIVE': 'A+',
+  'A_NEGATIVE': 'A-',
+  'B_POSITIVE': 'B+',
+  'B_NEGATIVE': 'B-',
+  'AB_POSITIVE': 'AB+',
+  'AB_NEGATIVE': 'AB-',
+  'O_POSITIVE': 'O+',
+  'O_NEGATIVE': 'O-',
+};
+
+// Status configuration
+const PACK_STATUS_CONFIG: Record<string, { bg: string; text: string; border: string; dot: string }> = {
+  AVAILABLE: { bg: 'rgba(34, 197, 94, 0.08)', text: '#16a34a', border: 'rgba(34, 197, 94, 0.2)', dot: '#22c55e' },
+  USED: { bg: 'rgba(100, 116, 139, 0.08)', text: '#475569', border: 'rgba(100, 116, 139, 0.2)', dot: '#64748b' },
+  EXPIRED: { bg: 'rgba(239, 68, 68, 0.08)', text: '#dc2626', border: 'rgba(239, 68, 68, 0.2)', dot: '#ef4444' },
+  RESERVED: { bg: 'rgba(59, 130, 246, 0.08)', text: '#2563eb', border: 'rgba(59, 130, 246, 0.2)', dot: '#3b82f6' },
+};
 
 export default function BloodStockPage() {
-  const { bloodPacks, addBloodPack, updateBloodPackStatus, donors } = useData();
-  const [filterGroup, setFilterGroup]   = useState<string>("all");
+  const router = useRouter();
+  const [filterGroup, setFilterGroup] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [searchQuery, setSearchQuery]   = useState<string>("");
-  const [dialogOpen, setDialogOpen]     = useState<boolean>(false);
-  const [openMenuId, setOpenMenuId]     = useState<string | null>(null);
-  const [newPack, setNewPack] = useState<{
-    bloodGroup: string;
-    collectionDate: string;
-    expiryDate: string;
-    donorId: string;
-    status: string;
-  }>({
-    bloodGroup: "", collectionDate: "", expiryDate: "", donorId: "", status: "Available",
-  });
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
+  // Fetch data using TanStack Query
+  const { data: bloodPacks = [], isLoading: isLoadingPacks } = useBloodPacks();
+  const { data: stockSummary = [], isLoading: isLoadingSummary } = useBloodStockSummary();
+  const updateStatus = useUpdateBloodPackStatus();
 
-  const stock    = getStockByGroup(bloodPacks);
-  const lowStock = getLowStockGroups(bloodPacks);
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const totalAvailable = bloodPacks.filter((p) => p.status === "AVAILABLE").length;
+    const totalUsed = bloodPacks.filter((p) => p.status === "USED").length;
+    const totalExpired = bloodPacks.filter((p) => p.status === "EXPIRED").length;
 
-  const totalAvailable = bloodPacks.filter((p) => p.status === "Available").length;
-  const totalUsed      = bloodPacks.filter((p) => p.status === "Used").length;
-  const totalExpired   = bloodPacks.filter((p) => p.status === "Expired").length;
-
-  const filtered = bloodPacks.filter((p) => {
-    if (filterGroup  !== "all" && p.bloodGroup !== filterGroup)  return false;
-    if (filterStatus !== "all" && p.status     !== filterStatus) return false;
-    if (searchQuery && !p.packCode.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
-  });
-
-  const handleAdd = () => {
-    if (!newPack.bloodGroup || !newPack.collectionDate || !newPack.expiryDate) {
-      sonnerToast.error("Please fill all required fields");
-      return;
-    }
-    
-    addBloodPack({
-      bloodGroup:     newPack.bloodGroup as BloodGroup,
-      donorId:        newPack.donorId,
-      collectionDate: newPack.collectionDate,
-      expiryDate:     newPack.expiryDate,
-      status:         "Available" as PackStatus,
+    // Calculate low stock groups
+    const stockByGroup: Record<string, number> = {};
+    bloodPacks.forEach((pack) => {
+      if (pack.status === "AVAILABLE") {
+        const displayGroup = bloodGroupMap[pack.bloodGroup] || pack.bloodGroup;
+        stockByGroup[displayGroup] = (stockByGroup[displayGroup] || 0) + 1;
+      }
     });
-    
-    packCounter++;
-    setDialogOpen(false);
-    setNewPack({ bloodGroup: "", collectionDate: "", expiryDate: "", donorId: "", status: "Available" });
-    sonnerToast.success("Blood pack added successfully");
+
+    const lowStockGroups = BLOOD_GROUPS.filter(
+      (group) => (stockByGroup[group] || 0) <= LOW_STOCK_THRESHOLD
+    );
+
+    return {
+      totalAvailable,
+      totalUsed,
+      totalExpired,
+      lowStockGroups,
+      stockByGroup,
+    };
+  }, [bloodPacks]);
+
+  // Filter blood packs
+  const filteredPacks = useMemo(() => {
+    return bloodPacks.filter((p) => {
+      const displayGroup = bloodGroupMap[p.bloodGroup] || p.bloodGroup;
+      
+      if (filterGroup !== "all" && displayGroup !== filterGroup) return false;
+      if (filterStatus !== "all" && p.status !== filterStatus) return false;
+      if (searchQuery && !p.packCode.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      return true;
+    });
+  }, [bloodPacks, filterGroup, filterStatus, searchQuery]);
+
+  const handleUpdateStatus = async (id: string, status: string) => {
+    try {
+      await updateStatus.mutateAsync({ id, status });
+      setOpenMenuId(null);
+      toast.success(`Marked as ${status.toLowerCase()}`);
+    } catch (error: any) {
+      toast.error('Failed to update status', {
+        description: error.response?.data?.message || 'Please try again',
+      });
+    }
   };
 
-  const updateStatus = (id: string, status: PackStatus) => {
-    updateBloodPackStatus(id, status);
-    setOpenMenuId(null);
-    sonnerToast.success(`Marked as ${status}`);
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
+
+  if (isLoadingPacks || isLoadingSummary) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-[#7F1D1D]" />
+          <p className="text-sm text-slate-600">Loading blood stock...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full p-2 md:p-2 bg-background min-h-[calc(100vh-3.5rem)]" suppressHydrationWarning>
-      {/* ── Breadcrumbs ── */}
+      {/* Breadcrumbs */}
       <div className="mb-4">
         <Breadcrumb>
           <BreadcrumbList>
@@ -112,7 +146,7 @@ export default function BloodStockPage() {
         </Breadcrumb>
       </div>
 
-      {/* ── Page Header ── */}
+      {/* Page Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-[10px] bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.2)] flex items-center justify-center">
@@ -123,86 +157,15 @@ export default function BloodStockPage() {
             <p className="text-[13px] text-slate-500 mt-[2px]">Manage and track blood inventory</p>
           </div>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#7F1D1D] hover:bg-[#991B1B]">
-              <Plus size={14} className="mr-1.5" /> Add Pack
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[440px]">
-            <DialogHeader>
-              <div className="flex items-center gap-2.5">
-                <div className="w-[34px] h-[34px] rounded-[9px] bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.2)] flex items-center justify-center">
-                  <Droplets size={16} color="#7F1D1D" />
-                </div>
-                <DialogTitle>Add Blood Pack</DialogTitle>
-              </div>
-            </DialogHeader>
-            <div className="flex flex-col gap-4 mt-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="bloodGroup">
-                  Blood Group <span className="text-[#7F1D1D]">*</span>
-                </Label>
-                <Select value={newPack.bloodGroup} onValueChange={(value) => setNewPack({ ...newPack, bloodGroup: value })}>
-                  <SelectTrigger id="bloodGroup">
-                    <SelectValue placeholder="Select group" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BLOOD_GROUPS.map((g) => (
-                      <SelectItem key={g} value={g}>{g}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="donor">Donor</Label>
-                <Select value={newPack.donorId} onValueChange={(value) => setNewPack({ ...newPack, donorId: value })}>
-                  <SelectTrigger id="donor">
-                    <SelectValue placeholder="Select donor (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {donors.map((d) => (
-                      <SelectItem key={d.id} value={d.id}>{d.name} ({d.bloodGroup})</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="collectionDate">
-                    Collection Date <span className="text-[#7F1D1D]">*</span>
-                  </Label>
-                  <Input
-                    id="collectionDate"
-                    type="date"
-                    value={newPack.collectionDate}
-                    onChange={(e) => setNewPack({ ...newPack, collectionDate: e.target.value })}
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="expiryDate">
-                    Expiry Date <span className="text-[#7F1D1D]">*</span>
-                  </Label>
-                  <Input
-                    id="expiryDate"
-                    type="date"
-                    value={newPack.expiryDate}
-                    onChange={(e) => setNewPack({ ...newPack, expiryDate: e.target.value })}
-                  />
-                </div>
-              </div>
-              <Button 
-                className="w-full bg-[#7F1D1D] hover:bg-[#991B1B] mt-2"
-                onClick={handleAdd}
-              >
-                Add Blood Pack
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          className="bg-[#7F1D1D] hover:bg-[#991B1B]"
+          onClick={() => router.push('/dashboard/blood-donate/blood-collection')}
+        >
+          <Plus size={14} className="mr-1.5" /> Add Pack
+        </Button>
       </div>
 
-      {/* ── Summary Stat Cards ── */}
+      {/* Summary Stat Cards */}
       <div className="grid grid-cols-4 gap-3 mb-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -212,7 +175,7 @@ export default function BloodStockPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-[26px] font-extrabold text-[#7F1D1D] leading-none">{totalAvailable}</div>
+            <div className="text-[26px] font-extrabold text-[#7F1D1D] leading-none">{stats.totalAvailable}</div>
             <p className="text-[11px] text-slate-400 mt-1">Packs ready to use</p>
           </CardContent>
         </Card>
@@ -225,7 +188,7 @@ export default function BloodStockPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-[26px] font-extrabold text-[#c2410c] leading-none">{lowStock.length}</div>
+            <div className="text-[26px] font-extrabold text-[#c2410c] leading-none">{stats.lowStockGroups.length}</div>
             <p className="text-[11px] text-slate-400 mt-1">Requires immediate action</p>
           </CardContent>
         </Card>
@@ -238,7 +201,7 @@ export default function BloodStockPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-[26px] font-extrabold text-[#475569] leading-none">{totalUsed}</div>
+            <div className="text-[26px] font-extrabold text-[#475569] leading-none">{stats.totalUsed}</div>
             <p className="text-[11px] text-slate-400 mt-1">Packs consumed</p>
           </CardContent>
         </Card>
@@ -251,35 +214,35 @@ export default function BloodStockPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-[26px] font-extrabold text-[#991B1B] leading-none">{totalExpired}</div>
+            <div className="text-[26px] font-extrabold text-[#991B1B] leading-none">{stats.totalExpired}</div>
             <p className="text-[11px] text-slate-400 mt-1">Disposed safely</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* ── Low Stock Alert Banner ── */}
-      {lowStock.length > 0 && (
+      {/* Low Stock Alert Banner */}
+      {stats.lowStockGroups.length > 0 && (
         <div className="bg-[rgba(127,29,29,0.04)] border border-[rgba(127,29,29,0.2)] rounded-[10px] p-2.5 px-3.5 flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <AlertTriangle size={15} color="#7F1D1D" />
             <span className="text-[13px] font-medium text-[#7F1D1D]">
-              Low stock alert:&nbsp;<strong>{lowStock.join(", ")}</strong>
+              Low stock alert:&nbsp;<strong>{stats.lowStockGroups.join(", ")}</strong>
             </span>
           </div>
-          <Button variant="outline" size="sm" className="h-8">
+          <Button variant="outline" size="sm" className="h-8" onClick={() => router.push('/dashboard/blood-search')}>
             <Search size={12} className="mr-1.5" /> Find Donors
           </Button>
         </div>
       )}
 
-      {/* ── Blood Inventory by Group ── */}
+      {/* Blood Inventory by Group */}
       <p className="text-[13px] font-bold text-slate-800 mb-2.5 flex items-center gap-1.5">
         Blood Inventory by Group
       </p>
       <div className="grid grid-cols-8 gap-2.5 mb-5">
         {BLOOD_GROUPS.map((g) => {
-          const isLow  = lowStock.includes(g);
-          const count  = stock[g]?.available ?? 0;
+          const isLow = stats.lowStockGroups.includes(g);
+          const count = stats.stockByGroup[g] ?? 0;
           return (
             <div
               key={g}
@@ -303,7 +266,7 @@ export default function BloodStockPage() {
         })}
       </div>
 
-      {/* ── Filters ── */}
+      {/* Filters */}
       <div className="flex items-center gap-2.5 mb-3">
         <div className="relative flex-1">
           <Search size={13} color="#94a3b8" className="absolute left-2.5 top-1/2 -translate-y-1/2" />
@@ -329,14 +292,15 @@ export default function BloodStockPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="Available">Available</SelectItem>
-            <SelectItem value="Used">Used</SelectItem>
-            <SelectItem value="Expired">Expired</SelectItem>
+            <SelectItem value="AVAILABLE">Available</SelectItem>
+            <SelectItem value="USED">Used</SelectItem>
+            <SelectItem value="EXPIRED">Expired</SelectItem>
+            <SelectItem value="RESERVED">Reserved</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* ── Table ── */}
+      {/* Table */}
       <Card>
         <Table>
           <TableHeader>
@@ -351,145 +315,80 @@ export default function BloodStockPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.slice(0, 20).map((p) => {
-              const donor = donors.find(d => d.id === p.donorId);
-              const ss    = PACK_STATUS_CONFIG[p.status] ?? PACK_STATUS_CONFIG.Available;
-              return (
-                <TableRow key={p.id}>
-                  <TableCell>
-                    <span className="font-mono text-xs text-slate-600">{p.packCode}</span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="bg-[rgba(127,29,29,0.08)] text-[#7F1D1D] border-[rgba(127,29,29,0.2)]">
-                      {p.bloodGroup}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-slate-400">
-                    {donor?.name ?? "—"}
-                  </TableCell>
-                  <TableCell className="text-xs">{p.collectionDate}</TableCell>
-                  <TableCell className="text-xs">{p.expiryDate}</TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant="outline"
-                      className="gap-1.5"
-                      style={{ background: ss.bg, color: ss.text, borderColor: ss.border }}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: ss.dot }} />
-                      {p.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu open={openMenuId === p.id} onOpenChange={(open) => setOpenMenuId(open ? p.id : null)}>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal size={14} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {p.status === "Available" && (
-                          <>
-                            <DropdownMenuItem onClick={() => updateStatus(p.id, "Used")}>
-                              Mark Used
+            {filteredPacks.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-slate-500">
+                  No blood packs found. Click "Add Pack" to record a donation.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredPacks.slice(0, 50).map((p) => {
+                const displayGroup = bloodGroupMap[p.bloodGroup] || p.bloodGroup;
+                const ss = PACK_STATUS_CONFIG[p.status] ?? PACK_STATUS_CONFIG.AVAILABLE;
+                return (
+                  <TableRow key={p.id}>
+                    <TableCell>
+                      <span className="font-mono text-xs text-slate-600">{p.packCode}</span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-[rgba(127,29,29,0.08)] text-[#7F1D1D] border-[rgba(127,29,29,0.2)]">
+                        {displayGroup}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-600">
+                      {p.donor?.user?.name ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-xs">{formatDate(p.collectionDate)}</TableCell>
+                    <TableCell className="text-xs">{formatDate(p.expiryDate)}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="outline"
+                        className="gap-1.5"
+                        style={{ background: ss.bg, color: ss.text, borderColor: ss.border }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: ss.dot }} />
+                        {p.status.charAt(0) + p.status.slice(1).toLowerCase()}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu open={openMenuId === p.id} onOpenChange={(open) => setOpenMenuId(open ? p.id : null)}>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal size={14} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {p.status === "AVAILABLE" && (
+                            <>
+                              <DropdownMenuItem onClick={() => handleUpdateStatus(p.id, "USED")}>
+                                Mark Used
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateStatus(p.id, "EXPIRED")}>
+                                Mark Expired
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateStatus(p.id, "RESERVED")}>
+                                Mark Reserved
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {p.status !== "AVAILABLE" && (
+                            <DropdownMenuItem onClick={() => handleUpdateStatus(p.id, "AVAILABLE")}>
+                              Mark Available
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => updateStatus(p.id, "Expired")}>
-                              Mark Expired
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        {p.status !== "Available" && (
-                          <DropdownMenuItem onClick={() => updateStatus(p.id, "Available")}>
-                            Mark Available
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
         <div className="px-3.5 py-2.5 border-t text-xs text-slate-400">
-          Showing {Math.min(filtered.length, 20)} of {filtered.length} packs
+          Showing {Math.min(filteredPacks.length, 50)} of {filteredPacks.length} packs
         </div>
       </Card>
-
-      {/* ── Add Pack Dialog ── */}
-      {dialogOpen && (
-        <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[200]" onClick={() => setDialogOpen(false)}>
-          <div className="bg-white rounded-[14px] w-full max-w-[440px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2.5">
-                <div className="w-[34px] h-[34px] rounded-[9px] bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.2)] flex items-center justify-center">
-                  <Droplets size={16} color="#7F1D1D" />
-                </div>
-                <h2 className="text-base font-bold text-slate-900 m-0">Add Blood Pack</h2>
-              </div>
-              <button 
-                className="bg-transparent border-none cursor-pointer text-slate-400 flex p-0.5 rounded-md hover:bg-slate-100"
-                onClick={() => setDialogOpen(false)}
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="flex flex-col gap-3.5">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-gray-700">
-                  Blood Group <span className="text-[#7F1D1D]">*</span>
-                </label>
-                <select
-                  className="h-[38px] border border-gray-300 rounded-lg px-2.5 text-[13px] outline-none bg-white text-slate-900"
-                  value={newPack.bloodGroup}
-                  onChange={(e) => setNewPack({ ...newPack, bloodGroup: e.target.value })}
-                >
-                  <option value="">Select group</option>
-                  {BLOOD_GROUPS.map((g) => <option key={g} value={g}>{g}</option>)}
-                </select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-gray-700">Donor</label>
-                <select
-                  className="h-[38px] border border-gray-300 rounded-lg px-2.5 text-[13px] outline-none bg-white text-slate-900"
-                  value={newPack.donorId}
-                  onChange={(e) => setNewPack({ ...newPack, donorId: e.target.value })}
-                >
-                  <option value="">Select donor (optional)</option>
-                  {donors.map((d) => (
-                    <option key={d.id} value={d.id}>{d.name} ({d.bloodGroup})</option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-gray-700">Collection Date <span className="text-[#7F1D1D]">*</span></label>
-                  <input
-                    type="date"
-                    className="h-[38px] border border-gray-300 rounded-lg px-2.5 text-[13px] outline-none text-slate-900"
-                    value={newPack.collectionDate}
-                    onChange={(e) => setNewPack({ ...newPack, collectionDate: e.target.value })}
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-gray-700">Expiry Date <span className="text-[#7F1D1D]">*</span></label>
-                  <input
-                    type="date"
-                    className="h-[38px] border border-gray-300 rounded-lg px-2.5 text-[13px] outline-none text-slate-900"
-                    value={newPack.expiryDate}
-                    onChange={(e) => setNewPack({ ...newPack, expiryDate: e.target.value })}
-                  />
-                </div>
-              </div>
-              <button 
-                className="w-full bg-[#7F1D1D] text-white border-none rounded-lg py-2.5 text-sm font-semibold cursor-pointer mt-1 hover:bg-[#991B1B] transition-colors"
-                onClick={handleAdd}
-              >
-                Add Blood Pack
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -10,4 +10,10 @@ router.post("/", asyncHandler(donationController.createDonation));
 router.put("/:id", asyncHandler(donationController.updateDonation));
 router.delete("/:id", asyncHandler(donationController.deleteDonation));
 
+// Blood collection endpoint
+router.post("/collect", asyncHandler(donationController.recordBloodCollection));
+
+// Search donors endpoint
+router.get("/search/donors", asyncHandler(donationController.searchDonors));
+
 export default router;

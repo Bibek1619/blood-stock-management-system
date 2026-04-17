@@ -43,14 +43,22 @@ export default function LoginPage() {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
 
-        // Check if user is verified (completed donor profile)
+        // Redirect based on role and verification status
+        let redirectUrl = '/';
+        
         if (!user.isVerified && user.role === 'DONOR') {
-          // Redirect to donor form to complete profile
-          router.push('/donor-form');
+          // Unverified donor -> complete profile
+          redirectUrl = '/donor-form';
+        } else if (user.role === 'DONOR') {
+          // Verified donor -> home
+          redirectUrl = '/home';
         } else {
-          // Redirect to dashboard
-          router.push('/dashboard');
+          // Admin/Staff -> dashboard (or stay on current page if already on dashboard)
+          redirectUrl = '/dashboard';
         }
+        
+        // Force a page reload to update navbar
+        window.location.href = redirectUrl;
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';

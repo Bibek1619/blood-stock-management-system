@@ -113,9 +113,15 @@ export default function DonorFormPage() {
       const updatedUser = { ...user, isVerified: true };
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
-      // Success! Redirect to dashboard
+      // Success! Redirect based on role
       alert('Donor profile completed successfully! Welcome to the blood donation community.');
-      router.push('/dashboard');
+      
+      // Donors go to home, admins go to dashboard
+      if (user.role === 'DONOR') {
+        window.location.href = '/home';
+      } else {
+        window.location.href = '/dashboard';
+      }
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
