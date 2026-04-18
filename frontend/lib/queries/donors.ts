@@ -32,7 +32,6 @@ interface Donor {
     isVerified: boolean;
   };
 }
-
 interface CreateDonorData {
   userId: string;
   bloodGroup: string;
