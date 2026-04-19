@@ -13,6 +13,9 @@ router.delete("/:id", asyncHandler(donationController.deleteDonation));
 // Blood collection endpoint
 router.post("/collect", asyncHandler(donationController.recordBloodCollection));
 
+// Bulk blood collection endpoint
+router.post("/bulk-collect", asyncHandler(donationController.recordBulkCollection));
+
 // Search donors endpoint
 router.get("/search/donors", asyncHandler(donationController.searchDonors));
 

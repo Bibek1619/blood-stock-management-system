@@ -17,6 +17,18 @@ export interface BloodCollectionData {
   notes?: string;
 }
 
+export interface BulkCollectionData {
+  organizationName: string;
+  organizationAddress: string;
+  organizationEmail?: string;
+  organizationPhone: string;
+  collectionDate: string;
+  bloodItems: Array<{
+    bloodGroup: string;
+    quantity: number;
+  }>;
+}
+
 export interface DonorSearchResult {
   id: string;
   userId: string;
@@ -81,6 +93,33 @@ export function useRecordBloodCollection() {
       queryClient.invalidateQueries({ queryKey: ['bloodStock'] });
       queryClient.invalidateQueries({ queryKey: ['donors'] });
       queryClient.invalidateQueries({ queryKey: ['donations'] });
+    },
+  });
+}
+
+/**
+ * Hook to record bulk blood collection from organizations
+ */
+export function useRecordBulkCollection() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: BulkCollectionData) => {
+      const response = await axiosInstance.post<{
+        status: string;
+        message: string;
+        data: any;
+      }>(
+        API_PATHS.DONATION.BULK_COLLECT,
+        data
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['bloodStock'] });
+      queryClient.invalidateQueries({ queryKey: ['donations'] });
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
     },
   });
 }

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../middleware/errorHandler";
+import { sendDonationThankYou } from "../services/notificationService";
 
 export const getAllDonations = async (req: Request, res: Response) => {
   const { bloodGroup, donationType, status } = req.query;
@@ -309,6 +310,25 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
     return { donation, bloodPack, donor };
   });
 
+  // Send thank you notification
+  try {
+    const donorUser = await prisma.user.findUnique({
+      where: { id: result.donor?.userId },
+    });
+    
+    if (donorUser) {
+      await sendDonationThankYou({
+        name: donorUser.name,
+        phone: donorUser.phone,
+        email: donorUser.email,
+        isVerified: donorUser.isVerified,
+      });
+    }
+  } catch (notifError) {
+    console.error('Failed to send notification:', notifError);
+    // Don't fail the request if notification fails
+  }
+
   res.status(201).json({
     status: "success",
     message: "Blood collection recorded successfully",
@@ -368,4 +388,247 @@ export const searchDonors = async (req: Request, res: Response) => {
   });
 
   res.json({ status: "success", data: donors });
+};
+
+// Bulk blood collection from organizations
+export const recordBulkCollection = async (req: Request, res: Response) => {
+  const {
+    organizationName,
+    organizationAddress,
+    organizationEmail,
+    organizationPhone,
+    collectionDate,
+    bloodItems, // Array of { bloodGroup, quantity }
+  } = req.body;
+
+  console.log('Received bulk collection request:', {
+    organizationName,
+    organizationAddress,
+    organizationPhone,
+    collectionDate,
+    bloodItems
+  });
+
+  // Validate required fields
+  if (!organizationName || !organizationAddress || !organizationPhone || !collectionDate || !bloodItems || bloodItems.length === 0) {
+    throw new AppError("Missing required fields", 400);
+  }
+
+  // Validate blood items
+  for (const item of bloodItems) {
+    if (!item.bloodGroup || !item.quantity || item.quantity < 1) {
+      throw new AppError("Invalid blood item data", 400);
+    }
+  }
+
+  // Convert blood group format (A+ -> A_POSITIVE)
+  const bloodGroupMap: Record<string, string> = {
+    'A+': 'A_POSITIVE',
+    'A-': 'A_NEGATIVE',
+    'B+': 'B_POSITIVE',
+    'B-': 'B_NEGATIVE',
+    'AB+': 'AB_POSITIVE',
+    'AB-': 'AB_NEGATIVE',
+    'O+': 'O_POSITIVE',
+    'O-': 'O_NEGATIVE',
+  };
+
+  try {
+    // Create a user record for the organization (if not exists)
+    let orgUser = await prisma.user.findFirst({
+      where: { phone: organizationPhone },
+    });
+
+    if (!orgUser) {
+      console.log('Creating new organization user');
+      orgUser = await prisma.user.create({
+        data: {
+          name: organizationName, // Organization name as donor name
+          phone: organizationPhone,
+          email: organizationEmail || `${organizationPhone}@org.local`,
+          password: 'ORGANIZATION', // Placeholder
+          role: 'DONOR',
+          isVerified: false,
+        },
+      });
+    } else {
+      // Update existing user with organization name if different
+      if (orgUser.name !== organizationName) {
+        orgUser = await prisma.user.update({
+          where: { id: orgUser.id },
+          data: { name: organizationName },
+        });
+      }
+    }
+
+    console.log('Organization user:', orgUser.id, 'Name:', orgUser.name);
+
+    // Create or get donor profile for the organization
+    let orgDonor = await prisma.donor.findUnique({
+      where: { userId: orgUser.id },
+    });
+
+    if (!orgDonor) {
+      console.log('Creating donor profile for organization');
+      // Use the first blood group from items as default
+      const firstBloodGroup = bloodGroupMap[bloodItems[0].bloodGroup] || bloodItems[0].bloodGroup;
+      
+      orgDonor = await prisma.donor.create({
+        data: {
+          userId: orgUser.id,
+          bloodGroup: firstBloodGroup as any,
+          location: organizationAddress,
+          city: organizationAddress,
+          address: organizationAddress,
+          totalDonations: 0,
+          isEligible: true,
+        },
+      });
+    }
+
+    console.log('Organization donor:', orgDonor.id);
+
+    // Get the current highest pack number for this year
+    const year = new Date(collectionDate).getFullYear();
+    const lastPack = await prisma.bloodPack.findFirst({
+      where: {
+        packCode: {
+          startsWith: `BP-${year}-`,
+        },
+      },
+      orderBy: { packCode: 'desc' },
+    });
+
+    let currentPackNumber = 1;
+    if (lastPack) {
+      const lastNumber = parseInt(lastPack.packCode.split('-')[2]);
+      currentPackNumber = lastNumber + 1;
+    }
+
+    console.log('Starting pack number:', currentPackNumber);
+
+    const createdDonations = [];
+    const createdBloodPacks = [];
+
+    // Process each blood item
+    for (const item of bloodItems) {
+      const dbBloodGroup = bloodGroupMap[item.bloodGroup] || item.bloodGroup;
+      const quantity = parseInt(item.quantity.toString()) || 1;
+
+      console.log(`Processing ${quantity} units of ${dbBloodGroup}`);
+
+      // Validate blood group
+      if (!['A_POSITIVE', 'A_NEGATIVE', 'B_POSITIVE', 'B_NEGATIVE', 'AB_POSITIVE', 'AB_NEGATIVE', 'O_POSITIVE', 'O_NEGATIVE'].includes(dbBloodGroup)) {
+        throw new AppError(`Invalid blood group: ${item.bloodGroup}`, 400);
+      }
+
+      // Create donation record
+      const donation = await prisma.donation.create({
+        data: {
+          userId: orgUser.id,
+          donorId: orgDonor.id, // Link to donor profile
+          bloodGroup: dbBloodGroup as any,
+          units: quantity,
+          donationDate: new Date(collectionDate),
+          location: organizationAddress,
+          donationType: 'ORGANIZATION',
+          status: 'COMPLETED',
+          notes: `Bulk collection from ${organizationName}`,
+          contact: organizationPhone,
+        },
+      });
+
+      createdDonations.push(donation);
+      console.log('Created donation:', donation.id);
+
+      // Calculate expiry date once (collection date + 35 days)
+      const expiryDate = new Date(collectionDate);
+      expiryDate.setDate(expiryDate.getDate() + 35);
+
+      // Create blood packs for each unit
+      for (let i = 0; i < quantity; i++) {
+        const packCode = `BP-${year}-${currentPackNumber.toString().padStart(3, '0')}`;
+        
+        console.log('Creating blood pack:', packCode);
+
+        // Create blood pack with donor link and ORGANIZATION_DONOR storage location
+        const bloodPack = await prisma.bloodPack.create({
+          data: {
+            packCode,
+            bloodGroup: dbBloodGroup as any,
+            donorId: orgDonor.id, // Link to donor profile
+            collectionDate: new Date(collectionDate),
+            expiryDate,
+            status: 'AVAILABLE',
+            storageLocation: 'ORGANIZATION_DONOR', // Set as Organization Donor
+          },
+        });
+
+        createdBloodPacks.push(bloodPack);
+        currentPackNumber++; // Increment for next pack
+      }
+
+      // Update donor's total donations
+      await prisma.donor.update({
+        where: { id: orgDonor.id },
+        data: {
+          totalDonations: { increment: quantity },
+          lastDonationDate: new Date(collectionDate),
+        },
+      });
+
+      // Update blood stock summary
+      const stockSummary = await prisma.bloodStockSummary.findUnique({
+        where: { bloodGroup: dbBloodGroup as any },
+      });
+
+      if (stockSummary) {
+        await prisma.bloodStockSummary.update({
+          where: { bloodGroup: dbBloodGroup as any },
+          data: {
+            available: { increment: quantity },
+            total: { increment: quantity },
+            lastUpdated: new Date(),
+          },
+        });
+        console.log('Updated stock summary for', dbBloodGroup);
+      } else {
+        await prisma.bloodStockSummary.create({
+          data: {
+            bloodGroup: dbBloodGroup as any,
+            available: quantity,
+            total: quantity,
+            used: 0,
+            expired: 0,
+            lastUpdated: new Date(),
+          },
+        });
+        console.log('Created stock summary for', dbBloodGroup);
+      }
+    }
+
+    const result = {
+      organization: {
+        name: organizationName,
+        address: organizationAddress,
+        phone: organizationPhone,
+        email: organizationEmail,
+      },
+      donations: createdDonations,
+      bloodPacks: createdBloodPacks,
+      totalUnits: bloodItems.reduce((sum: number, item: any) => sum + parseInt(item.quantity.toString()), 0),
+    };
+
+    console.log('Bulk collection completed successfully');
+
+    res.status(201).json({
+      status: "success",
+      message: "Bulk blood collection recorded successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    console.error('Bulk collection error:', error);
+    console.error('Error stack:', error.stack);
+    throw new AppError(error.message || "Database operation failed", 500);
+  }
 };

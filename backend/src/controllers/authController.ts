@@ -49,14 +49,36 @@ export const registerUser = async (req: Request, res: Response) => {
       });
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+    // Check if user already exists by email OR phone
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: email.toLowerCase() },
+          { phone: phone.trim() },
+        ],
+      },
+      include: {
+        donor: true,
+      },
     });
 
     if (existingUser) {
+      // If user exists but is a walk-in donor (not verified), guide them to claim account
+      if (!existingUser.isVerified && 
+          (existingUser.password === 'WALK_IN_DONOR' || existingUser.password === 'ORGANIZATION')) {
+        return res.status(409).json({
+          success: false,
+          message: 'You already donated with us! Please use "Claim Account" to activate your account and access your donation history.',
+          shouldClaimAccount: true,
+          phone: existingUser.phone,
+          email: existingUser.email,
+        });
+      }
+      
+      // If user is already verified, they should login
       return res.status(409).json({
         success: false,
-        message: 'Email already exists',
+        message: 'User already exists with this email or phone. Please login.',
       });
     }
 

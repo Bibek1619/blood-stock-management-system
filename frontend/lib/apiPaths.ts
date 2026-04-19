@@ -41,6 +41,7 @@ export const API_PATHS = {
     UPDATE: (id: string) => `/api/donations/${id}`,
     DELETE: (id: string) => `/api/donations/${id}`,
     COLLECT: "/api/donations/collect",
+    BULK_COLLECT: "/api/donations/bulk-collect",
     SEARCH_DONORS: "/api/donations/search/donors",
   },
 

@@ -70,7 +70,7 @@ export default function DonorsPage() {
   const router = useRouter();
   const [filterGroup, setFilterGroup] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"all" | "event" | "web">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "event" | "web" | "organization">("all");
 
   const { toasts, toast } = useToast();
 
@@ -85,6 +85,12 @@ export default function DonorsPage() {
   // Filter donors based on active tab
   const getFilteredDonorsByTab = () => {
     switch (activeTab) {
+      case "organization":
+        // Organization donors: those with email ending in @org.local or phone-based emails
+        return donors.filter(d => 
+          d.user?.email?.includes('@org.local') || 
+          d.user?.email?.match(/^\d+@/)
+        );
       case "event":
         // Event donors: those who have participated in events (totalDonations > 0)
         return donors.filter(d => d.totalDonations > 0);
@@ -205,6 +211,19 @@ export default function DonorsPage() {
           </button>
           <button
             className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+              activeTab === "organization"
+                ? "border-[#7F1D1D] text-[#7F1D1D]"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+            onClick={() => setActiveTab("organization")}
+          >
+            Organizations
+            <span className="ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-xs font-bold text-slate-700">
+              {donors.filter(d => d.user?.email?.includes('@org.local') || d.user?.email?.match(/^\d+@/)).length}
+            </span>
+          </button>
+          <button
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
               activeTab === "event"
                 ? "border-[#7F1D1D] text-[#7F1D1D]"
                 : "border-transparent text-slate-600 hover:text-slate-900"
@@ -297,9 +316,11 @@ export default function DonorsPage() {
                         </div>
                         <div className="flex flex-col">
                           <span className="font-semibold text-sm text-slate-900">{name}</span>
-                          {d.user?.isVerified && (
+                          {d.user?.email?.includes('@org.local') || d.user?.email?.match(/^\d+@/) ? (
+                            <span className="text-[10px] text-blue-600 font-medium">🏢 Organization</span>
+                          ) : d.user?.isVerified ? (
                             <span className="text-[10px] text-green-600 font-medium">✓ Verified</span>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </td>
@@ -356,6 +377,7 @@ export default function DonorsPage() {
                     </div>
                     <p className="text-sm font-semibold text-slate-600 m-0">No donors found</p>
                     <p className="text-xs text-slate-400 m-0">
+                      {activeTab === "organization" && "No organization donors yet"}
                       {activeTab === "web" && "No verified web donors yet"}
                       {activeTab === "event" && "No event participants yet"}
                       {activeTab === "all" && "Try adjusting your filters"}
@@ -368,6 +390,7 @@ export default function DonorsPage() {
         </table>
         <div className="px-3.5 py-2.5 border-t border-slate-100 text-xs text-slate-400">
           Showing {filtered.length} of {tabFilteredDonors.length} donors
+          {activeTab === "organization" && " (bulk collection organizations)"}
           {activeTab === "event" && " (participated in events)"}
           {activeTab === "web" && " (registered online)"}
         </div>

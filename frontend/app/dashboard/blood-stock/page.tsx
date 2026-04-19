@@ -308,6 +308,7 @@ export default function BloodStockPage() {
               <TableHead>Pack Code</TableHead>
               <TableHead>Group</TableHead>
               <TableHead>Donor</TableHead>
+              <TableHead>Collection Type</TableHead>
               <TableHead>Collected</TableHead>
               <TableHead>Expires</TableHead>
               <TableHead>Status</TableHead>
@@ -317,7 +318,7 @@ export default function BloodStockPage() {
           <TableBody>
             {filteredPacks.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-slate-500">
+                <TableCell colSpan={8} className="text-center py-8 text-slate-500">
                   No blood packs found. Click "Add Pack" to record a donation.
                 </TableCell>
               </TableRow>
@@ -325,6 +326,15 @@ export default function BloodStockPage() {
               filteredPacks.slice(0, 50).map((p) => {
                 const displayGroup = bloodGroupMap[p.bloodGroup] || p.bloodGroup;
                 const ss = PACK_STATUS_CONFIG[p.status] ?? PACK_STATUS_CONFIG.AVAILABLE;
+                
+                // Format collection type
+                const collectionTypeMap: Record<string, { label: string; color: string }> = {
+                  'EVENT': { label: 'Event', color: 'bg-purple-100 text-purple-700 border-purple-200' },
+                  'WEB_DONOR': { label: 'Web Donor', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+                  'ORGANIZATION_DONOR': { label: 'Organization', color: 'bg-green-100 text-green-700 border-green-200' },
+                };
+                const collectionType = collectionTypeMap[p.storageLocation] || { label: p.storageLocation || 'N/A', color: 'bg-gray-100 text-gray-700 border-gray-200' };
+                
                 return (
                   <TableRow key={p.id}>
                     <TableCell>
@@ -337,6 +347,11 @@ export default function BloodStockPage() {
                     </TableCell>
                     <TableCell className="text-xs text-slate-600">
                       {p.donor?.user?.name ?? "—"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={`text-xs ${collectionType.color}`}>
+                        {collectionType.label}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-xs">{formatDate(p.collectionDate)}</TableCell>
                     <TableCell className="text-xs">{formatDate(p.expiryDate)}</TableCell>

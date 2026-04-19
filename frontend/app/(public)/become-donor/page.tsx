@@ -21,9 +21,44 @@ export default function BecomeDonorPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showClaimPrompt, setShowClaimPrompt] = useState(false);
+  const [existingAccount, setExistingAccount] = useState<any>(null);
+
+  // Check if account exists when phone/email changes
+  const checkExistingAccount = async (phone: string, email: string) => {
+    if (!phone && !email) return;
+
+    try {
+      const params = new URLSearchParams();
+      if (phone) params.append('phone', phone);
+      if (email) params.append('email', email);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/account-claim/check?${params}`
+      );
+      const data = await response.json();
+
+      if (data.data.exists) {
+        setExistingAccount(data.data);
+        setShowClaimPrompt(true);
+      } else {
+        setExistingAccount(null);
+        setShowClaimPrompt(false);
+      }
+    } catch (err) {
+      console.error('Error checking account:', err);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check for existing account before submitting
+    if (showClaimPrompt && existingAccount && !existingAccount.isVerified) {
+      setError('You already have an account! Please use "Claim Account" below.');
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -42,6 +77,13 @@ export default function BecomeDonorPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        // Check if it's a claim account scenario
+        if (data.shouldClaimAccount) {
+          setShowClaimPrompt(true);
+          setExistingAccount(data);
+          setError(data.message);
+          return;
+        }
         throw new Error(data.message || 'Registration failed');
       }
 
@@ -95,7 +137,18 @@ export default function BecomeDonorPage() {
               {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-800">{error}</p>
+                  <div className="flex-1">
+                    <p className="text-sm text-red-800">{error}</p>
+                    {showClaimPrompt && existingAccount && !existingAccount.isVerified && (
+                      <Button
+                        type="button"
+                        onClick={() => router.push('/claim-account')}
+                        className="mt-3 bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        Claim Your Account →
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -142,7 +195,11 @@ export default function BecomeDonorPage() {
                         id="phone"
                         type="tel"
                         value={form.phone}
-                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                        onChange={(e) => {
+                          setForm({ ...form, phone: e.target.value });
+                          // Check for existing account on blur
+                        }}
+                        onBlur={() => checkExistingAccount(form.phone, form.email)}
                         placeholder="+1 234 567 8900"
                         className="pl-10 h-11"
                         required

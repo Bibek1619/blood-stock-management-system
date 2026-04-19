@@ -47,7 +47,7 @@ export default function PublicNav() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-red-800 rounded-full flex items-center justify-center">
                 <Droplets className="h-5 w-5 text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">VitalFlow</span>
@@ -64,7 +64,7 @@ export default function PublicNav() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#7F1D1D] rounded-full flex items-center justify-center">
               <Droplets className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold text-gray-900">VitalFlow</span>
@@ -78,7 +78,7 @@ export default function PublicNav() {
                 href={item.href}
                 className={`text-sm font-medium transition-colors ${
                   pathname === item.href
-                    ? "text-red-600"
+                    ? "text-red-800"
                     : "text-gray-600 hover:text-gray-900"
                 }`}
               >
@@ -93,7 +93,7 @@ export default function PublicNav() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-2">
-                    <div className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center">
+                    <div className="w-7 h-7 bg-red-800 rounded-full flex items-center justify-center">
                       <span className="text-white text-xs font-semibold">
                         {user.name.charAt(0).toUpperCase()}
                       </span>
@@ -125,7 +125,7 @@ export default function PublicNav() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={handleLogout}
-                    className="text-red-600 focus:text-red-600"
+                    className="text-red-800 focus:text-red-800"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
@@ -140,7 +140,7 @@ export default function PublicNav() {
                   </Button>
                 </Link>
                 <Link href="/become-donor">
-                  <Button size="sm" className="bg-red-600 hover:bg-red-700">
+                  <Button size="sm" className="bg-red-800 hover:bg-red-900">
                     Become Donor
                   </Button>
                 </Link>

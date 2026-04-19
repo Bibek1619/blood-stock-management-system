@@ -14,6 +14,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -28,9 +35,12 @@ import {
   Search,
   CheckCircle,
   Loader2,
+  Plus,
+  Building2,
+  Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useSearchDonors, useRecordBloodCollection } from '@/lib/queries/bloodCollection';
+import { useSearchDonors, useRecordBloodCollection, useRecordBulkCollection } from '@/lib/queries/bloodCollection';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -39,6 +49,7 @@ export default function BloodCollectionPage() {
   const [donorSearch, setDonorSearch] = useState('');
   const [searchEnabled, setSearchEnabled] = useState(false);
   const [selectedDonor, setSelectedDonor] = useState<any>(null);
+  const [showBulkDialog, setShowBulkDialog] = useState(false);
   
   const [formData, setFormData] = useState({
     donorName: '',
@@ -48,14 +59,96 @@ export default function BloodCollectionPage() {
     location: '',
     units: '1',
     collectionDate: new Date().toISOString().split('T')[0],
-    collectionLocation: '',
+    collectionLocation: 'WEB_DONOR', // Default to Web Donor
     storageLocation: '',
     notes: '',
+  });
+
+  // Bulk collection state
+  const [bulkData, setBulkData] = useState({
+    organizationName: '',
+    organizationAddress: '',
+    organizationEmail: '',
+    organizationPhone: '',
+    collectionDate: new Date().toISOString().split('T')[0],
+    bloodItems: [
+      { bloodGroup: '', quantity: 1 }
+    ]
   });
 
   // Query hooks
   const { data: searchResults, isLoading: isSearching } = useSearchDonors(donorSearch, searchEnabled);
   const recordCollection = useRecordBloodCollection();
+  const recordBulkCollection = useRecordBulkCollection();
+
+  const addBloodItem = () => {
+    setBulkData({
+      ...bulkData,
+      bloodItems: [...bulkData.bloodItems, { bloodGroup: '', quantity: 1 }]
+    });
+  };
+
+  const removeBloodItem = (index: number) => {
+    const newItems = bulkData.bloodItems.filter((_, i) => i !== index);
+    setBulkData({ ...bulkData, bloodItems: newItems });
+  };
+
+  const updateBloodItem = (index: number, field: string, value: any) => {
+    const newItems = [...bulkData.bloodItems];
+    if (field === 'quantity') {
+      // Ensure quantity is always a valid number
+      const numValue = parseInt(value) || 1;
+      newItems[index] = { ...newItems[index], [field]: numValue };
+    } else {
+      newItems[index] = { ...newItems[index], [field]: value };
+    }
+    setBulkData({ ...bulkData, bloodItems: newItems });
+  };
+
+  const handleBulkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validation
+    if (!bulkData.organizationName || !bulkData.organizationAddress || !bulkData.organizationPhone) {
+      toast.error('Please fill in all organization details');
+      return;
+    }
+
+    if (bulkData.bloodItems.some(item => !item.bloodGroup || item.quantity < 1)) {
+      toast.error('Please fill in all blood group details');
+      return;
+    }
+
+    console.log('Submitting bulk data:', bulkData);
+
+    try {
+      const result = await recordBulkCollection.mutateAsync(bulkData);
+      
+      console.log('Bulk collection result:', result);
+      toast.success('Bulk blood collection recorded successfully!', {
+        description: `${result.data.totalUnits} units from ${bulkData.organizationName}`,
+      });
+      
+      setShowBulkDialog(false);
+      
+      // Reset form
+      setBulkData({
+        organizationName: '',
+        organizationAddress: '',
+        organizationEmail: '',
+        organizationPhone: '',
+        collectionDate: new Date().toISOString().split('T')[0],
+        bloodItems: [{ bloodGroup: '', quantity: 1 }]
+      });
+      
+      router.push('/dashboard/blood-stock');
+    } catch (error: any) {
+      console.error('Bulk collection error:', error);
+      toast.error('Failed to record bulk collection', {
+        description: error.response?.data?.message || error.message || 'Please try again',
+      });
+    }
+  };
 
   const handleSearchDonor = () => {
     if (donorSearch.trim().length < 2) {
@@ -174,6 +267,14 @@ export default function BloodCollectionPage() {
               <p className="text-sm text-slate-600">Collect blood from donor and create blood pack</p>
             </div>
           </div>
+          
+          <Button
+            onClick={() => setShowBulkDialog(true)}
+            className="bg-[#7F1D1D] hover:bg-[#991B1B] gap-2"
+          >
+            <Building2 size={16} />
+            Bulk Add
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -402,17 +503,23 @@ export default function BloodCollectionPage() {
 
                     <div className="space-y-2">
                       <Label htmlFor="collectionLocation">
-                        Collection Location <span className="text-red-600">*</span>
+                        Collection Type <span className="text-red-600">*</span>
                       </Label>
-                      <Input
-                        id="collectionLocation"
+                      <Select
                         value={formData.collectionLocation}
-                        onChange={(e) =>
-                          setFormData({ ...formData, collectionLocation: e.target.value })
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, collectionLocation: value })
                         }
-                        placeholder="Office, Event, etc."
                         required
-                      />
+                      >
+                        <SelectTrigger id="collectionLocation">
+                          <SelectValue placeholder="Select collection type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="EVENT">Event</SelectItem>
+                          <SelectItem value="WEB_DONOR">Web Donor</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="space-y-2">
@@ -544,6 +651,217 @@ export default function BloodCollectionPage() {
             </div>
           </div>
         </form>
+
+        {/* Bulk Collection Dialog */}
+        <Dialog open={showBulkDialog} onOpenChange={setShowBulkDialog}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-[#7F1D1D]" />
+                Bulk Blood Collection from Organization
+              </DialogTitle>
+              <DialogDescription>
+                Record blood donations from external organizations or blood drives
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleBulkSubmit} className="space-y-6 mt-4">
+              {/* Organization Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Organization Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="orgName">
+                        Organization Name <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="orgName"
+                        value={bulkData.organizationName}
+                        onChange={(e) =>
+                          setBulkData({ ...bulkData, organizationName: e.target.value })
+                        }
+                        placeholder="Red Cross, City Hospital, etc."
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="orgPhone">
+                        Phone Number <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="orgPhone"
+                        value={bulkData.organizationPhone}
+                        onChange={(e) =>
+                          setBulkData({ ...bulkData, organizationPhone: e.target.value })
+                        }
+                        placeholder="Contact number"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="orgEmail">Email</Label>
+                      <Input
+                        id="orgEmail"
+                        type="email"
+                        value={bulkData.organizationEmail}
+                        onChange={(e) =>
+                          setBulkData({ ...bulkData, organizationEmail: e.target.value })
+                        }
+                        placeholder="contact@organization.com"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="bulkCollectionDate">
+                        Collection Date <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="bulkCollectionDate"
+                        type="date"
+                        value={bulkData.collectionDate}
+                        onChange={(e) =>
+                          setBulkData({ ...bulkData, collectionDate: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="orgAddress">
+                        Address <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="orgAddress"
+                        value={bulkData.organizationAddress}
+                        onChange={(e) =>
+                          setBulkData({ ...bulkData, organizationAddress: e.target.value })
+                        }
+                        placeholder="Full address"
+                        required
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Blood Items */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">Blood Groups & Quantities</CardTitle>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addBloodItem}
+                      className="gap-2"
+                    >
+                      <Plus size={14} />
+                      Add Blood Group
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {bulkData.bloodItems.map((item, index) => (
+                    <div key={index} className="flex gap-3 items-end">
+                      <div className="flex-1 space-y-2">
+                        <Label htmlFor={`bloodGroup-${index}`}>
+                          Blood Group <span className="text-red-600">*</span>
+                        </Label>
+                        <Select
+                          value={item.bloodGroup}
+                          onValueChange={(value) =>
+                            updateBloodItem(index, 'bloodGroup', value)
+                          }
+                          required
+                        >
+                          <SelectTrigger id={`bloodGroup-${index}`}>
+                            <SelectValue placeholder="Select blood group" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {BLOOD_GROUPS.map((group) => (
+                              <SelectItem key={group} value={group}>
+                                {group}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="w-32 space-y-2">
+                        <Label htmlFor={`quantity-${index}`}>
+                          Quantity <span className="text-red-600">*</span>
+                        </Label>
+                        <Input
+                          id={`quantity-${index}`}
+                          type="number"
+                          min="1"
+                          value={item.quantity || 1}
+                          onChange={(e) =>
+                            updateBloodItem(index, 'quantity', e.target.value)
+                          }
+                          required
+                        />
+                      </div>
+
+                      {bulkData.bloodItems.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeBloodItem(index)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+
+                  <div className="pt-3 border-t">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium text-slate-700">Total Units:</span>
+                      <span className="font-bold text-[#7F1D1D]">
+                        {bulkData.bloodItems.reduce((sum, item) => sum + (item.quantity || 0), 0)} units
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowBulkDialog(false)}
+                  disabled={recordBulkCollection.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-[#7F1D1D] hover:bg-[#991B1B]"
+                  disabled={recordBulkCollection.isPending}
+                >
+                  {recordBulkCollection.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Recording...
+                    </>
+                  ) : (
+                    'Record Bulk Collection'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
