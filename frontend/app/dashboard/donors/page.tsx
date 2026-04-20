@@ -70,7 +70,7 @@ export default function DonorsPage() {
   const router = useRouter();
   const [filterGroup, setFilterGroup] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"all" | "event" | "web" | "organization">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "organization" | "unregistered">("all");
 
   const { toasts, toast } = useToast();
 
@@ -91,13 +91,11 @@ export default function DonorsPage() {
           d.user?.email?.includes('@org.local') || 
           d.user?.email?.match(/^\d+@/)
         );
-      case "event":
-        // Event donors: those who have participated in events (totalDonations > 0)
-        return donors.filter(d => d.totalDonations > 0);
-      case "web":
-        // Web donors: registered through website and verified
-        return donors.filter(d => d.user?.isVerified === true);
+      case "unregistered":
+        // Unregistered donors: walk-in/event donors who haven't claimed their account yet
+        return donors.filter(d => d.user?.isVerified === false);
       default:
+        // All donors: everyone (both verified and unverified)
         return donors;
     }
   };
@@ -145,7 +143,7 @@ export default function DonorsPage() {
 
   return (
     <div className="w-full min-h-screen bg-slate-50">
-      <div className="w-full max-w-[1600px] mx-auto p-6 md:p-8">
+      <div className="w-full max-w-[1600px] mx-auto  p-6 md:p-8">
         {/* ── Toast Stack ── */}
         <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-[9999]">
           {toasts.map((t) => (
@@ -224,28 +222,15 @@ export default function DonorsPage() {
           </button>
           <button
             className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
-              activeTab === "event"
+              activeTab === "unregistered"
                 ? "border-[#7F1D1D] text-[#7F1D1D]"
                 : "border-transparent text-slate-600 hover:text-slate-900"
             }`}
-            onClick={() => setActiveTab("event")}
+            onClick={() => setActiveTab("unregistered")}
           >
-            Event Donors
+            Unregistered Donors
             <span className="ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-xs font-bold text-slate-700">
-              {donors.filter(d => d.totalDonations > 0).length}
-            </span>
-          </button>
-          <button
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
-              activeTab === "web"
-                ? "border-[#7F1D1D] text-[#7F1D1D]"
-                : "border-transparent text-slate-600 hover:text-slate-900"
-            }`}
-            onClick={() => setActiveTab("web")}
-          >
-            Web Donors
-            <span className="ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-xs font-bold text-slate-700">
-              {donors.filter(d => d.user?.isVerified === true).length}
+              {donors.filter(d => d.user?.isVerified === false).length}
             </span>
           </button>
         </div>
@@ -318,8 +303,8 @@ export default function DonorsPage() {
                           <span className="font-semibold text-sm text-slate-900">{name}</span>
                           {d.user?.email?.includes('@org.local') || d.user?.email?.match(/^\d+@/) ? (
                             <span className="text-[10px] text-blue-600 font-medium">🏢 Organization</span>
-                          ) : d.user?.isVerified ? (
-                            <span className="text-[10px] text-green-600 font-medium">✓ Verified</span>
+                          ) : !d.user?.isVerified ? (
+                            <span className="text-[10px] text-orange-600 font-medium">⚠ Unregistered</span>
                           ) : null}
                         </div>
                       </div>
@@ -378,8 +363,7 @@ export default function DonorsPage() {
                     <p className="text-sm font-semibold text-slate-600 m-0">No donors found</p>
                     <p className="text-xs text-slate-400 m-0">
                       {activeTab === "organization" && "No organization donors yet"}
-                      {activeTab === "web" && "No verified web donors yet"}
-                      {activeTab === "event" && "No event participants yet"}
+                      {activeTab === "unregistered" && "No unregistered donors yet"}
                       {activeTab === "all" && "Try adjusting your filters"}
                     </p>
                   </div>
@@ -391,8 +375,7 @@ export default function DonorsPage() {
         <div className="px-3.5 py-2.5 border-t border-slate-100 text-xs text-slate-400">
           Showing {filtered.length} of {tabFilteredDonors.length} donors
           {activeTab === "organization" && " (bulk collection organizations)"}
-          {activeTab === "event" && " (participated in events)"}
-          {activeTab === "web" && " (registered online)"}
+          {activeTab === "unregistered" && " (haven't claimed their account)"}
         </div>
       </div>
     </div>
