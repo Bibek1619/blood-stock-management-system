@@ -1,3 +1,67 @@
+// Nominatim API for geocoding (OpenStreetMap)
+// Free geocoding service - no API key required
+
+/**
+ * Get coordinates for a location using Nominatim API
+ * @param location - City name or address to geocode
+ * @returns Coordinates {lat, lng} or null if not found
+ */
+export async function geocodeLocation(location: string): Promise<{ lat: number; lng: number } | null> {
+  if (!location || location.trim().length === 0) return null;
+
+  try {
+    const query = encodeURIComponent(location.trim());
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=np`,
+      {
+        headers: {
+          'User-Agent': 'BloodBankManagementSystem/1.0', // Required by Nominatim
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Nominatim API error:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (data && data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon),
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Geocoding error:', error);
+    return null;
+  }
+}
+
+/**
+ * Get coordinates with fallback to local cache
+ * First tries Nominatim API, then falls back to local city coordinates
+ */
+export async function getCoordinatesWithFallback(
+  location: string | undefined
+): Promise<{ lat: number; lng: number } | null> {
+  if (!location) return null;
+
+  // Try Nominatim API first
+  const apiResult = await geocodeLocation(location);
+  if (apiResult) return apiResult;
+
+  // Fallback to local cache
+  return getCityCoordinates(location);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOCAL CITY CACHE (Fallback when API fails or for offline use)
+// ═══════════════════════════════════════════════════════════════════════════
+
 // City to coordinates mapping for Nepal cities
 // Comprehensive list of major cities and districts in Nepal
 
