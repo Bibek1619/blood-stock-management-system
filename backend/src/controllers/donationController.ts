@@ -2,15 +2,18 @@ import { Request, Response } from "express";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../middleware/errorHandler";
 import { sendDonationThankYou } from "../services/notificationService";
+import { geocodeLocation } from "../utils/geocoding";
 
 export const getAllDonations = async (req: Request, res: Response) => {
-  const { bloodGroup, donationType, status } = req.query;
+  const { bloodGroup, donationType, status, userId, donorId } = req.query;
 
   const donations = await prisma.donation.findMany({
     where: {
       ...(bloodGroup && { bloodGroup: bloodGroup as any }),
       ...(donationType && { donationType: donationType as any }),
       ...(status && { status: status as any }),
+      ...(userId && { userId: userId as string }),
+      ...(donorId && { donorId: donorId as string }),
     },
     include: {
       user: {
@@ -124,12 +127,17 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
     donorPhone,
     donorEmail,
     bloodGroup,
+    dateOfBirth,
+    weight,
     location,
+    city,
+    address,
     units,
     collectionDate,
     collectionLocation,
     storageLocation,
     notes,
+    medicalNotes,
   } = req.body;
 
   // Validate required fields
@@ -206,24 +214,63 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
       });
 
       if (!donor) {
+        // Geocode city to get coordinates
+        let latitude = undefined;
+        let longitude = undefined;
+        
+        const cityToGeocode = city || location;
+        if (cityToGeocode) {
+          const coords = await geocodeLocation(cityToGeocode);
+          if (coords) {
+            latitude = coords.latitude;
+            longitude = coords.longitude;
+            console.log(`Geocoded ${cityToGeocode}:`, coords);
+          }
+        }
+
         // Create donor profile
         donor = await tx.donor.create({
           data: {
             userId,
             bloodGroup: dbBloodGroup as any,
-            location: location || collectionLocation || 'Unknown',
+            location: location || city || collectionLocation || 'Unknown',
+            city: city || location,
+            address: address,
+            latitude,
+            longitude,
+            dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+            weight: weight ? parseFloat(weight) : undefined,
+            medicalNotes: medicalNotes,
             totalDonations: parseInt(units) || 1,
             lastDonationDate: new Date(collectionDate),
           },
         });
       } else {
-        // Update existing donor
+        // Update existing donor - geocode if city changed and no coordinates
+        const updateData: any = {
+          lastDonationDate: new Date(collectionDate),
+          totalDonations: { increment: parseInt(units) || 1 },
+        };
+
+        if (city) updateData.city = city;
+        if (address) updateData.address = address;
+        if (dateOfBirth) updateData.dateOfBirth = new Date(dateOfBirth);
+        if (weight) updateData.weight = parseFloat(weight);
+        if (medicalNotes) updateData.medicalNotes = medicalNotes;
+
+        // Geocode if city provided and donor doesn't have coordinates
+        if (city && (!donor.latitude || !donor.longitude)) {
+          const coords = await geocodeLocation(city);
+          if (coords) {
+            updateData.latitude = coords.latitude;
+            updateData.longitude = coords.longitude;
+            console.log(`Geocoded ${city} for existing donor:`, coords);
+          }
+        }
+
         await tx.donor.update({
           where: { id: donor.id },
-          data: {
-            lastDonationDate: new Date(collectionDate),
-            totalDonations: { increment: parseInt(units) || 1 },
-          },
+          data: updateData,
         });
       }
     }
@@ -394,6 +441,8 @@ export const searchDonors = async (req: Request, res: Response) => {
 export const recordBulkCollection = async (req: Request, res: Response) => {
   const {
     organizationName,
+    contactPersonName,
+    organizationCity,
     organizationAddress,
     organizationEmail,
     organizationPhone,
@@ -403,6 +452,8 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
 
   console.log('Received bulk collection request:', {
     organizationName,
+    contactPersonName,
+    organizationCity,
     organizationAddress,
     organizationPhone,
     collectionDate,
@@ -410,7 +461,7 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
   });
 
   // Validate required fields
-  if (!organizationName || !organizationAddress || !organizationPhone || !collectionDate || !bloodItems || bloodItems.length === 0) {
+  if (!organizationName || !contactPersonName || !organizationCity || !organizationAddress || !organizationPhone || !collectionDate || !bloodItems || bloodItems.length === 0) {
     throw new AppError("Missing required fields", 400);
   }
 
@@ -434,7 +485,7 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
   };
 
   try {
-    // Create a user record for the organization (if not exists)
+    // Create a user record for the organization contact person (if not exists)
     let orgUser = await prisma.user.findFirst({
       where: { phone: organizationPhone },
     });
@@ -443,7 +494,7 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
       console.log('Creating new organization user');
       orgUser = await prisma.user.create({
         data: {
-          name: organizationName, // Organization name as donor name
+          name: contactPersonName, // Contact person name as donor name
           phone: organizationPhone,
           email: organizationEmail || `${organizationPhone}@org.local`,
           password: 'ORGANIZATION', // Placeholder
@@ -452,11 +503,11 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
         },
       });
     } else {
-      // Update existing user with organization name if different
-      if (orgUser.name !== organizationName) {
+      // Update existing user with contact person name if different
+      if (orgUser.name !== contactPersonName) {
         orgUser = await prisma.user.update({
           where: { id: orgUser.id },
-          data: { name: organizationName },
+          data: { name: contactPersonName },
         });
       }
     }
@@ -473,13 +524,28 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
       // Use the first blood group from items as default
       const firstBloodGroup = bloodGroupMap[bloodItems[0].bloodGroup] || bloodItems[0].bloodGroup;
       
+      // Geocode organization city
+      let latitude = undefined;
+      let longitude = undefined;
+      
+      if (organizationCity) {
+        const coords = await geocodeLocation(organizationCity);
+        if (coords) {
+          latitude = coords.latitude;
+          longitude = coords.longitude;
+          console.log(`Geocoded organization city ${organizationCity}:`, coords);
+        }
+      }
+      
       orgDonor = await prisma.donor.create({
         data: {
           userId: orgUser.id,
           bloodGroup: firstBloodGroup as any,
-          location: organizationAddress,
-          city: organizationAddress,
+          location: organizationCity,
+          city: organizationCity,
           address: organizationAddress,
+          latitude,
+          longitude,
           totalDonations: 0,
           isEligible: true,
         },
@@ -530,10 +596,10 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
           bloodGroup: dbBloodGroup as any,
           units: quantity,
           donationDate: new Date(collectionDate),
-          location: organizationAddress,
+          location: organizationCity,
           donationType: 'ORGANIZATION',
           status: 'COMPLETED',
-          notes: `Bulk collection from ${organizationName}`,
+          notes: `Bulk collection from ${organizationName} - Contact: ${contactPersonName}`,
           contact: organizationPhone,
         },
       });
@@ -610,6 +676,7 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
     const result = {
       organization: {
         name: organizationName,
+        city: organizationCity,
         address: organizationAddress,
         phone: organizationPhone,
         email: organizationEmail,

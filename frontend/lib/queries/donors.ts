@@ -12,7 +12,7 @@ export const donorKeys = {
 };
 
 // Types
-interface Donor {
+export interface Donor {
   id: string;
   userId: string;
   bloodGroup: string;
@@ -21,6 +21,8 @@ interface Donor {
   address?: string;
   dateOfBirth?: string;
   weight?: number;
+  latitude?: number;
+  longitude?: number;
   lastDonationDate?: string;
   totalDonations: number;
   isEligible: boolean;
@@ -30,6 +32,7 @@ interface Donor {
     email: string;
     phone: string;
     isVerified: boolean;
+    createdAt?: string;
   };
 }
 interface CreateDonorData {

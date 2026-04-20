@@ -50,7 +50,7 @@
 2. Search donor by phone (optional)
 3. Fill form:
    ✏️ Name, Phone, Email, Blood Group
-4. Select Collection Type: "WEB_DONOR" ← Important!
+4. Select Collection Type: "WALK_IN (Office)" ← Important!
 5. Click "Record Donation"
 ```
 
@@ -155,7 +155,7 @@
 | Feature | Office Walk-in | Event Donor | Organization |
 |---------|---------------|-------------|--------------|
 | **Form** | Main form | Main form | Bulk Add dialog |
-| **Collection Type** | WEB_DONOR | EVENT | N/A |
+| **Collection Type** | WALK_IN | EVENT | N/A |
 | **Entry** | One at a time | One at a time | Multiple units |
 | **Notes** | Optional | Event name | Auto-filled |
 
@@ -166,7 +166,7 @@
 ### For Office Walk-ins:
 ```
 ✅ Search by phone first (check if returning donor)
-✅ Select "WEB_DONOR" in Collection Type
+✅ Select "WALK_IN (Office)" in Collection Type
 ✅ Phone number is required
 ✅ Email is optional
 ```
@@ -192,7 +192,7 @@
 ## 🎯 Common Questions
 
 **Q: Where do I enter walk-in donor details?**
-A: `/dashboard/blood-donate/blood-collection` → Main form → Collection Type: WEB_DONOR
+A: `/dashboard/blood-donate/blood-collection` → Main form → Collection Type: WALK_IN
 
 **Q: Where do I enter event donor details?**
 A: Same page! → Main form → Collection Type: EVENT
@@ -229,7 +229,7 @@ http://localhost:3000/dashboard/blood-donate/blood-collection
 
 **One page handles everything!**
 
-🏢 **Office Walk-in:** Main form → WEB_DONOR
+🏢 **Office Walk-in:** Main form → WALK_IN
 🎪 **Event Donor:** Main form → EVENT  
 🏛️ **Organization:** Bulk Add button
 

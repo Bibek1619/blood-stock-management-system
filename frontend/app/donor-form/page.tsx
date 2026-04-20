@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Heart, Droplet, Calendar, Weight, MapPin, AlertCircle, CheckCircle } from "lucide-react";
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
+import { FullAddressAutocomplete } from "@/components/ui/full-address-autocomplete";
 
 export default function DonorFormPage() {
   const router = useRouter();
@@ -17,9 +19,10 @@ export default function DonorFormPage() {
     bloodGroup: "",
     dateOfBirth: "",
     weight: "",
-    location: "",
     city: "",
     address: "",
+    hasMedicalCondition: "no",
+    medicalConditionDetails: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -97,9 +100,10 @@ export default function DonorFormPage() {
           bloodGroup: bloodGroupMap[form.bloodGroup],
           dateOfBirth: form.dateOfBirth,
           weight: parseFloat(form.weight),
-          location: form.location || form.city,
+          location: form.city, // Use city as location
           city: form.city,
           address: form.address,
+          medicalNotes: form.hasMedicalCondition === 'yes' ? form.medicalConditionDetails : null,
         }),
       });
 
@@ -244,22 +248,6 @@ export default function DonorFormPage() {
                     </div>
                     <p className="text-xs text-gray-500">Minimum 50 kg required</p>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="city" className="text-gray-700">City *</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                      <Input
-                        id="city"
-                        value={form.city}
-                        onChange={(e) => setForm({ ...form, city: e.target.value })}
-                        placeholder="New York"
-                        className="pl-10 h-11"
-                        required
-                        disabled={loading}
-                      />
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -269,30 +257,90 @@ export default function DonorFormPage() {
                   <MapPin className="h-5 w-5 text-red-600" />
                   Location Details
                 </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <LocationAutocomplete
+                    id="city"
+                    label="City"
+                    value={form.city}
+                    onChange={(value) => setForm({ ...form, city: value })}
+                    placeholder="Start typing city name..."
+                    required
+                    disabled={loading}
+                    className="text-gray-700"
+                  />
+
+                  <FullAddressAutocomplete
+                    id="address"
+                    label="Full Address"
+                    value={form.address}
+                    onChange={(value) => setForm({ ...form, address: value })}
+                    placeholder="Street, area, or landmark..."
+                    cityContext={form.city}
+                    required
+                    disabled={loading}
+                    className="text-gray-700"
+                  />
+                </div>
+              </div>
+
+              {/* Medical Condition */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  Medical History
+                </h3>
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="location" className="text-gray-700">Location/Area</Label>
-                    <Input
-                      id="location"
-                      value={form.location}
-                      onChange={(e) => setForm({ ...form, location: e.target.value })}
-                      placeholder="Manhattan, NY"
-                      className="h-11"
-                      disabled={loading}
-                    />
+                  <div className="space-y-3">
+                    <Label className="text-gray-700">Do you have any medical conditions? *</Label>
+                    <div className="flex gap-6">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="hasMedicalCondition"
+                          value="no"
+                          checked={form.hasMedicalCondition === 'no'}
+                          onChange={(e) => setForm({ ...form, hasMedicalCondition: e.target.value, medicalConditionDetails: '' })}
+                          className="w-4 h-4 text-red-600"
+                          disabled={loading}
+                          required
+                        />
+                        <span className="text-sm font-medium text-gray-700">No</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="hasMedicalCondition"
+                          value="yes"
+                          checked={form.hasMedicalCondition === 'yes'}
+                          onChange={(e) => setForm({ ...form, hasMedicalCondition: e.target.value })}
+                          className="w-4 h-4 text-red-600"
+                          disabled={loading}
+                          required
+                        />
+                        <span className="text-sm font-medium text-gray-700">Yes</span>
+                      </label>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="address" className="text-gray-700">Full Address</Label>
-                    <Input
-                      id="address"
-                      value={form.address}
-                      onChange={(e) => setForm({ ...form, address: e.target.value })}
-                      placeholder="123 Main Street, Apt 4B"
-                      className="h-11"
-                      disabled={loading}
-                    />
-                  </div>
+                  {form.hasMedicalCondition === 'yes' && (
+                    <div className="space-y-2 animate-fade-in">
+                      <Label htmlFor="medicalConditionDetails" className="text-gray-700">
+                        Please describe your medical condition(s) *
+                      </Label>
+                      <textarea
+                        id="medicalConditionDetails"
+                        value={form.medicalConditionDetails}
+                        onChange={(e) => setForm({ ...form, medicalConditionDetails: e.target.value })}
+                        placeholder="Please provide details about your medical condition(s)..."
+                        className="w-full min-h-[100px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                        required={form.hasMedicalCondition === 'yes'}
+                        disabled={loading}
+                      />
+                      <p className="text-xs text-gray-500">
+                        This information helps us ensure your safety during blood donation
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -304,7 +304,8 @@ export function getEventById(id: string): BloodEvent | undefined {
   return MOCK_EVENTS.find((e) => e.id === id);
 }
 
-export function getInitials(name: string): string {
+export function getInitials(name: string | undefined | null): string {
+  if (!name) return 'UN'; // Unknown
   return name
     .split(" ")
     .map((n) => n[0])

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../middleware/errorHandler";
+import { geocodeLocation } from "../utils/geocoding";
 
 export const getAllDonors = async (req: Request, res: Response) => {
   const { bloodGroup, location, isEligible } = req.query;
@@ -57,6 +58,22 @@ export const createDonor = async (req: Request, res: Response) => {
     throw new AppError("Donor profile already exists for this user", 400);
   }
 
+  // Geocode city if coordinates not provided
+  let finalLatitude = latitude;
+  let finalLongitude = longitude;
+
+  if (!latitude || !longitude) {
+    const cityToGeocode = city || location;
+    if (cityToGeocode) {
+      const coords = await geocodeLocation(cityToGeocode);
+      if (coords) {
+        finalLatitude = coords.latitude;
+        finalLongitude = coords.longitude;
+        console.log(`Geocoded ${cityToGeocode}:`, coords);
+      }
+    }
+  }
+
   // Create donor profile
   const donor = await prisma.donor.create({
     data: {
@@ -67,8 +84,8 @@ export const createDonor = async (req: Request, res: Response) => {
       address,
       dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
       weight,
-      latitude,
-      longitude,
+      latitude: finalLatitude,
+      longitude: finalLongitude,
     },
     include: {
       user: true,

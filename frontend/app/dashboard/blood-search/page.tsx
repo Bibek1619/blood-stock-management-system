@@ -2,18 +2,19 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Phone, Bell, MapPin, Droplets, Search,
-  Users, X, Navigation, Filter, Award, Calendar, ChevronRight, Home,
+  Users, X, Navigation, Filter, Award, Calendar, ChevronRight, Home, User,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useDonors } from "@/lib/queries/donors";
+import { getCityCoordinates, getCoordinatesWithFallback } from "@/lib/geocoding";
 import {
   BLOOD_GROUPS,
-  MOCK_DONORS,
   LOW_STOCK_GROUPS,
   DEFAULT_MAP_CENTER,
   getInitials,
   getDonorTier,
   haversineKm,
   type BloodGroup,
-  type Donor,
 } from "@/lib/data";
 import {
   Breadcrumb,
@@ -37,16 +38,27 @@ function useToast() {
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function BloodSearchPage() {
+  const router = useRouter();
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
   const [locationQuery, setLocationQuery] = useState("");
   const [radius, setRadius] = useState<number>(5);
   const [clickedPos, setClickedPos] = useState<{ lat: number; lng: number } | null>(null);
   const [mapReady, setMapReady] = useState(false);
-  const [activeDonor, setActiveDonor] = useState<Donor | null>(null);
-  const [sheetDonor, setSheetDonor] = useState<Donor | null>(null);
+  const [activeDonor, setActiveDonor] = useState<any | null>(null);
+  const [sheetDonor, setSheetDonor] = useState<any | null>(null);
   const [fullMapOpen, setFullMapOpen] = useState(false);
 
   const { toasts, toast } = useToast();
+
+  // Fetch donors using TanStack Query
+  const { data: donors = [], isLoading, error } = useDonors();
+
+  // Show error toast if fetch fails
+  useEffect(() => {
+    if (error) {
+      toast('Failed to load donors. Please refresh the page.', 'error');
+    }
+  }, [error]);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletRef = useRef<any>(null);
@@ -56,13 +68,24 @@ export default function BloodSearchPage() {
   const markersRef = useRef<any[]>([]);
 
   // ── Filter donors ─────────────────────────────────────────────────────────
-  const filtered = MOCK_DONORS.filter((d) => {
+  const filtered = donors.filter((d) => {
     if (selectedGroup !== "all" && d.bloodGroup !== selectedGroup) return false;
-    if (locationQuery && !d.location.toLowerCase().includes(locationQuery.toLowerCase())) return false;
-    if (clickedPos && d.lat !== undefined && d.lng !== undefined) {
-      const dist = haversineKm(clickedPos.lat, clickedPos.lng, d.lat, d.lng);
-      if (dist > radius) return false;
+    const location = d.city || d.location || '';
+    if (locationQuery && !location.toLowerCase().includes(locationQuery.toLowerCase())) return false;
+    
+    // Only filter by radius if a pin is clicked
+    if (clickedPos) {
+      // Get coordinates - use donor's coordinates or fallback to city-based
+      const coords = d.latitude && d.longitude
+        ? { lat: d.latitude, lng: d.longitude }
+        : getCityCoordinates(d.city || d.location);
+      
+      if (coords) {
+        const dist = haversineKm(clickedPos.lat, clickedPos.lng, coords.lat, coords.lng);
+        if (dist > radius) return false;
+      }
     }
+    
     return true;
   });
 
@@ -124,20 +147,45 @@ export default function BloodSearchPage() {
     markersRef.current.forEach((m) => map.removeLayer(m));
     markersRef.current = [];
 
+    // Helper function to add small random offset to prevent marker stacking
+    const addJitter = (lat: number, lng: number, index: number) => {
+      // Use donor ID hash for consistent but pseudo-random offset
+      const offset = 0.002; // ~200 meters
+      const angle = (index * 137.5) % 360; // Golden angle for good distribution
+      const distance = (index % 3) * offset / 3; // Vary distance
+      return {
+        lat: lat + distance * Math.cos(angle * Math.PI / 180),
+        lng: lng + distance * Math.sin(angle * Math.PI / 180)
+      };
+    };
+
     if (!clickedPos) {
       // Show all donors (no radius) with simple markers
-      MOCK_DONORS.forEach((d) => {
+      donors.forEach((d, index) => {
         if (selectedGroup !== "all" && d.bloodGroup !== selectedGroup) return;
-        if (locationQuery && !d.location.toLowerCase().includes(locationQuery.toLowerCase())) return;
+        const location = d.city || d.location || '';
+        if (locationQuery && !location.toLowerCase().includes(locationQuery.toLowerCase())) return;
+        
+        // Get coordinates - use donor's coordinates or fallback to city-based
+        let coords = d.latitude && d.longitude
+          ? { lat: d.latitude, lng: d.longitude }
+          : getCityCoordinates(d.city || d.location);
+        
+        if (!coords) return; // Skip if no coordinates available
+
+        // Add jitter to prevent stacking
+        coords = addJitter(coords.lat, coords.lng, index);
+
+        const bloodGroupDisplay = d.bloodGroup.replace('_POSITIVE', '+').replace('_NEGATIVE', '-').replace('_', '');
 
         const icon = L.divIcon({
           className: "",
-          html: `<div style="width:32px;height:32px;border-radius:50%;background:#7F1D1D;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;cursor:pointer;">${d.bloodGroup}</div>`,
+          html: `<div style="width:32px;height:32px;border-radius:50%;background:#7F1D1D;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;cursor:pointer;">${bloodGroupDisplay}</div>`,
           iconSize: [32, 32],
           iconAnchor: [16, 16],
         });
 
-        const marker = L.marker([d.lat, d.lng], { icon }).addTo(map);
+        const marker = L.marker([coords.lat, coords.lng], { icon }).addTo(map);
         marker.on("click", (e: any) => {
           L.DomEvent.stopPropagation(e);
           setSheetDonor(d);
@@ -167,22 +215,34 @@ export default function BloodSearchPage() {
     }).addTo(map);
 
     // Donor markers within radius
-    MOCK_DONORS.forEach((d) => {
+    donors.forEach((d, index) => {
       if (selectedGroup !== "all" && d.bloodGroup !== selectedGroup) return;
-      if (locationQuery && !d.location.toLowerCase().includes(locationQuery.toLowerCase())) return;
-      if (d.lat === undefined || d.lng === undefined) return;
+      const location = d.city || d.location || '';
+      if (locationQuery && !location.toLowerCase().includes(locationQuery.toLowerCase())) return;
+      
+      // Get coordinates - use donor's coordinates or fallback to city-based
+      let coords = d.latitude && d.longitude
+        ? { lat: d.latitude, lng: d.longitude }
+        : getCityCoordinates(d.city || d.location);
+      
+      if (!coords) return; // Skip if no coordinates available
 
-      const dist = haversineKm(clickedPos.lat, clickedPos.lng, d.lat, d.lng);
+      // Add jitter to prevent stacking
+      coords = addJitter(coords.lat, coords.lng, index);
+
+      const dist = haversineKm(clickedPos.lat, clickedPos.lng, coords.lat, coords.lng);
       const inRadius = dist <= radius;
+
+      const bloodGroupDisplay = d.bloodGroup.replace('_POSITIVE', '+').replace('_NEGATIVE', '-').replace('_', '');
 
       const icon = L.divIcon({
         className: "",
-        html: `<div style="width:34px;height:34px;border-radius:50%;background:${inRadius ? "#7F1D1D" : "#94a3b8"};border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;opacity:${inRadius ? 1 : 0.4};cursor:${inRadius ? "pointer" : "default"}">${d.bloodGroup}</div>`,
+        html: `<div style="width:34px;height:34px;border-radius:50%;background:${inRadius ? "#7F1D1D" : "#94a3b8"};border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;opacity:${inRadius ? 1 : 0.4};cursor:${inRadius ? "pointer" : "default"}">${bloodGroupDisplay}</div>`,
         iconSize: [34, 34],
         iconAnchor: [17, 17],
       });
 
-      const marker = L.marker([d.lat, d.lng], { icon }).addTo(map);
+      const marker = L.marker([coords.lat, coords.lng], { icon }).addTo(map);
       if (inRadius) {
         marker.on("click", (e: any) => {
           L.DomEvent.stopPropagation(e);
@@ -191,7 +251,7 @@ export default function BloodSearchPage() {
       }
       markersRef.current.push(marker);
     });
-  }, [clickedPos, radius, selectedGroup, locationQuery]);
+  }, [clickedPos, radius, selectedGroup, locationQuery, donors]);
 
   useEffect(() => {
     updateMapOverlays();
@@ -397,7 +457,14 @@ export default function BloodSearchPage() {
             <span className="text-sm text-slate-600">{filtered.length} found</span>
           </div>
 
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <div className="bg-white border border-slate-200 rounded-xl p-12">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-9 h-9 border-3 border-slate-200 border-t-red-800 rounded-full animate-spin" />
+                <p className="text-sm font-semibold text-slate-600">Loading donors...</p>
+              </div>
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="bg-white border border-slate-200 rounded-xl p-12">
               <div className="flex flex-col items-center gap-2">
                 <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
@@ -409,65 +476,79 @@ export default function BloodSearchPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {filtered.map((d) => (
-                <div
-                  key={d.id}
-                  onClick={() => setSheetDonor(d)}
-                  className="bg-white border border-slate-200 hover:border-red-300 rounded-xl p-3.5 cursor-pointer transition-all hover:shadow-md"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-xs font-bold text-red-800">
-                        {getInitials(d.name)}
+              {filtered.map((d) => {
+                const name = d.user?.name || 'Unknown Donor';
+                const location = d.city || d.location || 'N/A';
+                const bloodGroupDisplay = d.bloodGroup.replace('_POSITIVE', '+').replace('_NEGATIVE', '-').replace('_', '');
+                const lastDonation = d.lastDonationDate 
+                  ? new Date(d.lastDonationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                  : 'Never';
+                
+                // Get coordinates for distance calculation
+                const coords = d.latitude && d.longitude
+                  ? { lat: d.latitude, lng: d.longitude }
+                  : getCityCoordinates(d.city || d.location);
+                
+                return (
+                  <div
+                    key={d.id}
+                    onClick={() => setSheetDonor(d)}
+                    className="bg-white border border-slate-200 hover:border-red-300 rounded-xl p-3.5 cursor-pointer transition-all hover:shadow-md"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-xs font-bold text-red-800">
+                          {getInitials(name)}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">{name}</p>
+                          <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
+                            <MapPin size={10} /> {location}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">{d.name}</p>
-                        <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
-                          <MapPin size={10} /> {d.location}
-                        </p>
-                      </div>
+                      <span className="px-2.5 py-1 bg-red-50 text-red-800 border border-red-200 rounded-lg text-xs font-bold">
+                        {bloodGroupDisplay}
+                      </span>
                     </div>
-                    <span className="px-2.5 py-1 bg-red-50 text-red-800 border border-red-200 rounded-lg text-xs font-bold">
-                      {d.bloodGroup}
-                    </span>
-                  </div>
 
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-2.5 flex-wrap">
-                    <span>Last: {d.lastDonationDate}</span>
-                    <span>·</span>
-                    <span>{d.totalDonations}× donated</span>
-                    {clickedPos && d.lat !== undefined && d.lng !== undefined && (
-                      <>
-                        <span>·</span>
-                        <span className="text-red-800 font-semibold">
-                          {haversineKm(clickedPos.lat, clickedPos.lng, d.lat, d.lng).toFixed(1)} km
-                        </span>
-                      </>
-                    )}
-                  </div>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-2.5 flex-wrap">
+                      <span>Last: {lastDonation}</span>
+                      <span>·</span>
+                      <span>{d.totalDonations}× donated</span>
+                      {clickedPos && coords && (
+                        <>
+                          <span>·</span>
+                          <span className="text-red-800 font-semibold">
+                            {haversineKm(clickedPos.lat, clickedPos.lng, coords.lat, coords.lng).toFixed(1)} km
+                          </span>
+                        </>
+                      )}
+                    </div>
 
-                  <div className="flex gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toast(`Calling ${d.name}…`, "info");
-                      }}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-                    >
-                      <Phone size={12} /> Call
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toast(`Notification sent to ${d.name}`);
-                      }}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-red-800 rounded-lg text-xs font-semibold text-white hover:bg-red-900 transition-colors"
-                    >
-                      <Bell size={12} /> Notify
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toast(`Calling ${name}…`, "info");
+                        }}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        <Phone size={12} /> Call
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toast(`Notification sent to ${name}`);
+                        }}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-red-800 rounded-lg text-xs font-semibold text-white hover:bg-red-900 transition-colors"
+                      >
+                        <Bell size={12} /> Notify
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -502,9 +583,23 @@ export default function BloodSearchPage() {
 
         {/* ── Donor Detail Sheet ── */}
         {sheetDonor && (() => {
+          const name = sheetDonor.user?.name || 'Unknown Donor';
+          const phone = sheetDonor.user?.phone || 'N/A';
+          const location = sheetDonor.city || sheetDonor.location || 'N/A';
+          const bloodGroupDisplay = sheetDonor.bloodGroup.replace('_POSITIVE', '+').replace('_NEGATIVE', '-').replace('_', '');
+          const lastDonation = sheetDonor.lastDonationDate 
+            ? new Date(sheetDonor.lastDonationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : 'Never';
+          
           const tier = getDonorTier(sheetDonor.totalDonations);
-          const dist = clickedPos && sheetDonor.lat !== undefined && sheetDonor.lng !== undefined
-            ? haversineKm(clickedPos.lat, clickedPos.lng, sheetDonor.lat, sheetDonor.lng)
+          
+          // Get coordinates for distance calculation
+          const coords = sheetDonor.latitude && sheetDonor.longitude
+            ? { lat: sheetDonor.latitude, lng: sheetDonor.longitude }
+            : getCityCoordinates(sheetDonor.city || sheetDonor.location);
+          
+          const dist = clickedPos && coords
+            ? haversineKm(clickedPos.lat, clickedPos.lng, coords.lat, coords.lng)
             : null;
 
           return (
@@ -527,14 +622,14 @@ export default function BloodSearchPage() {
 
                   {/* Avatar */}
                   <div className="w-[72px] h-[72px] rounded-full bg-white/10 border-[3px] border-white/25 flex items-center justify-center text-[26px] font-bold text-white mx-auto mb-3">
-                    {getInitials(sheetDonor.name)}
+                    {getInitials(name)}
                   </div>
 
-                  <h2 className="text-xl font-bold text-white mb-2.5">{sheetDonor.name}</h2>
+                  <h2 className="text-xl font-bold text-white mb-2.5">{name}</h2>
 
                   <div className="flex items-center justify-center gap-2">
                     <span className="inline-flex items-center gap-1 bg-white/15 border border-white/25 rounded-full px-2.5 py-1 text-xs font-bold text-white">
-                      <Droplets size={11} /> {sheetDonor.bloodGroup}
+                      <Droplets size={11} /> {bloodGroupDisplay}
                     </span>
                     <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold bg-white ${tier.styles}`}>
                       <Award size={11} /> {tier.label} Donor
@@ -570,8 +665,8 @@ export default function BloodSearchPage() {
                     </p>
                     <div className="bg-slate-50 border border-slate-100 rounded-xl overflow-hidden">
                       {[
-                        { icon: <Phone size={13} className="text-red-800" />, label: "Phone", value: sheetDonor.phone },
-                        { icon: <MapPin size={13} className="text-red-800" />, label: "Location", value: sheetDonor.location },
+                        { icon: <Phone size={13} className="text-red-800" />, label: "Phone", value: phone },
+                        { icon: <MapPin size={13} className="text-red-800" />, label: "Location", value: location },
                       ].map((row, i, arr) => (
                         <div key={row.label}>
                           <div className="flex items-center gap-3 p-3">
@@ -596,8 +691,8 @@ export default function BloodSearchPage() {
                     </p>
                     <div className="bg-slate-50 border border-slate-100 rounded-xl overflow-hidden">
                       {[
-                        { icon: <Calendar size={13} className="text-red-800" />, label: "Last Donation", value: sheetDonor.lastDonationDate },
-                        { icon: <Droplets size={13} className="text-red-800" />, label: "Blood Group", value: sheetDonor.bloodGroup },
+                        { icon: <Calendar size={13} className="text-red-800" />, label: "Last Donation", value: lastDonation },
+                        { icon: <Droplets size={13} className="text-red-800" />, label: "Blood Group", value: bloodGroupDisplay },
                         { icon: <Award size={13} className="text-red-800" />, label: "Total Donations", value: String(sheetDonor.totalDonations), highlight: true },
                       ].map((row, i, arr) => (
                         <div key={row.label}>
@@ -622,20 +717,30 @@ export default function BloodSearchPage() {
                   <div className="space-y-2.5">
                     <button
                       onClick={() => {
-                        toast(`Calling ${sheetDonor.name}…`, "info");
+                        router.push(`/dashboard/donors/${sheetDonor.id}`);
                       }}
                       className="w-full flex items-center justify-center gap-2 bg-red-800 hover:bg-red-900 text-white py-3 rounded-xl text-sm font-semibold transition-colors"
                     >
-                      <Phone size={14} /> Call Donor
+                      <User size={14} /> View Full Profile
                     </button>
-                    <button
-                      onClick={() => {
-                        toast(`Notification sent to ${sheetDonor.name}`);
-                      }}
-                      className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 py-3 rounded-xl text-sm font-semibold transition-colors"
-                    >
-                      <Bell size={14} /> Send Notification
-                    </button>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <button
+                        onClick={() => {
+                          toast(`Calling ${name}…`, "info");
+                        }}
+                        className="flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                      >
+                        <Phone size={14} /> Call
+                      </button>
+                      <button
+                        onClick={() => {
+                          toast(`Notification sent to ${name}`);
+                        }}
+                        className="flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                      >
+                        <Bell size={14} /> Notify
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

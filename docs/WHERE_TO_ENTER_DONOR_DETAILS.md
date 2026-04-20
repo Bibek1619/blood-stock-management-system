@@ -44,7 +44,7 @@
    ```
    ✏️ Units Collected: [Default: 1]
    ✏️ Collection Date: [Today's date]
-   ✏️ Collection Type: Select "WEB_DONOR" *
+   ✏️ Collection Type: Select "WALK_IN" * ← CORRECTED!
    ✏️ Storage Location: [e.g., Refrigerator-A1]
    ✏️ Notes: [Optional]
    ```
@@ -293,7 +293,7 @@ Total: 10 units
 |-------|---------------|-------------|--------------|
 | **Page** | /blood-collection | /blood-collection | /blood-collection |
 | **Button** | Main form | Main form | "Bulk Add" |
-| **Collection Type** | WEB_DONOR | EVENT | N/A (auto) |
+| **Collection Type** | WALK_IN | EVENT | N/A (auto) |
 | **Storage Location** | WALK_IN_DONOR | EVENT_STORAGE | ORGANIZATION_DONOR |
 | **Notes** | Optional | Event name | Organization name |
 | **Creates** | 1 user + 1 pack | 1 user + 1 pack | 1 org + multiple packs |
@@ -304,7 +304,7 @@ Total: 10 units
 
 ### Walk-in vs Event Donors
 **Same process, different Collection Type:**
-- Walk-in: Select "WEB_DONOR"
+- Walk-in: Select "WALK_IN (Office)"
 - Event: Select "EVENT"
 
 **Why it matters:**

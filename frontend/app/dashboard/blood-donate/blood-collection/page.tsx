@@ -38,9 +38,14 @@ import {
   Plus,
   Building2,
   Trash2,
+  AlertCircle,
+  Calendar,
+  Weight,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSearchDonors, useRecordBloodCollection, useRecordBulkCollection } from '@/lib/queries/bloodCollection';
+import { LocationAutocomplete } from '@/components/ui/location-autocomplete';
+import { FullAddressAutocomplete } from '@/components/ui/full-address-autocomplete';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -56,17 +61,24 @@ export default function BloodCollectionPage() {
     donorPhone: '',
     donorEmail: '',
     bloodGroup: '',
-    location: '',
+    dateOfBirth: '',
+    weight: '',
+    city: '',
+    address: '',
     units: '1',
     collectionDate: new Date().toISOString().split('T')[0],
-    collectionLocation: 'WEB_DONOR', // Default to Web Donor
+    collectionLocation: 'WALK_IN', // Default to Walk-in (Office)
     storageLocation: '',
     notes: '',
+    hasMedicalCondition: 'no',
+    medicalConditionDetails: '',
   });
 
   // Bulk collection state
   const [bulkData, setBulkData] = useState({
     organizationName: '',
+    contactPersonName: '',
+    organizationCity: '',
     organizationAddress: '',
     organizationEmail: '',
     organizationPhone: '',
@@ -109,8 +121,8 @@ export default function BloodCollectionPage() {
     e.preventDefault();
 
     // Validation
-    if (!bulkData.organizationName || !bulkData.organizationAddress || !bulkData.organizationPhone) {
-      toast.error('Please fill in all organization details');
+    if (!bulkData.organizationName || !bulkData.contactPersonName || !bulkData.organizationCity || !bulkData.organizationAddress || !bulkData.organizationPhone) {
+      toast.error('Please fill in all required organization details');
       return;
     }
 
@@ -134,6 +146,8 @@ export default function BloodCollectionPage() {
       // Reset form
       setBulkData({
         organizationName: '',
+        contactPersonName: '',
+        organizationCity: '',
         organizationAddress: '',
         organizationEmail: '',
         organizationPhone: '',
@@ -179,7 +193,10 @@ export default function BloodCollectionPage() {
       donorPhone: donor.user.phone,
       donorEmail: donor.user.email,
       bloodGroup: bloodGroupMap[donor.bloodGroup] || donor.bloodGroup,
-      location: donor.location || '',
+      dateOfBirth: donor.dateOfBirth ? new Date(donor.dateOfBirth).toISOString().split('T')[0] : '',
+      weight: donor.weight ? donor.weight.toString() : '',
+      city: donor.city || '',
+      address: donor.address || '',
     });
 
     toast.success(`Selected donor: ${donor.user.name}`);
@@ -203,12 +220,17 @@ export default function BloodCollectionPage() {
         donorPhone: formData.donorPhone,
         donorEmail: formData.donorEmail,
         bloodGroup: formData.bloodGroup,
-        location: formData.location,
+        dateOfBirth: formData.dateOfBirth,
+        weight: formData.weight ? parseFloat(formData.weight) : undefined,
+        location: formData.city, // Use city as location
+        city: formData.city,
+        address: formData.address,
         units: formData.units,
         collectionDate: formData.collectionDate,
         collectionLocation: formData.collectionLocation,
         storageLocation: formData.storageLocation,
         notes: formData.notes,
+        medicalNotes: formData.hasMedicalCondition === 'yes' ? formData.medicalConditionDetails : null,
       });
 
       toast.success('Blood donation recorded successfully!', {
@@ -444,18 +466,148 @@ export default function BloodCollectionPage() {
                       </Select>
                     </div>
 
+                    <div className="space-y-2">
+                      <Label htmlFor="dateOfBirth">
+                        Date of Birth <span className="text-red-600">*</span>
+                      </Label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
+                        <Input
+                          id="dateOfBirth"
+                          type="date"
+                          value={formData.dateOfBirth}
+                          onChange={(e) =>
+                            setFormData({ ...formData, dateOfBirth: e.target.value })
+                          }
+                          className="pl-10"
+                          max={new Date().toISOString().split('T')[0]}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="weight">
+                        Weight (kg) <span className="text-red-600">*</span>
+                      </Label>
+                      <div className="relative">
+                        <Weight className="absolute left-3 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
+                        <Input
+                          id="weight"
+                          type="number"
+                          min="50"
+                          step="0.1"
+                          value={formData.weight}
+                          onChange={(e) =>
+                            setFormData({ ...formData, weight: e.target.value })
+                          }
+                          placeholder="70"
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500">Minimum 50 kg required</p>
+                    </div>
+
                     <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="location">Location</Label>
-                      <Input
-                        id="location"
-                        value={formData.location}
-                        onChange={(e) =>
-                          setFormData({ ...formData, location: e.target.value })
+                      <LocationAutocomplete
+                        id="city"
+                        label="City"
+                        value={formData.city}
+                        onChange={(value) =>
+                          setFormData({ ...formData, city: value })
                         }
-                        placeholder="City or district"
+                        placeholder="Start typing city name..."
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <FullAddressAutocomplete
+                        id="address"
+                        label="Full Address"
+                        value={formData.address}
+                        onChange={(value) =>
+                          setFormData({ ...formData, address: value })
+                        }
+                        placeholder="Street, area, or landmark..."
+                        cityContext={formData.city}
+                        required
                       />
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Medical Condition */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-[#7F1D1D]" />
+                    Medical History
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <Label>
+                      Does the donor have any medical conditions? <span className="text-red-600">*</span>
+                    </Label>
+                    <div className="flex gap-6">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="hasMedicalCondition"
+                          value="no"
+                          checked={formData.hasMedicalCondition === 'no'}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              hasMedicalCondition: e.target.value,
+                              medicalConditionDetails: '',
+                            })
+                          }
+                          className="w-4 h-4 text-red-600"
+                          required
+                        />
+                        <span className="text-sm font-medium">No</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="hasMedicalCondition"
+                          value="yes"
+                          checked={formData.hasMedicalCondition === 'yes'}
+                          onChange={(e) =>
+                            setFormData({ ...formData, hasMedicalCondition: e.target.value })
+                          }
+                          className="w-4 h-4 text-red-600"
+                          required
+                        />
+                        <span className="text-sm font-medium">Yes</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {formData.hasMedicalCondition === 'yes' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="medicalConditionDetails">
+                        Medical Condition Details <span className="text-red-600">*</span>
+                      </Label>
+                      <textarea
+                        id="medicalConditionDetails"
+                        value={formData.medicalConditionDetails}
+                        onChange={(e) =>
+                          setFormData({ ...formData, medicalConditionDetails: e.target.value })
+                        }
+                        placeholder="Please describe the medical condition(s)..."
+                        className="w-full min-h-[80px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                        required={formData.hasMedicalCondition === 'yes'}
+                      />
+                      <p className="text-xs text-slate-500">
+                        This information helps ensure donor safety
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -517,7 +669,7 @@ export default function BloodCollectionPage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="EVENT">Event</SelectItem>
-                          <SelectItem value="WEB_DONOR">Web Donor</SelectItem>
+                          <SelectItem value="WALK_IN">Walk-in (Office)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -689,6 +841,21 @@ export default function BloodCollectionPage() {
                     </div>
 
                     <div className="space-y-2">
+                      <Label htmlFor="contactPerson">
+                        Contact Person Name <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="contactPerson"
+                        value={bulkData.contactPersonName}
+                        onChange={(e) =>
+                          setBulkData({ ...bulkData, contactPersonName: e.target.value })
+                        }
+                        placeholder="Secretary, Representative, etc."
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
                       <Label htmlFor="orgPhone">
                         Phone Number <span className="text-red-600">*</span>
                       </Label>
@@ -731,17 +898,29 @@ export default function BloodCollectionPage() {
                       />
                     </div>
 
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="orgAddress">
-                        Address <span className="text-red-600">*</span>
-                      </Label>
-                      <Input
-                        id="orgAddress"
-                        value={bulkData.organizationAddress}
-                        onChange={(e) =>
-                          setBulkData({ ...bulkData, organizationAddress: e.target.value })
+                    <div className="space-y-2">
+                      <LocationAutocomplete
+                        id="orgCity"
+                        label="City"
+                        value={bulkData.organizationCity}
+                        onChange={(value) =>
+                          setBulkData({ ...bulkData, organizationCity: value })
                         }
-                        placeholder="Full address"
+                        placeholder="Start typing city name..."
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <FullAddressAutocomplete
+                        id="orgAddress"
+                        label="Full Address"
+                        value={bulkData.organizationAddress}
+                        onChange={(value) =>
+                          setBulkData({ ...bulkData, organizationAddress: value })
+                        }
+                        placeholder="Street, area, or landmark..."
+                        cityContext={bulkData.organizationCity}
                         required
                       />
                     </div>
