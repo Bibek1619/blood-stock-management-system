@@ -8,7 +8,6 @@
  */
 export async function geocodeLocation(location: string): Promise<{ lat: number; lng: number } | null> {
   if (!location || location.trim().length === 0) return null;
-
   try {
     const query = encodeURIComponent(location.trim());
     const response = await fetch(
