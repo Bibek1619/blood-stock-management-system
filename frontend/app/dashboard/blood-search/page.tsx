@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Phone, Bell, MapPin, Droplets, Search,
-  Users, X, Navigation, Filter, Award, Calendar, ChevronRight, Home, User,
+  Users, X, Navigation, Filter, Award, Calendar, ChevronRight, Home, User, Crosshair,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDonors } from "@/lib/queries/donors";
@@ -47,6 +47,9 @@ export default function BloodSearchPage() {
   const [activeDonor, setActiveDonor] = useState<any | null>(null);
   const [sheetDonor, setSheetDonor] = useState<any | null>(null);
   const [fullMapOpen, setFullMapOpen] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationLoading, setLocationLoading] = useState(true);
 
   const { toasts, toast } = useToast();
 
@@ -59,6 +62,54 @@ export default function BloodSearchPage() {
       toast('Failed to load donors. Please refresh the page.', 'error');
     }
   }, [error]);
+
+  // Get user's current location
+  useEffect(() => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      setLocationLoading(false);
+      setUserLocation(DEFAULT_MAP_CENTER);
+      return;
+    }
+
+    const getLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ lat: latitude, lng: longitude });
+          setLocationLoading(false);
+          console.log('User location:', { lat: latitude, lng: longitude });
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          let errorMessage = 'Unable to get your location';
+          
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Location access denied. Using default location.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Location information unavailable. Using default location.';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Location request timed out. Using default location.';
+              break;
+          }
+          
+          setLocationError(errorMessage);
+          // Use default location (Kathmandu) if geolocation fails
+          setUserLocation(DEFAULT_MAP_CENTER);
+          setLocationLoading(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000, // Reduced to 5 seconds for faster fallback
+          maximumAge: 0,
+        }
+      );
+    };
+
+    getLocation();
+  }, []);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletRef = useRef<any>(null);
@@ -113,14 +164,22 @@ export default function BloodSearchPage() {
 
   // ── Init map ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!mapReady || !mapRef.current || mapObjRef.current) return;
+    // Wait for both map library and user location before initializing
+    if (!mapReady || !mapRef.current || mapObjRef.current || locationLoading) return;
+    
+    // At this point, userLocation is guaranteed to be set (either real location or default)
+    if (!userLocation) return;
 
     const L = (window as any).L;
     leafletRef.current = L;
 
+    // Use user location (either real or default)
+    const initialCenter = userLocation;
+    const initialZoom = locationError ? 13 : 14; // Zoom in more if we have real user location
+
     const map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: true }).setView(
-      [DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng],
-      13
+      [initialCenter.lat, initialCenter.lng],
+      initialZoom
     );
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -128,12 +187,27 @@ export default function BloodSearchPage() {
       maxZoom: 19,
     }).addTo(map);
 
+    // Add user location marker only if we have real user location (not default)
+    if (!locationError) {
+      const userIcon = L.divIcon({
+        className: "",
+        html: `<div style="width:20px;height:20px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+      });
+      
+      L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
+        .addTo(map)
+        .bindPopup('<b>Your Location</b>')
+        .openPopup();
+    }
+
     map.on("click", (e: any) => {
       setClickedPos({ lat: e.latlng.lat, lng: e.latlng.lng });
     });
 
     mapObjRef.current = map;
-  }, [mapReady]);
+  }, [mapReady, userLocation, locationLoading, locationError]);
 
   // ── Update circle + markers ───────────────────────────────────────────────
   const updateMapOverlays = useCallback(() => {
@@ -259,6 +333,20 @@ export default function BloodSearchPage() {
 
   const clearPin = () => setClickedPos(null);
 
+  const useMyLocation = () => {
+    if (userLocation) {
+      setClickedPos(userLocation);
+      toast('Using your current location');
+      
+      // Center map on user location
+      if (mapObjRef.current) {
+        mapObjRef.current.setView([userLocation.lat, userLocation.lng], 14);
+      }
+    } else {
+      toast('Location not available. Please enable location access.', 'error');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
       <div className="max-w-[1300px] mx-auto">
@@ -305,12 +393,46 @@ export default function BloodSearchPage() {
               <p className="text-sm text-slate-600 mt-0.5">Find donors by blood group, location, or map radius</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-full px-4 py-2">
-            <Users size={13} className="text-red-800" />
-            <span className="text-lg font-bold text-red-800">{filtered.length}</span>
-            <span className="text-xs text-slate-600">donors found</span>
+          <div className="flex items-center gap-2">
+            {userLocation && (
+              <button
+                onClick={useMyLocation}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm font-semibold text-blue-800 hover:bg-blue-100 transition-colors"
+              >
+                <Crosshair size={14} />
+                Use My Location
+              </button>
+            )}
+            <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-full px-4 py-2">
+              <Users size={13} className="text-red-800" />
+              <span className="text-lg font-bold text-red-800">{filtered.length}</span>
+              <span className="text-xs text-slate-600">donors found</span>
+            </div>
           </div>
         </div>
+
+        {/* Location Status */}
+        {locationError && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
+            <MapPin size={16} className="text-yellow-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-yellow-800">Location Access</p>
+              <p className="text-xs text-yellow-700 mt-0.5">{locationError}</p>
+            </div>
+          </div>
+        )}
+
+        {userLocation && !locationError && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
+            <Crosshair size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-green-800">Your Location Detected</p>
+              <p className="text-xs text-green-700 mt-0.5">
+                Map is centered at your current location. Click "Use My Location" to search nearby donors.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Low Stock Suggestions */}
         {LOW_STOCK_GROUPS.length > 0 && (
@@ -415,6 +537,7 @@ export default function BloodSearchPage() {
           {!clickedPos && (
             <p className="text-xs text-slate-500 text-center px-4 pb-4">
               👆 Click anywhere on the map to drop a pin and filter by radius
+              {userLocation && <span className="block mt-1">💡 Or use "Use My Location" button to search near you</span>}
             </p>
           )}
         </div>
@@ -441,10 +564,12 @@ export default function BloodSearchPage() {
 
           <div className="relative">
             <div ref={mapRef} className="h-[400px] w-full" />
-            {!mapReady && (
+            {(!mapReady || locationLoading) && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50">
                 <div className="w-9 h-9 border-3 border-slate-200 border-t-red-800 rounded-full animate-spin" />
-                <p className="text-sm text-slate-600 mt-2">Loading map…</p>
+                <p className="text-sm text-slate-600 mt-2">
+                  {locationLoading ? 'Getting your location...' : 'Loading map…'}
+                </p>
               </div>
             )}
           </div>
