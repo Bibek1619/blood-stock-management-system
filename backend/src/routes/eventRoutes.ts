@@ -10,10 +10,12 @@ router.post("/", asyncHandler(eventController.createEvent));
 router.put("/:id", asyncHandler(eventController.updateEvent));
 router.delete("/:id", asyncHandler(eventController.deleteEvent));
 
-// Participant registration
-router.post("/participants", asyncHandler(eventController.registerParticipant));
+// Participant management
+router.post("/:id/participants", asyncHandler(eventController.addParticipant));
+router.delete("/:id/participants/:participantId", asyncHandler(eventController.removeParticipant));
 
-// Volunteer registration
-router.post("/volunteers", asyncHandler(eventController.registerVolunteer));
+// Volunteer management
+router.post("/:id/volunteers", asyncHandler(eventController.addVolunteer));
+router.delete("/:id/volunteers/:volunteerId", asyncHandler(eventController.removeVolunteer));
 
 export default router;

@@ -49,6 +49,7 @@ export default function BloodSearchPage() {
   const [fullMapOpen, setFullMapOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationChecked, setLocationChecked] = useState(false); // Track if we've checked for location
   const [locationLoading, setLocationLoading] = useState(true);
 
   const { toasts, toast } = useToast();
@@ -96,7 +97,7 @@ export default function BloodSearchPage() {
           }
           
           setLocationError(errorMessage);
-          // Use default location (Kathmandu) if geolocation fails
+          // Use default location (Pokhara) if geolocation fails
           setUserLocation(DEFAULT_MAP_CENTER);
           setLocationLoading(false);
         },
@@ -120,7 +121,10 @@ export default function BloodSearchPage() {
 
   // ── Filter donors ─────────────────────────────────────────────────────────
   const filtered = donors.filter((d) => {
+    // Filter by blood group
     if (selectedGroup !== "all" && d.bloodGroup !== selectedGroup) return false;
+    
+    // Filter by location query
     const location = d.city || d.location || '';
     if (locationQuery && !location.toLowerCase().includes(locationQuery.toLowerCase())) return false;
     
@@ -134,6 +138,9 @@ export default function BloodSearchPage() {
       if (coords) {
         const dist = haversineKm(clickedPos.lat, clickedPos.lng, coords.lat, coords.lng);
         if (dist > radius) return false;
+      } else {
+        // If no coordinates and pin is clicked, exclude this donor
+        return false;
       }
     }
     
@@ -406,7 +413,9 @@ export default function BloodSearchPage() {
             <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-full px-4 py-2">
               <Users size={13} className="text-red-800" />
               <span className="text-lg font-bold text-red-800">{filtered.length}</span>
-              <span className="text-xs text-slate-600">donors found</span>
+              <span className="text-xs text-slate-600">
+                {clickedPos ? 'within radius' : 'total donors'}
+              </span>
             </div>
           </div>
         </div>
@@ -536,7 +545,8 @@ export default function BloodSearchPage() {
 
           {!clickedPos && (
             <p className="text-xs text-slate-500 text-center px-4 pb-4">
-              👆 Click anywhere on the map to drop a pin and filter by radius
+              � All donors are shown on the map
+              <span className="block mt-1">👆 Click anywhere to drop a pin and filter by radius</span>
               {userLocation && <span className="block mt-1">💡 Or use "Use My Location" button to search near you</span>}
             </p>
           )}
@@ -551,7 +561,12 @@ export default function BloodSearchPage() {
               </div>
               <div>
                 <p className="text-sm font-bold text-slate-900">Donor Map</p>
-                <p className="text-xs text-slate-500">Click to drop radius pin · {filtered.length} donors shown</p>
+                <p className="text-xs text-slate-500">
+                  {clickedPos 
+                    ? `${filtered.length} donors within ${radius}km radius` 
+                    : `Showing all ${filtered.length} donors`
+                  }
+                </p>
               </div>
             </div>
             <button
@@ -578,7 +593,9 @@ export default function BloodSearchPage() {
         {/* ── Donor Cards Grid ── */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-slate-900">Available Donors</h2>
+            <h2 className="text-lg font-bold text-slate-900">
+              {clickedPos ? 'Donors Within Radius' : 'All Available Donors'}
+            </h2>
             <span className="text-sm text-slate-600">{filtered.length} found</span>
           </div>
 
