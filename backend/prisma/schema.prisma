@@ -253,16 +253,22 @@ model EventParticipant {
 model EventVolunteer {
   id        String   @id @default(cuid())
   eventId   String
-  userId    String
+  userId    String?
+  
+  // Volunteer details (for non-user volunteers)
+  name      String?
+  email     String?
+  phone     String?
+  address   String?
+  
   role      String?
   status    VolunteerStatus @default(REGISTERED)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([eventId, userId])
   @@index([eventId])
   @@index([userId])
 }
