@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useData } from "@/lib/data-store";
-import { CertificatePreview, IDCardPreview } from "@/lib/certificate-preview";
+import { CertificatePreview } from "@/lib/certificate-preview";
+import { IDCardPreview } from "@/lib/idcard-preview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

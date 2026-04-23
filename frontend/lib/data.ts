@@ -92,8 +92,8 @@ export const CRITICAL_STOCK_THRESHOLD = 3;
 
 export const LOW_STOCK_GROUPS: BloodGroup[] = ["A-", "B-", "AB-", "O-"];
 
-// Default map center (Kathmandu, Nepal)
-export const DEFAULT_MAP_CENTER = { lat: 27.7172, lng: 85.3240 };
+// Default map center (Pokhara, Nepal)
+export const DEFAULT_MAP_CENTER = { lat: 28.2096, lng: 83.9856 };
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STATUS CONFIGURATIONS
