@@ -28,6 +28,10 @@ export type EventVolunteerMinAggregateOutputType = {
   id: string | null
   eventId: string | null
   userId: string | null
+  name: string | null
+  email: string | null
+  phone: string | null
+  address: string | null
   role: string | null
   status: $Enums.VolunteerStatus | null
   createdAt: Date | null
@@ -38,6 +42,10 @@ export type EventVolunteerMaxAggregateOutputType = {
   id: string | null
   eventId: string | null
   userId: string | null
+  name: string | null
+  email: string | null
+  phone: string | null
+  address: string | null
   role: string | null
   status: $Enums.VolunteerStatus | null
   createdAt: Date | null
@@ -48,6 +56,10 @@ export type EventVolunteerCountAggregateOutputType = {
   id: number
   eventId: number
   userId: number
+  name: number
+  email: number
+  phone: number
+  address: number
   role: number
   status: number
   createdAt: number
@@ -60,6 +72,10 @@ export type EventVolunteerMinAggregateInputType = {
   id?: true
   eventId?: true
   userId?: true
+  name?: true
+  email?: true
+  phone?: true
+  address?: true
   role?: true
   status?: true
   createdAt?: true
@@ -70,6 +86,10 @@ export type EventVolunteerMaxAggregateInputType = {
   id?: true
   eventId?: true
   userId?: true
+  name?: true
+  email?: true
+  phone?: true
+  address?: true
   role?: true
   status?: true
   createdAt?: true
@@ -80,6 +100,10 @@ export type EventVolunteerCountAggregateInputType = {
   id?: true
   eventId?: true
   userId?: true
+  name?: true
+  email?: true
+  phone?: true
+  address?: true
   role?: true
   status?: true
   createdAt?: true
@@ -162,7 +186,11 @@ export type EventVolunteerGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
 export type EventVolunteerGroupByOutputType = {
   id: string
   eventId: string
-  userId: string
+  userId: string | null
+  name: string | null
+  email: string | null
+  phone: string | null
+  address: string | null
   role: string | null
   status: $Enums.VolunteerStatus
   createdAt: Date
@@ -193,19 +221,27 @@ export type EventVolunteerWhereInput = {
   NOT?: Prisma.EventVolunteerWhereInput | Prisma.EventVolunteerWhereInput[]
   id?: Prisma.StringFilter<"EventVolunteer"> | string
   eventId?: Prisma.StringFilter<"EventVolunteer"> | string
-  userId?: Prisma.StringFilter<"EventVolunteer"> | string
+  userId?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
+  name?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
+  email?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
+  phone?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
+  address?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
   role?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
   status?: Prisma.EnumVolunteerStatusFilter<"EventVolunteer"> | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeFilter<"EventVolunteer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventVolunteer"> | Date | string
   event?: Prisma.XOR<Prisma.EventScalarRelationFilter, Prisma.EventWhereInput>
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type EventVolunteerOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   eventId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
+  userId?: Prisma.SortOrderInput | Prisma.SortOrder
+  name?: Prisma.SortOrderInput | Prisma.SortOrder
+  email?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  address?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -216,24 +252,31 @@ export type EventVolunteerOrderByWithRelationInput = {
 
 export type EventVolunteerWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  eventId_userId?: Prisma.EventVolunteerEventIdUserIdCompoundUniqueInput
   AND?: Prisma.EventVolunteerWhereInput | Prisma.EventVolunteerWhereInput[]
   OR?: Prisma.EventVolunteerWhereInput[]
   NOT?: Prisma.EventVolunteerWhereInput | Prisma.EventVolunteerWhereInput[]
   eventId?: Prisma.StringFilter<"EventVolunteer"> | string
-  userId?: Prisma.StringFilter<"EventVolunteer"> | string
+  userId?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
+  name?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
+  email?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
+  phone?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
+  address?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
   role?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
   status?: Prisma.EnumVolunteerStatusFilter<"EventVolunteer"> | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeFilter<"EventVolunteer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventVolunteer"> | Date | string
   event?: Prisma.XOR<Prisma.EventScalarRelationFilter, Prisma.EventWhereInput>
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id" | "eventId_userId">
+  user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+}, "id">
 
 export type EventVolunteerOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   eventId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
+  userId?: Prisma.SortOrderInput | Prisma.SortOrder
+  name?: Prisma.SortOrderInput | Prisma.SortOrder
+  email?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  address?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -249,7 +292,11 @@ export type EventVolunteerScalarWhereWithAggregatesInput = {
   NOT?: Prisma.EventVolunteerScalarWhereWithAggregatesInput | Prisma.EventVolunteerScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"EventVolunteer"> | string
   eventId?: Prisma.StringWithAggregatesFilter<"EventVolunteer"> | string
-  userId?: Prisma.StringWithAggregatesFilter<"EventVolunteer"> | string
+  userId?: Prisma.StringNullableWithAggregatesFilter<"EventVolunteer"> | string | null
+  name?: Prisma.StringNullableWithAggregatesFilter<"EventVolunteer"> | string | null
+  email?: Prisma.StringNullableWithAggregatesFilter<"EventVolunteer"> | string | null
+  phone?: Prisma.StringNullableWithAggregatesFilter<"EventVolunteer"> | string | null
+  address?: Prisma.StringNullableWithAggregatesFilter<"EventVolunteer"> | string | null
   role?: Prisma.StringNullableWithAggregatesFilter<"EventVolunteer"> | string | null
   status?: Prisma.EnumVolunteerStatusWithAggregatesFilter<"EventVolunteer"> | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EventVolunteer"> | Date | string
@@ -258,18 +305,26 @@ export type EventVolunteerScalarWhereWithAggregatesInput = {
 
 export type EventVolunteerCreateInput = {
   id?: string
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  address?: string | null
   role?: string | null
   status?: $Enums.VolunteerStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   event: Prisma.EventCreateNestedOneWithoutVolunteersInput
-  user: Prisma.UserCreateNestedOneWithoutEventVolunteersInput
+  user?: Prisma.UserCreateNestedOneWithoutEventVolunteersInput
 }
 
 export type EventVolunteerUncheckedCreateInput = {
   id?: string
   eventId: string
-  userId: string
+  userId?: string | null
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  address?: string | null
   role?: string | null
   status?: $Enums.VolunteerStatus
   createdAt?: Date | string
@@ -278,18 +333,26 @@ export type EventVolunteerUncheckedCreateInput = {
 
 export type EventVolunteerUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVolunteerStatusFieldUpdateOperationsInput | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   event?: Prisma.EventUpdateOneRequiredWithoutVolunteersNestedInput
-  user?: Prisma.UserUpdateOneRequiredWithoutEventVolunteersNestedInput
+  user?: Prisma.UserUpdateOneWithoutEventVolunteersNestedInput
 }
 
 export type EventVolunteerUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
-  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVolunteerStatusFieldUpdateOperationsInput | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -299,7 +362,11 @@ export type EventVolunteerUncheckedUpdateInput = {
 export type EventVolunteerCreateManyInput = {
   id?: string
   eventId: string
-  userId: string
+  userId?: string | null
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  address?: string | null
   role?: string | null
   status?: $Enums.VolunteerStatus
   createdAt?: Date | string
@@ -308,6 +375,10 @@ export type EventVolunteerCreateManyInput = {
 
 export type EventVolunteerUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVolunteerStatusFieldUpdateOperationsInput | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -317,7 +388,11 @@ export type EventVolunteerUpdateManyMutationInput = {
 export type EventVolunteerUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
-  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVolunteerStatusFieldUpdateOperationsInput | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -334,15 +409,14 @@ export type EventVolunteerOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type EventVolunteerEventIdUserIdCompoundUniqueInput = {
-  eventId: string
-  userId: string
-}
-
 export type EventVolunteerCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   eventId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  email?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
+  address?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -353,6 +427,10 @@ export type EventVolunteerMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   eventId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  email?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
+  address?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -363,6 +441,10 @@ export type EventVolunteerMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   eventId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  email?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
+  address?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -459,6 +541,10 @@ export type EnumVolunteerStatusFieldUpdateOperationsInput = {
 
 export type EventVolunteerCreateWithoutUserInput = {
   id?: string
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  address?: string | null
   role?: string | null
   status?: $Enums.VolunteerStatus
   createdAt?: Date | string
@@ -469,6 +555,10 @@ export type EventVolunteerCreateWithoutUserInput = {
 export type EventVolunteerUncheckedCreateWithoutUserInput = {
   id?: string
   eventId: string
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  address?: string | null
   role?: string | null
   status?: $Enums.VolunteerStatus
   createdAt?: Date | string
@@ -507,7 +597,11 @@ export type EventVolunteerScalarWhereInput = {
   NOT?: Prisma.EventVolunteerScalarWhereInput | Prisma.EventVolunteerScalarWhereInput[]
   id?: Prisma.StringFilter<"EventVolunteer"> | string
   eventId?: Prisma.StringFilter<"EventVolunteer"> | string
-  userId?: Prisma.StringFilter<"EventVolunteer"> | string
+  userId?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
+  name?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
+  email?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
+  phone?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
+  address?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
   role?: Prisma.StringNullableFilter<"EventVolunteer"> | string | null
   status?: Prisma.EnumVolunteerStatusFilter<"EventVolunteer"> | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeFilter<"EventVolunteer"> | Date | string
@@ -516,16 +610,24 @@ export type EventVolunteerScalarWhereInput = {
 
 export type EventVolunteerCreateWithoutEventInput = {
   id?: string
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  address?: string | null
   role?: string | null
   status?: $Enums.VolunteerStatus
   createdAt?: Date | string
   updatedAt?: Date | string
-  user: Prisma.UserCreateNestedOneWithoutEventVolunteersInput
+  user?: Prisma.UserCreateNestedOneWithoutEventVolunteersInput
 }
 
 export type EventVolunteerUncheckedCreateWithoutEventInput = {
   id?: string
-  userId: string
+  userId?: string | null
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  address?: string | null
   role?: string | null
   status?: $Enums.VolunteerStatus
   createdAt?: Date | string
@@ -561,6 +663,10 @@ export type EventVolunteerUpdateManyWithWhereWithoutEventInput = {
 export type EventVolunteerCreateManyUserInput = {
   id?: string
   eventId: string
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  address?: string | null
   role?: string | null
   status?: $Enums.VolunteerStatus
   createdAt?: Date | string
@@ -569,6 +675,10 @@ export type EventVolunteerCreateManyUserInput = {
 
 export type EventVolunteerUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVolunteerStatusFieldUpdateOperationsInput | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -579,6 +689,10 @@ export type EventVolunteerUpdateWithoutUserInput = {
 export type EventVolunteerUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVolunteerStatusFieldUpdateOperationsInput | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -588,6 +702,10 @@ export type EventVolunteerUncheckedUpdateWithoutUserInput = {
 export type EventVolunteerUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVolunteerStatusFieldUpdateOperationsInput | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -596,7 +714,11 @@ export type EventVolunteerUncheckedUpdateManyWithoutUserInput = {
 
 export type EventVolunteerCreateManyEventInput = {
   id?: string
-  userId: string
+  userId?: string | null
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  address?: string | null
   role?: string | null
   status?: $Enums.VolunteerStatus
   createdAt?: Date | string
@@ -605,16 +727,24 @@ export type EventVolunteerCreateManyEventInput = {
 
 export type EventVolunteerUpdateWithoutEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVolunteerStatusFieldUpdateOperationsInput | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  user?: Prisma.UserUpdateOneRequiredWithoutEventVolunteersNestedInput
+  user?: Prisma.UserUpdateOneWithoutEventVolunteersNestedInput
 }
 
 export type EventVolunteerUncheckedUpdateWithoutEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVolunteerStatusFieldUpdateOperationsInput | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -623,7 +753,11 @@ export type EventVolunteerUncheckedUpdateWithoutEventInput = {
 
 export type EventVolunteerUncheckedUpdateManyWithoutEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVolunteerStatusFieldUpdateOperationsInput | $Enums.VolunteerStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -636,72 +770,92 @@ export type EventVolunteerSelect<ExtArgs extends runtime.Types.Extensions.Intern
   id?: boolean
   eventId?: boolean
   userId?: boolean
+  name?: boolean
+  email?: boolean
+  phone?: boolean
+  address?: boolean
   role?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.EventVolunteer$userArgs<ExtArgs>
 }, ExtArgs["result"]["eventVolunteer"]>
 
 export type EventVolunteerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   eventId?: boolean
   userId?: boolean
+  name?: boolean
+  email?: boolean
+  phone?: boolean
+  address?: boolean
   role?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.EventVolunteer$userArgs<ExtArgs>
 }, ExtArgs["result"]["eventVolunteer"]>
 
 export type EventVolunteerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   eventId?: boolean
   userId?: boolean
+  name?: boolean
+  email?: boolean
+  phone?: boolean
+  address?: boolean
   role?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.EventVolunteer$userArgs<ExtArgs>
 }, ExtArgs["result"]["eventVolunteer"]>
 
 export type EventVolunteerSelectScalar = {
   id?: boolean
   eventId?: boolean
   userId?: boolean
+  name?: boolean
+  email?: boolean
+  phone?: boolean
+  address?: boolean
   role?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EventVolunteerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "eventId" | "userId" | "role" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["eventVolunteer"]>
+export type EventVolunteerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "eventId" | "userId" | "name" | "email" | "phone" | "address" | "role" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["eventVolunteer"]>
 export type EventVolunteerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.EventVolunteer$userArgs<ExtArgs>
 }
 export type EventVolunteerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.EventVolunteer$userArgs<ExtArgs>
 }
 export type EventVolunteerIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.EventVolunteer$userArgs<ExtArgs>
 }
 
 export type $EventVolunteerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "EventVolunteer"
   objects: {
     event: Prisma.$EventPayload<ExtArgs>
-    user: Prisma.$UserPayload<ExtArgs>
+    user: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     eventId: string
-    userId: string
+    userId: string | null
+    name: string | null
+    email: string | null
+    phone: string | null
+    address: string | null
     role: string | null
     status: $Enums.VolunteerStatus
     createdAt: Date
@@ -1101,7 +1255,7 @@ readonly fields: EventVolunteerFieldRefs;
 export interface Prisma__EventVolunteerClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   event<T extends Prisma.EventDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EventDefaultArgs<ExtArgs>>): Prisma.Prisma__EventClient<runtime.Types.Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  user<T extends Prisma.EventVolunteer$userArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EventVolunteer$userArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1134,6 +1288,10 @@ export interface EventVolunteerFieldRefs {
   readonly id: Prisma.FieldRef<"EventVolunteer", 'String'>
   readonly eventId: Prisma.FieldRef<"EventVolunteer", 'String'>
   readonly userId: Prisma.FieldRef<"EventVolunteer", 'String'>
+  readonly name: Prisma.FieldRef<"EventVolunteer", 'String'>
+  readonly email: Prisma.FieldRef<"EventVolunteer", 'String'>
+  readonly phone: Prisma.FieldRef<"EventVolunteer", 'String'>
+  readonly address: Prisma.FieldRef<"EventVolunteer", 'String'>
   readonly role: Prisma.FieldRef<"EventVolunteer", 'String'>
   readonly status: Prisma.FieldRef<"EventVolunteer", 'VolunteerStatus'>
   readonly createdAt: Prisma.FieldRef<"EventVolunteer", 'DateTime'>
@@ -1536,6 +1694,25 @@ export type EventVolunteerDeleteManyArgs<ExtArgs extends runtime.Types.Extension
    * Limit how many EventVolunteers to delete.
    */
   limit?: number
+}
+
+/**
+ * EventVolunteer.user
+ */
+export type EventVolunteer$userArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**

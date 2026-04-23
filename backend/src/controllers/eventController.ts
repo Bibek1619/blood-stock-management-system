@@ -103,8 +103,9 @@ export const deleteEvent = async (req: Request, res: Response) => {
   res.json({ status: "success", message: "Event deleted successfully" });
 };
 
-export const registerParticipant = async (req: Request, res: Response) => {
-  const { eventId, userId } = req.body;
+export const addParticipant = async (req: Request, res: Response) => {
+  const { id: eventId } = req.params;
+  const { userId } = req.body;
 
   const existingRegistration = await prisma.eventParticipant.findUnique({
     where: {
@@ -122,38 +123,90 @@ export const registerParticipant = async (req: Request, res: Response) => {
       userId,
     },
     include: {
-      user: true,
-      event: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+        },
+      },
     },
   });
 
   res.status(201).json({ status: "success", data: participant });
 };
 
-export const registerVolunteer = async (req: Request, res: Response) => {
-  const { eventId, userId, role } = req.body;
+export const removeParticipant = async (req: Request, res: Response) => {
+  const { participantId } = req.params;
 
-  const existingRegistration = await prisma.eventVolunteer.findUnique({
-    where: {
-      eventId_userId: { eventId, userId },
-    },
+  await prisma.eventParticipant.delete({
+    where: { id: participantId },
   });
 
-  if (existingRegistration) {
-    throw new AppError("User already registered as volunteer for this event", 400);
+  res.json({ status: "success", message: "Participant removed successfully" });
+};
+
+export const addVolunteer = async (req: Request, res: Response) => {
+  const { id: eventId } = req.params;
+  const { userId, name, email, phone, address, role } = req.body;
+
+  // Check if volunteer already exists (by userId if provided, or by email)
+  if (userId) {
+    const existingRegistration = await prisma.eventVolunteer.findFirst({
+      where: {
+        eventId,
+        userId,
+      },
+    });
+
+    if (existingRegistration) {
+      throw new AppError("User already registered as volunteer for this event", 400);
+    }
+  } else if (email) {
+    const existingByEmail = await prisma.eventVolunteer.findFirst({
+      where: {
+        eventId,
+        email,
+      },
+    });
+
+    if (existingByEmail) {
+      throw new AppError("Volunteer with this email already registered for this event", 400);
+    }
   }
 
   const volunteer = await prisma.eventVolunteer.create({
     data: {
       eventId,
-      userId,
-      role,
+      userId: userId || null,
+      name: name || null,
+      email: email || null,
+      phone: phone || null,
+      address: address || null,
+      role: role || null,
     },
     include: {
-      user: true,
-      event: true,
+      user: userId ? {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+        },
+      } : false,
     },
   });
 
   res.status(201).json({ status: "success", data: volunteer });
+};
+
+export const removeVolunteer = async (req: Request, res: Response) => {
+  const { volunteerId } = req.params;
+
+  await prisma.eventVolunteer.delete({
+    where: { id: volunteerId },
+  });
+
+  res.json({ status: "success", message: "Volunteer removed successfully" });
 };
