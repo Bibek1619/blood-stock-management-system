@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Heart, Plus, Search, User, Building2, Droplets, TrendingUp, CheckCircle2, Home
+  Heart, Plus, Search, User, Building2, Droplets, TrendingUp, CheckCircle2, Home, Loader2, AlertCircle
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { BLOOD_GROUPS } from "@/lib/data";
-import { useData } from "@/lib/data-store";
+import { useBloodIssues } from "@/lib/queries/bloodIssues";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -25,24 +25,54 @@ import {
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function BloodDonatePage() {
   const router = useRouter();
-  const { donations } = useData();
   const [filterType, setFilterType] = useState<string>("all");
   const [filterBloodGroup, setFilterBloodGroup] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Calculate stats=
-  const totalUnits = donations.reduce((sum, d) => sum + d.units, 0);
-  const totalDonors = donations.filter(d => d.donationType === "person").length;
-  const totalOrganizations = donations.filter(d => d.donationType === "organization").length;
-  const recentDonations = donations.slice(0, 5);
+  // Fetch blood issues using TanStack Query
+  const { data: bloodIssues = [], isLoading, error } = useBloodIssues();
 
-  // Filter donations
-  const filteredDonations = donations.filter((d) => {
-    if (filterType !== "all" && d.donationType !== filterType) return false;
-    if (filterBloodGroup !== "all" && d.bloodGroup !== filterBloodGroup) return false;
-    if (searchQuery && !d.recipientName.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+  // Calculate stats
+  const totalUnits = bloodIssues.reduce((sum, issue) => sum + issue.unitsIssued, 0);
+  const totalPersons = bloodIssues.filter(issue => issue.recipientType === "PERSON").length;
+  const totalOrganizations = bloodIssues.filter(issue => issue.recipientType === "ORGANIZATION").length;
+  const recentIssues = bloodIssues.slice(0, 5);
+
+  // Filter blood issues
+  const filteredIssues = bloodIssues.filter((issue) => {
+    if (filterType !== "all") {
+      const typeMap = { "person": "PERSON", "organization": "ORGANIZATION" };
+      if (issue.recipientType !== typeMap[filterType as keyof typeof typeMap]) return false;
+    }
+    if (filterBloodGroup !== "all" && issue.bloodGroup !== filterBloodGroup) return false;
+    if (searchQuery && !issue.recipientName.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
+
+  if (isLoading) {
+    return (
+      <div className="w-full p-6 md:p-8 bg-background min-h-[calc(100vh-3.5rem)] flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <Loader2 className="w-10 h-10 text-red-800 animate-spin mb-4" />
+          <p className="text-sm font-semibold text-slate-600">Loading blood donations...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full p-6 md:p-8 bg-background min-h-[calc(100vh-3.5rem)] flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-4">
+            <AlertCircle size={24} className="text-red-600" />
+          </div>
+          <p className="text-sm font-semibold text-red-600 mb-1">Failed to load blood donations</p>
+          <p className="text-xs text-slate-500">Please refresh the page to try again</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full p-6 md:p-8 bg-background min-h-[calc(100vh-3.5rem)]" suppressHydrationWarning>
@@ -105,8 +135,8 @@ export default function BloodDonatePage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-[26px] font-extrabold text-[#3b82f6] leading-none">{totalDonors}</div>
-            <p className="text-[11px] text-slate-400 mt-1">Personal donations</p>
+            <div className="text-[26px] font-extrabold text-[#3b82f6] leading-none">{totalPersons}</div>
+            <p className="text-[11px] text-slate-400 mt-1">Individual recipients</p>
           </CardContent>
         </Card>
 
@@ -119,7 +149,7 @@ export default function BloodDonatePage() {
           </CardHeader>
           <CardContent>
             <div className="text-[26px] font-extrabold text-[#a855f7] leading-none">{totalOrganizations}</div>
-            <p className="text-[11px] text-slate-400 mt-1">Organization drives</p>
+            <p className="text-[11px] text-slate-400 mt-1">Organization recipients</p>
           </CardContent>
         </Card>
 
@@ -131,8 +161,8 @@ export default function BloodDonatePage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-[26px] font-extrabold text-[#22c55e] leading-none">{donations.length}</div>
-            <p className="text-[11px] text-slate-400 mt-1">Donation entries</p>
+            <div className="text-[26px] font-extrabold text-[#22c55e] leading-none">{bloodIssues.length}</div>
+            <p className="text-[11px] text-slate-400 mt-1">Blood issue records</p>
           </CardContent>
         </Card>
       </div>
@@ -145,33 +175,33 @@ export default function BloodDonatePage() {
               <TrendingUp size={15} color="#7F1D1D" />
             </div>
             <div>
-              <CardTitle className="text-sm">Recent Donations</CardTitle>
-              <CardDescription className="text-xs">Latest 5 donation records</CardDescription>
+              <CardTitle className="text-sm">Recent Blood Issues</CardTitle>
+              <CardDescription className="text-xs">Latest 5 blood issue records</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {recentDonations.map((donation) => (
-              <div key={donation.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+            {recentIssues.map((issue) => (
+              <div key={issue.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    donation.donationType === "person" 
+                    issue.recipientType === "PERSON" 
                       ? "bg-blue-100 text-blue-700" 
                       : "bg-purple-100 text-purple-700"
                   }`}>
-                    {donation.donationType === "person" ? <User size={18} /> : <Building2 size={18} />}
+                    {issue.recipientType === "PERSON" ? <User size={18} /> : <Building2 size={18} />}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">{donation.recipientName}</p>
-                    <p className="text-xs text-slate-500">{new Date(donation.donationDate).toLocaleDateString()}</p>
+                    <p className="text-sm font-semibold text-slate-900">{issue.recipientName}</p>
+                    <p className="text-xs text-slate-500">{new Date(issue.issueDate).toLocaleDateString()}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge variant="outline" className="bg-[rgba(127,29,29,0.08)] text-[#7F1D1D] border-[rgba(127,29,29,0.2)]">
-                    {donation.bloodGroup}
+                    {issue.bloodGroup}
                   </Badge>
-                  <span className="text-sm font-bold text-slate-700">{donation.units} {donation.units === 1 ? 'unit' : 'units'}</span>
+                  <span className="text-sm font-bold text-slate-700">{issue.unitsIssued} {issue.unitsIssued === 1 ? 'unit' : 'units'}</span>
                 </div>
               </div>
             ))}
@@ -227,9 +257,9 @@ export default function BloodDonatePage() {
       {/* ── All Donations Table ── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">All Donation Records</CardTitle>
+          <CardTitle className="text-sm">All Blood Issue Records</CardTitle>
           <CardDescription className="text-xs">
-            Showing {filteredDonations.length} of {donations.length} donations
+            Showing {filteredIssues.length} of {bloodIssues.length} blood issues
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -238,47 +268,60 @@ export default function BloodDonatePage() {
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Name</TableHead>
+                <TableHead>Recipient</TableHead>
                 <TableHead>Blood Group</TableHead>
-                <TableHead>Location</TableHead>
                 <TableHead>Contact</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Units</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredDonations.length > 0 ? (
-                filteredDonations.map((donation) => (
-                  <TableRow key={donation.id}>
+              {filteredIssues.length > 0 ? (
+                filteredIssues.map((issue) => (
+                  <TableRow key={issue.id}>
                     <TableCell className="text-xs text-slate-500">
-                      {new Date(donation.donationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {new Date(issue.issueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </TableCell>
                     <TableCell>
                       <Badge 
                         variant="outline" 
-                        className={donation.donationType === "person" 
+                        className={issue.recipientType === "PERSON" 
                           ? "bg-blue-50 text-blue-700 border-blue-200" 
                           : "bg-purple-50 text-purple-700 border-purple-200"
                         }
                       >
-                        {donation.donationType === "person" ? <User size={12} className="mr-1" /> : <Building2 size={12} className="mr-1" />}
-                        {donation.donationType === "person" ? "Individual" : "Organization"}
+                        {issue.recipientType === "PERSON" ? <User size={12} className="mr-1" /> : <Building2 size={12} className="mr-1" />}
+                        {issue.recipientType === "PERSON" ? "Individual" : "Organization"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-medium">{donation.recipientName}</TableCell>
+                    <TableCell className="font-medium">{issue.recipientName}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="bg-[rgba(127,29,29,0.08)] text-[#7F1D1D] border-[rgba(127,29,29,0.2)]">
-                        {donation.bloodGroup}
+                        {issue.bloodGroup}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-slate-600">—</TableCell>
-                    <TableCell className="text-xs text-slate-500">—</TableCell>
-                    <TableCell className="text-right font-semibold">{donation.units}</TableCell>
+                    <TableCell className="text-sm text-slate-600">{issue.contact}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="outline" 
+                        className={
+                          issue.status === "COMPLETED" 
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : issue.status === "PENDING"
+                            ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                            : "bg-red-50 text-red-700 border-red-200"
+                        }
+                      >
+                        {issue.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">{issue.unitsIssued}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-slate-400">
-                    No donations match your filters
+                    No blood issues match your filters
                   </TableCell>
                 </TableRow>
               )}

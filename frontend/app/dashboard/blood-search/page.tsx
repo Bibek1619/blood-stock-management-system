@@ -124,9 +124,9 @@ export default function BloodSearchPage() {
     // Filter by blood group
     if (selectedGroup !== "all" && d.bloodGroup !== selectedGroup) return false;
     
-    // Filter by location query
-    const location = d.city || d.location || '';
-    if (locationQuery && !location.toLowerCase().includes(locationQuery.toLowerCase())) return false;
+    // Filter by location query - search in address, location, or city
+    const fullAddress = (d.address || d.location || d.city || '').toLowerCase();
+    if (locationQuery && !fullAddress.includes(locationQuery.toLowerCase())) return false;
     
     // Only filter by radius if a pin is clicked
     if (clickedPos) {
@@ -244,8 +244,8 @@ export default function BloodSearchPage() {
       // Show all donors (no radius) with simple markers
       donors.forEach((d, index) => {
         if (selectedGroup !== "all" && d.bloodGroup !== selectedGroup) return;
-        const location = d.city || d.location || '';
-        if (locationQuery && !location.toLowerCase().includes(locationQuery.toLowerCase())) return;
+        const fullAddress = (d.address || d.location || d.city || '').toLowerCase();
+        if (locationQuery && !fullAddress.includes(locationQuery.toLowerCase())) return;
         
         // Get coordinates - use donor's coordinates or fallback to city-based
         let coords = d.latitude && d.longitude
@@ -298,8 +298,8 @@ export default function BloodSearchPage() {
     // Donor markers within radius
     donors.forEach((d, index) => {
       if (selectedGroup !== "all" && d.bloodGroup !== selectedGroup) return;
-      const location = d.city || d.location || '';
-      if (locationQuery && !location.toLowerCase().includes(locationQuery.toLowerCase())) return;
+      const fullAddress = (d.address || d.location || d.city || '').toLowerCase();
+      if (locationQuery && !fullAddress.includes(locationQuery.toLowerCase())) return;
       
       // Get coordinates - use donor's coordinates or fallback to city-based
       let coords = d.latitude && d.longitude
@@ -497,7 +497,7 @@ export default function BloodSearchPage() {
               <div className="relative">
                 <MapPin size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
-                  placeholder="Filter by city / area…"
+                  placeholder="Type street name, area, or landmark…"
                   value={locationQuery}
                   onChange={(e) => setLocationQuery(e.target.value)}
                   className="w-full h-9 pl-9 pr-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -620,7 +620,7 @@ export default function BloodSearchPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {filtered.map((d) => {
                 const name = d.user?.name || 'Unknown Donor';
-                const location = d.city || d.location || 'N/A';
+                const fullAddress = d.address || d.location || d.city || 'N/A';
                 const bloodGroupDisplay = d.bloodGroup.replace('_POSITIVE', '+').replace('_NEGATIVE', '-').replace('_', '');
                 const lastDonation = d.lastDonationDate 
                   ? new Date(d.lastDonationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -642,14 +642,15 @@ export default function BloodSearchPage() {
                         <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-xs font-bold text-red-800">
                           {getInitials(name)}
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-slate-900">{name}</p>
-                          <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
-                            <MapPin size={10} /> {location}
+                          <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5 truncate">
+                            <MapPin size={10} className="flex-shrink-0" /> 
+                            <span className="truncate" title={fullAddress}>{fullAddress}</span>
                           </p>
                         </div>
                       </div>
-                      <span className="px-2.5 py-1 bg-red-50 text-red-800 border border-red-200 rounded-lg text-xs font-bold">
+                      <span className="px-2.5 py-1 bg-red-50 text-red-800 border border-red-200 rounded-lg text-xs font-bold flex-shrink-0">
                         {bloodGroupDisplay}
                       </span>
                     </div>
@@ -727,7 +728,7 @@ export default function BloodSearchPage() {
         {sheetDonor && (() => {
           const name = sheetDonor.user?.name || 'Unknown Donor';
           const phone = sheetDonor.user?.phone || 'N/A';
-          const location = sheetDonor.city || sheetDonor.location || 'N/A';
+          const fullAddress = sheetDonor.address || sheetDonor.location || sheetDonor.city || 'N/A';
           const bloodGroupDisplay = sheetDonor.bloodGroup.replace('_POSITIVE', '+').replace('_NEGATIVE', '-').replace('_', '');
           const lastDonation = sheetDonor.lastDonationDate 
             ? new Date(sheetDonor.lastDonationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -808,7 +809,7 @@ export default function BloodSearchPage() {
                     <div className="bg-slate-50 border border-slate-100 rounded-xl overflow-hidden">
                       {[
                         { icon: <Phone size={13} className="text-red-800" />, label: "Phone", value: phone },
-                        { icon: <MapPin size={13} className="text-red-800" />, label: "Location", value: location },
+                        { icon: <MapPin size={13} className="text-red-800" />, label: "Full Address", value: fullAddress },
                       ].map((row, i, arr) => (
                         <div key={row.label}>
                           <div className="flex items-center gap-3 p-3">
@@ -817,9 +818,9 @@ export default function BloodSearchPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <span className="block text-xs text-slate-500">{row.label}</span>
-                              <span className="block text-sm font-semibold text-slate-900 truncate">{row.value}</span>
+                              <span className="block text-sm font-semibold text-slate-900 break-words">{row.value}</span>
                             </div>
-                            <ChevronRight size={14} className="text-slate-300" />
+                            <ChevronRight size={14} className="text-slate-300 flex-shrink-0" />
                           </div>
                           {i < arr.length - 1 && <div className="h-px bg-slate-100 mx-3" />}
                         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,8 @@ import { toast } from 'sonner';
 import { useSearchDonors, useRecordBloodCollection, useRecordBulkCollection } from '@/lib/queries/bloodCollection';
 import { LocationAutocomplete } from '@/components/ui/location-autocomplete';
 import { FullAddressAutocomplete } from '@/components/ui/full-address-autocomplete';
+import { InteractiveLocationMap } from '@/components/ui/interactive-location-map';
+import { geocodeLocationWithFallback } from '@/lib/geocoding';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -55,6 +57,10 @@ export default function BloodCollectionPage() {
   const [searchEnabled, setSearchEnabled] = useState(false);
   const [selectedDonor, setSelectedDonor] = useState<any>(null);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
+  const [showLocationMap, setShowLocationMap] = useState(false);
+  const [manualCoordinates, setManualCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [showBulkLocationMap, setShowBulkLocationMap] = useState(false);
+  const [bulkManualCoordinates, setBulkManualCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   
   const [formData, setFormData] = useState({
     donorName: '',
@@ -87,6 +93,63 @@ export default function BloodCollectionPage() {
       { bloodGroup: '', quantity: 1 }
     ]
   });
+
+  // Show map when both city and address are provided
+  useEffect(() => {
+    if (formData.city && formData.address && formData.city.length > 2 && formData.address.length > 3) {
+      setShowLocationMap(true);
+    } else {
+      setShowLocationMap(false);
+      setManualCoordinates(null);
+    }
+  }, [formData.city, formData.address]);
+
+  // Show bulk map when both organization city and address are provided
+  useEffect(() => {
+    if (bulkData.organizationCity && bulkData.organizationAddress && 
+        bulkData.organizationCity.length > 2 && bulkData.organizationAddress.length > 3) {
+      setShowBulkLocationMap(true);
+    } else {
+      setShowBulkLocationMap(false);
+      setBulkManualCoordinates(null);
+    }
+  }, [bulkData.organizationCity, bulkData.organizationAddress]);
+
+  const handleLocationSelect = (lat: number, lng: number) => {
+    setManualCoordinates({ lat, lng });
+    console.log(`📍 User selected coordinates: ${lat}, ${lng}`);
+  };
+
+  const handleAddressUpdate = (newAddress: string, newCity: string) => {
+    console.log(`🔄 Updating address from coordinates: ${newAddress}, ${newCity}`);
+    setFormData(prev => ({
+      ...prev,
+      address: newAddress,
+      city: newCity,
+    }));
+  };
+
+  const handleCloseMap = () => {
+    setShowLocationMap(false);
+  };
+
+  const handleBulkLocationSelect = (lat: number, lng: number) => {
+    setBulkManualCoordinates({ lat, lng });
+    console.log(`📍 User selected bulk coordinates: ${lat}, ${lng}`);
+  };
+
+  const handleBulkAddressUpdate = (newAddress: string, newCity: string) => {
+    console.log(`🔄 Updating bulk address from coordinates: ${newAddress}, ${newCity}`);
+    setBulkData(prev => ({
+      ...prev,
+      organizationAddress: newAddress,
+      organizationCity: newCity,
+    }));
+  };
+
+  const handleCloseBulkMap = () => {
+    setShowBulkLocationMap(false);
+  };
 
   // Query hooks
   const { data: searchResults, isLoading: isSearching } = useSearchDonors(donorSearch, searchEnabled);
@@ -134,7 +197,65 @@ export default function BloodCollectionPage() {
     console.log('Submitting bulk data:', bulkData);
 
     try {
-      const result = await recordBulkCollection.mutateAsync(bulkData);
+      // Use manual coordinates if user selected them, otherwise geocode
+      let latitude: number | undefined;
+      let longitude: number | undefined;
+      
+      if (bulkManualCoordinates) {
+        // User manually selected coordinates from map
+        latitude = bulkManualCoordinates.lat;
+        longitude = bulkManualCoordinates.lng;
+        console.log(`✅ Using manual bulk coordinates: ${latitude}, ${longitude}`);
+      } else if (bulkData.organizationAddress && bulkData.organizationCity) {
+        // Fallback to automatic geocoding
+        const fullAddress = `${bulkData.organizationAddress}, ${bulkData.organizationCity}`;
+        console.log(`🔍 Attempting to geocode organization: "${fullAddress}"`);
+        
+        try {
+          const coords = await geocodeLocationWithFallback(fullAddress);
+          
+          if (coords) {
+            latitude = coords.lat;
+            longitude = coords.lng;
+            console.log(`✅ Geocoded organization address: ${fullAddress} → ${coords.lat}, ${coords.lng}`);
+            toast.success(`Organization address geocoded successfully`, {
+              description: `Location: ${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`,
+            });
+          } else {
+            console.log(`⚠️ Could not geocode organization address: ${fullAddress}`);
+            toast.error('Could not find precise location for organization', {
+              description: 'Using city coordinates as fallback',
+            });
+          }
+        } catch (geocodeError) {
+          console.error('Organization geocoding failed:', geocodeError);
+          toast.error('Geocoding service unavailable', {
+            description: 'Proceeding with city coordinates',
+          });
+        }
+      } else if (bulkData.organizationCity) {
+        // Try geocoding just the city if no full address
+        console.log(`🔍 Geocoding organization city only: "${bulkData.organizationCity}"`);
+        
+        try {
+          const coords = await geocodeLocationWithFallback(bulkData.organizationCity);
+          if (coords) {
+            latitude = coords.lat;
+            longitude = coords.lng;
+            console.log(`✅ Geocoded organization city: ${bulkData.organizationCity} → ${coords.lat}, ${coords.lng}`);
+          }
+        } catch (geocodeError) {
+          console.error('Organization city geocoding failed:', geocodeError);
+        }
+      } else {
+        console.log('⚠️ No organization address or city provided for geocoding');
+      }
+
+      const result = await recordBulkCollection.mutateAsync({
+        ...bulkData,
+        latitude, // Add geocoded latitude
+        longitude, // Add geocoded longitude
+      });
       
       console.log('Bulk collection result:', result);
       toast.success('Bulk blood collection recorded successfully!', {
@@ -214,6 +335,72 @@ export default function BloodCollectionPage() {
     }
 
     try {
+      // Use manual coordinates if user selected them, otherwise geocode
+      let latitude: number | undefined;
+      let longitude: number | undefined;
+      
+      if (manualCoordinates) {
+        // User manually selected coordinates from map
+        latitude = manualCoordinates.lat;
+        longitude = manualCoordinates.lng;
+        console.log(`✅ Using manual coordinates: ${latitude}, ${longitude}`);
+      } else if (formData.address && formData.city) {
+        // Fallback to automatic geocoding
+        const fullAddress = `${formData.address}, ${formData.city}`;
+        console.log(`🔍 Attempting to geocode: "${fullAddress}"`);
+        
+        try {
+          const coords = await geocodeLocationWithFallback(fullAddress);
+          
+          if (coords) {
+            latitude = coords.lat;
+            longitude = coords.lng;
+            console.log(`✅ Geocoded address: ${fullAddress} → ${coords.lat}, ${coords.lng}`);
+            toast.success(`Address geocoded successfully`, {
+              description: `Location: ${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`,
+            });
+          } else {
+            console.log(`⚠️ Could not geocode address: ${fullAddress}`);
+            toast.error('Could not find precise location', {
+              description: 'Using city coordinates as fallback',
+            });
+          }
+        } catch (geocodeError) {
+          console.error('Geocoding failed:', geocodeError);
+          toast.error('Geocoding service unavailable', {
+            description: 'Proceeding with city coordinates',
+          });
+        }
+      } else if (formData.city) {
+        // Try geocoding just the city if no full address
+        console.log(`🔍 Geocoding city only: "${formData.city}"`);
+        
+        try {
+          const coords = await geocodeLocationWithFallback(formData.city);
+          if (coords) {
+            latitude = coords.lat;
+            longitude = coords.lng;
+            console.log(`✅ Geocoded city: ${formData.city} → ${coords.lat}, ${coords.lng}`);
+          }
+        } catch (geocodeError) {
+          console.error('City geocoding failed:', geocodeError);
+        }
+      } else {
+        console.log('⚠️ No address or city provided for geocoding');
+      }
+
+      console.log('📤 Submitting blood collection with data:', {
+        donorName: formData.donorName,
+        donorPhone: formData.donorPhone,
+        bloodGroup: formData.bloodGroup,
+        city: formData.city,
+        address: formData.address,
+        latitude,
+        longitude,
+        units: formData.units,
+        apiUrl: `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/api/donations/collect`,
+      });
+
       const result = await recordCollection.mutateAsync({
         donorId: selectedDonor?.id,
         donorName: formData.donorName,
@@ -225,6 +412,8 @@ export default function BloodCollectionPage() {
         location: formData.city, // Use city as location
         city: formData.city,
         address: formData.address,
+        latitude, // Add geocoded latitude
+        longitude, // Add geocoded longitude
         units: formData.units,
         collectionDate: formData.collectionDate,
         collectionLocation: formData.collectionLocation,
@@ -233,6 +422,7 @@ export default function BloodCollectionPage() {
         medicalNotes: formData.hasMedicalCondition === 'yes' ? formData.medicalConditionDetails : null,
       });
 
+      console.log('✅ Blood collection recorded successfully:', result);
       toast.success('Blood donation recorded successfully!', {
         description: `Blood pack ${result.data.bloodPack.packCode} created`,
       });
@@ -240,8 +430,60 @@ export default function BloodCollectionPage() {
       // Redirect back to blood stock
       router.push('/dashboard/blood-stock');
     } catch (error: any) {
-      toast.error('Failed to record donation', {
-        description: error.response?.data?.message || 'Please try again',
+      console.error('❌ Blood collection submission failed:', error);
+      
+      // Enhanced error handling with safe property access
+      let errorMessage = 'Failed to record donation';
+      let errorDescription = 'Please try again';
+      
+      try {
+        if (error?.response) {
+          // Server responded with error
+          const status = error.response.status;
+          const data = error.response.data || {};
+          
+          console.error('Server error response:', { 
+            status, 
+            data,
+            url: error.config?.url,
+            method: error.config?.method 
+          });
+          
+          switch (status) {
+            case 400:
+              errorMessage = 'Invalid data provided';
+              errorDescription = data?.message || 'Please check your input and try again';
+              break;
+            case 401:
+              errorMessage = 'Authentication required';
+              errorDescription = 'Please login and try again';
+              break;
+            case 500:
+              errorMessage = 'Server error occurred';
+              errorDescription = 'Please try again later or contact support';
+              break;
+            default:
+              errorMessage = data?.message || 'Failed to record donation';
+              errorDescription = 'Please check your connection and try again';
+          }
+        } else if (error?.code === 'ECONNABORTED') {
+          errorMessage = 'Request timeout';
+          errorDescription = 'The request took too long. Please try again';
+        } else if (error?.request) {
+          errorMessage = 'Network error';
+          errorDescription = 'Unable to connect to server. Check your internet connection';
+        } else {
+          errorMessage = 'Unexpected error';
+          errorDescription = error?.message || 'Something went wrong';
+        }
+      } catch (errorParsingError) {
+        console.error('Error parsing error response:', errorParsingError);
+        errorMessage = 'Unexpected error occurred';
+        errorDescription = 'Please try again or contact support';
+      }
+      
+      toast.error(errorMessage, {
+        description: errorDescription,
       });
     }
   };
@@ -535,6 +777,31 @@ export default function BloodCollectionPage() {
                         required
                       />
                     </div>
+
+                    {/* Interactive Location Map */}
+                    {showLocationMap && (
+                      <div className="md:col-span-2">
+                        <InteractiveLocationMap
+                          address={formData.address}
+                          city={formData.city}
+                          onLocationSelect={handleLocationSelect}
+                          onAddressUpdate={handleAddressUpdate}
+                          onClose={handleCloseMap}
+                          initialLat={manualCoordinates?.lat}
+                          initialLng={manualCoordinates?.lng}
+                        />
+                        {manualCoordinates && (
+                          <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <span className="text-sm text-green-800 font-medium">
+                                Precise location selected: {manualCoordinates.lat.toFixed(6)}, {manualCoordinates.lng.toFixed(6)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -924,6 +1191,31 @@ export default function BloodCollectionPage() {
                         required
                       />
                     </div>
+
+                    {/* Interactive Location Map for Organization */}
+                    {showBulkLocationMap && (
+                      <div className="md:col-span-2">
+                        <InteractiveLocationMap
+                          address={bulkData.organizationAddress}
+                          city={bulkData.organizationCity}
+                          onLocationSelect={handleBulkLocationSelect}
+                          onAddressUpdate={handleBulkAddressUpdate}
+                          onClose={handleCloseBulkMap}
+                          initialLat={bulkManualCoordinates?.lat}
+                          initialLng={bulkManualCoordinates?.lng}
+                        />
+                        {bulkManualCoordinates && (
+                          <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <span className="text-sm text-green-800 font-medium">
+                                Organization location selected: {bulkManualCoordinates.lat.toFixed(6)}, {bulkManualCoordinates.lng.toFixed(6)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

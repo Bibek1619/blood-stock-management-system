@@ -118,29 +118,6 @@ export default function DonorsPage() {
     return true;
   });
 
-  const handleAdd = () => {
-    if (!newDonor.name || !newDonor.bloodGroup || !newDonor.phone) {
-      toast("Name, blood group, and phone are required", "error");
-      return;
-    }
-
-    const donor: Donor = {
-      id: `dn${donorCounter++}`,
-      name: newDonor.name,
-      phone: newDonor.phone,
-      email: newDonor.email || undefined,
-      bloodGroup: newDonor.bloodGroup as BloodGroup,
-      location: newDonor.location,
-      lastDonationDate: newDonor.lastDonationDate,
-      totalDonations: newDonor.totalDonations,
-    };
-
-    setDonors([donor, ...donors]);
-    setDialogOpen(false);
-    setNewDonor({ name: "", phone: "", email: "", bloodGroup: "", location: "", lastDonationDate: "", totalDonations: 0 });
-    toast("Donor registered successfully");
-  };
-
   return (
     <div className="w-full min-h-screen bg-slate-50">
       <div className="w-full max-w-[1600px] mx-auto  p-6 md:p-8">

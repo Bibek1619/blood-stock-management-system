@@ -333,7 +333,7 @@ export default function BloodStockPage() {
                   'WEB_DONOR': { label: 'Web Donor', color: 'bg-blue-100 text-blue-700 border-blue-200' },
                   'ORGANIZATION_DONOR': { label: 'Organization', color: 'bg-green-100 text-green-700 border-green-200' },
                 };
-                const collectionType = collectionTypeMap[p.storageLocation] || { label: p.storageLocation || 'N/A', color: 'bg-gray-100 text-gray-700 border-gray-200' };
+                const collectionType = collectionTypeMap[p.storageLocation || ''] || { label: p.storageLocation || 'N/A', color: 'bg-gray-100 text-gray-700 border-gray-200' };
                 
                 return (
                   <TableRow key={p.id}>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, AlertCircle, CheckCircle2, Package, Home } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast as sonnerToast } from "sonner";
-import { BLOOD_GROUPS, getDonorById, type BloodGroup, type BloodPack } from "@/lib/data";
-import { useData } from "@/lib/data-store";
+import { BLOOD_GROUPS } from "@/lib/data";
+import { useBloodPacks } from "@/lib/queries/bloodPacks";
+import { useCreateBloodIssue } from "@/lib/queries/bloodIssues";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -27,11 +28,11 @@ interface BloodIssueForm {
   bloodGroup: string;
   units: string;
   contact: string;
+  notes?: string;
 }
 
 export default function DonateFormPage() {
   const router = useRouter();
-  const { bloodPacks, addDonation, updateBloodPackStatus } = useData();
   
   const [formData, setFormData] = useState<BloodIssueForm>({
     donationType: 'person',
@@ -39,38 +40,40 @@ export default function DonateFormPage() {
     bloodGroup: '',
     units: '1',
     contact: '',
+    notes: '',
   });
 
-  const [availablePacks, setAvailablePacks] = useState<BloodPack[]>([]);
   const [selectedPacks, setSelectedPacks] = useState<Set<string>>(new Set());
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch available blood packs when blood group and units change
+  // Fetch blood packs using TanStack Query
+  const { data: allBloodPacks = [], isLoading: packsLoading } = useBloodPacks();
+  const createBloodIssue = useCreateBloodIssue();
+
+  // Filter available packs based on blood group (memoized to prevent infinite loop)
+  const availablePacks = useMemo(() => {
+    return allBloodPacks
+      .filter(pack => 
+        pack.bloodGroup === formData.bloodGroup && 
+        pack.status === 'AVAILABLE'
+      )
+      .sort((a, b) => {
+        // Sort by expiry date ASC (FIFO - earliest expiry first)
+        return new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
+      });
+  }, [allBloodPacks, formData.bloodGroup]);
+
+  // Auto-select packs when blood group or units change
   useEffect(() => {
     if (formData.bloodGroup) {
       const unitsNeeded = parseInt(formData.units) || 0;
       
-      // Filter ALL available packs for selected blood group
-      const packs = bloodPacks
-        .filter(pack => 
-          pack.bloodGroup === formData.bloodGroup && 
-          pack.status === 'Available'
-        )
-        .sort((a, b) => {
-          // Sort by expiry date ASC (FIFO - earliest expiry first)
-          return new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
-        });
-
-      setAvailablePacks(packs);
-      
       // Auto-select first N packs based on units needed (FIFO)
-      const autoSelected = new Set(packs.slice(0, unitsNeeded).map(p => p.id));
+      const autoSelected = new Set(availablePacks.slice(0, unitsNeeded).map(p => p.id));
       setSelectedPacks(autoSelected);
     } else {
-      setAvailablePacks([]);
       setSelectedPacks(new Set());
     }
-  }, [formData.bloodGroup, formData.units, bloodPacks]);
+  }, [formData.bloodGroup, formData.units, availablePacks]);
 
   const handlePackToggle = (packId: string) => {
     const newSelected = new Set(selectedPacks);
@@ -102,42 +105,45 @@ export default function DonateFormPage() {
       return;
     }
 
-    if (availablePacks.filter(p => p.status === 'Available').length < unitsNeeded) {
+    if (availablePacks.filter(p => p.status === 'AVAILABLE').length < unitsNeeded) {
       sonnerToast.error('Not enough available blood packs for this blood group');
       return;
     }
 
-    setIsSubmitting(true);
-
     try {
-      // Update selected blood packs to "Used" status
-      selectedPacks.forEach(packId => {
-        updateBloodPackStatus(packId, 'Used');
-      });
-
-      // Add donation record
-      addDonation({
-        donationType: formData.donationType,
-        bloodGroup: formData.bloodGroup,
-        units: unitsNeeded,
-        donationDate: new Date().toISOString().split('T')[0],
+      await createBloodIssue.mutateAsync({
         recipientName: formData.name,
+        recipientType: formData.donationType === 'person' ? 'PERSON' : 'ORGANIZATION',
+        bloodGroup: formData.bloodGroup,
+        unitsRequested: unitsNeeded,
+        contact: formData.contact,
+        notes: formData.notes || undefined,
+        bloodPackIds: Array.from(selectedPacks),
       });
 
       sonnerToast.success(`Successfully issued ${unitsNeeded} unit(s) of ${formData.bloodGroup} blood to ${formData.name}`);
       
       // Navigate back to blood donate page
       router.push('/dashboard/blood-donate');
-    } catch (error) {
-      sonnerToast.error('Failed to record blood issue');
-    } finally {
-      setIsSubmitting(false);
+    } catch (error: any) {
+      sonnerToast.error(error.response?.data?.message || 'Failed to record blood issue');
     }
   };
 
   const unitsNeeded = parseInt(formData.units) || 0;
-  const availableCount = availablePacks.filter(p => p.status === 'Available').length;
+  const availableCount = availablePacks.filter(p => p.status === 'AVAILABLE').length;
   const hasEnoughStock = availableCount >= unitsNeeded;
+
+  if (packsLoading) {
+    return (
+      <div className="w-full p-6 md:p-8 bg-background min-h-[calc(100vh-3.5rem)] flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="w-10 h-10 animate-spin rounded-full border-4 border-red-200 border-t-red-800 mb-4"></div>
+          <p className="text-sm font-semibold text-slate-600">Loading blood packs...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full p-6 md:p-8 bg-background min-h-[calc(100vh-3.5rem)]" suppressHydrationWarning>
@@ -266,6 +272,22 @@ export default function DonateFormPage() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="notes">
+                  Notes
+                </Label>
+                <textarea
+                  id="notes"
+                  placeholder="Any additional notes about the blood issue (optional)"
+                  value={formData.notes || ''}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  className="w-full h-20 px-3 py-2 border border-slate-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+                <p className="text-xs text-slate-500">
+                  Include any special instructions, medical conditions, or other relevant information
+                </p>
+              </div>
+
               {/* Stock Status Alert */}
               {formData.bloodGroup && formData.units && (
                 <div className={`p-3 rounded-lg border ${
@@ -331,7 +353,7 @@ export default function DonateFormPage() {
                   {availablePacks.map((pack, index) => {
                     const isSelected = selectedPacks.has(pack.id);
                     const isExpiringSoon = new Date(pack.expiryDate).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000;
-                    const donor = getDonorById(pack.donorId);
+                    const donor = pack.donor;
                     
                     return (
                       <div
@@ -374,7 +396,7 @@ export default function DonateFormPage() {
                             <div className="flex items-center gap-1.5 mb-1.5">
                               <span className="text-xs text-slate-500">Donor:</span>
                               <span className="text-xs font-semibold text-slate-700">
-                                {donor?.name || 'Unknown'}
+                                {donor?.user?.name || 'Unknown'}
                               </span>
                             </div>
 
@@ -442,7 +464,7 @@ export default function DonateFormPage() {
           <Button 
             variant="outline"
             onClick={() => router.back()}
-            disabled={isSubmitting}
+            disabled={createBloodIssue.isPending}
           >
             Cancel
           </Button>
@@ -450,14 +472,14 @@ export default function DonateFormPage() {
             className="bg-[#7F1D1D] hover:bg-[#991B1B]"
             onClick={handleSubmit}
             disabled={
-              isSubmitting || 
+              createBloodIssue.isPending || 
               !hasEnoughStock || 
               selectedPacks.size !== unitsNeeded ||
               !formData.name ||
               !formData.contact
             }
           >
-            {isSubmitting ? 'Recording...' : 'Record Blood Issue'}
+            {createBloodIssue.isPending ? 'Recording...' : 'Record Blood Issue'}
           </Button>
         </div>
       </div>

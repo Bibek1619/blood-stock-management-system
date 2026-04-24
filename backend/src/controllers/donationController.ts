@@ -132,6 +132,8 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
     location,
     city,
     address,
+    latitude, // Add latitude from frontend
+    longitude, // Add longitude from frontend
     units,
     collectionDate,
     collectionLocation,
@@ -214,18 +216,23 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
       });
 
       if (!donor) {
-        // Geocode city to get coordinates
-        let latitude = undefined;
-        let longitude = undefined;
+        // Geocode coordinates - use provided coordinates or geocode city
+        let finalLatitude = latitude;
+        let finalLongitude = longitude;
         
-        const cityToGeocode = city || location;
-        if (cityToGeocode) {
-          const coords = await geocodeLocation(cityToGeocode);
-          if (coords) {
-            latitude = coords.latitude;
-            longitude = coords.longitude;
-            console.log(`Geocoded ${cityToGeocode}:`, coords);
+        // If coordinates not provided from frontend, try geocoding the city
+        if (!finalLatitude || !finalLongitude) {
+          const cityToGeocode = city || location;
+          if (cityToGeocode) {
+            const coords = await geocodeLocation(cityToGeocode);
+            if (coords) {
+              finalLatitude = coords.latitude;
+              finalLongitude = coords.longitude;
+              console.log(`Geocoded ${cityToGeocode}:`, coords);
+            }
           }
+        } else {
+          console.log(`Using provided coordinates: ${finalLatitude}, ${finalLongitude}`);
         }
 
         // Create donor profile
@@ -236,8 +243,8 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
             location: location || city || collectionLocation || 'Unknown',
             city: city || location,
             address: address,
-            latitude,
-            longitude,
+            latitude: finalLatitude,
+            longitude: finalLongitude,
             dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
             weight: weight ? parseFloat(weight) : undefined,
             medicalNotes: medicalNotes,
@@ -246,7 +253,7 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
           },
         });
       } else {
-        // Update existing donor - geocode if city changed and no coordinates
+        // Update existing donor - use provided coordinates or geocode if needed
         const updateData: any = {
           lastDonationDate: new Date(collectionDate),
           totalDonations: { increment: parseInt(units) || 1 },
@@ -258,8 +265,12 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
         if (weight) updateData.weight = parseFloat(weight);
         if (medicalNotes) updateData.medicalNotes = medicalNotes;
 
-        // Geocode if city provided and donor doesn't have coordinates
-        if (city && (!donor.latitude || !donor.longitude)) {
+        // Use provided coordinates or geocode if city provided and donor doesn't have coordinates
+        if (latitude && longitude) {
+          updateData.latitude = latitude;
+          updateData.longitude = longitude;
+          console.log(`Using provided coordinates for existing donor: ${latitude}, ${longitude}`);
+        } else if (city && (!donor.latitude || !donor.longitude)) {
           const coords = await geocodeLocation(city);
           if (coords) {
             updateData.latitude = coords.latitude;
@@ -446,6 +457,8 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
     organizationAddress,
     organizationEmail,
     organizationPhone,
+    latitude, // Add latitude from frontend
+    longitude, // Add longitude from frontend
     collectionDate,
     bloodItems, // Array of { bloodGroup, quantity }
   } = req.body;
@@ -524,17 +537,22 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
       // Use the first blood group from items as default
       const firstBloodGroup = bloodGroupMap[bloodItems[0].bloodGroup] || bloodItems[0].bloodGroup;
       
-      // Geocode organization city
-      let latitude = undefined;
-      let longitude = undefined;
+      // Use provided coordinates or geocode organization city
+      let finalLatitude = latitude;
+      let finalLongitude = longitude;
       
-      if (organizationCity) {
-        const coords = await geocodeLocation(organizationCity);
-        if (coords) {
-          latitude = coords.latitude;
-          longitude = coords.longitude;
-          console.log(`Geocoded organization city ${organizationCity}:`, coords);
+      // If coordinates not provided from frontend, try geocoding the city
+      if (!finalLatitude || !finalLongitude) {
+        if (organizationCity) {
+          const coords = await geocodeLocation(organizationCity);
+          if (coords) {
+            finalLatitude = coords.latitude;
+            finalLongitude = coords.longitude;
+            console.log(`Geocoded organization city ${organizationCity}:`, coords);
+          }
         }
+      } else {
+        console.log(`Using provided coordinates for organization: ${finalLatitude}, ${finalLongitude}`);
       }
       
       orgDonor = await prisma.donor.create({
@@ -544,8 +562,8 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
           location: organizationCity,
           city: organizationCity,
           address: organizationAddress,
-          latitude,
-          longitude,
+          latitude: finalLatitude,
+          longitude: finalLongitude,
           totalDonations: 0,
           isEligible: true,
         },

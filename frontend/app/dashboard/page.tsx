@@ -3,17 +3,19 @@
 import { useEffect, useState } from 'react';
 import {
   Heart, Users, Droplet, Calendar, AlertCircle,
-  TrendingUp, Activity, ArrowRight, Home,
+  TrendingUp, ArrowRight, Home, Clock, Package, Activity,
+  Award, Target, AlertTriangle,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell,
+  ResponsiveContainer,
 } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import Link from 'next/link';
-import { MOCK_DONORS, MOCK_EVENTS, PIE_COLORS, EVENT_STATUS_CONFIG, LOW_STOCK_THRESHOLD, type Donor, type BloodEvent } from "@/lib/data";
+import { MOCK_DONORS, MOCK_EVENTS, EVENT_STATUS_CONFIG, LOW_STOCK_THRESHOLD, CRITICAL_STOCK_THRESHOLD, type Donor, type BloodEvent, getDonorTier } from "@/lib/data";
 import { useData } from "@/lib/data-store";
 import {
   Breadcrumb,
@@ -53,12 +55,14 @@ export default function DashboardPage() {
   const [stats, setStats] = useState({
     totalDonors: 0, totalBloodUnits: 0, lowStockUnits: 0,
     upcomingEvents: 0, totalDonations: 0, activeDonors: 0,
+    expiringSoon: 0, criticalStock: 0,
   });
   const [bloodData, setBloodData]                   = useState<ChartData[]>([]);
-  const [lowStockAlerts, setLowStockAlerts]         = useState<{ bloodGroup: string; units: number }[]>([]);
-  const [bloodDistribution, setBloodDistribution]   = useState<PieData[]>([]);
+  const [lowStockAlerts, setLowStockAlerts]         = useState<{ bloodGroup: string; units: number; isCritical: boolean }[]>([]);
+  const [expiringPacks, setExpiringPacks]           = useState<any[]>([]);
   const [recentDonors, setRecentDonors]             = useState<Donor[]>([]);
   const [recentEvents, setRecentEvents]             = useState<BloodEvent[]>([]);
+  const [todayEvents, setTodayEvents]               = useState<BloodEvent[]>([]);
   const [loading, setLoading]                       = useState(true);
 
   useEffect(() => {
@@ -73,19 +77,44 @@ export default function DashboardPage() {
         units: data.available
       }));
 
-      const lowStock = bloodAllData.filter((p) => p.units < LOW_STOCK_THRESHOLD);
+      // Low stock and critical stock
+      const lowStock = bloodAllData.filter((p) => p.units < LOW_STOCK_THRESHOLD).map(p => ({
+        bloodGroup: p.bloodGroup,
+        units: p.units,
+        isCritical: p.units < CRITICAL_STOCK_THRESHOLD
+      }));
+      
+      const criticalCount = lowStock.filter(p => p.isCritical).length;
+      
       setLowStockAlerts(lowStock);
       setBloodData(bloodAllData.map((p) => ({ name: p.bloodGroup, units: p.units })));
-      setBloodDistribution(bloodAllData.map((p) => ({ name: p.bloodGroup, value: p.units })));
+      
+      // Expiring soon packs (within 7 days)
+      const now = new Date();
+      const expiring = bloodPacks.filter(p => {
+        if (p.status !== 'Available') return false;
+        const expiry = new Date(p.expiryDate);
+        const daysUntil = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+        return daysUntil <= 7 && daysUntil > 0;
+      }).slice(0, 5);
+      setExpiringPacks(expiring);
+      
+      // Today's events
+      const today = new Date().toISOString().split('T')[0];
+      const todayEvts = events.filter(e => e.date === today);
+      setTodayEvents(todayEvts);
+      
       setRecentDonors(donors.slice(0, 5));
-      setRecentEvents(events.slice(0, 4));
+      setRecentEvents(events.filter(e => e.status === 'Upcoming').slice(0, 3));
       setStats({
         totalDonors:     donors.length,
         activeDonors:    donors.filter((d) => d.totalDonations > 0).length,
         totalBloodUnits: bloodAllData.reduce((a, p) => a + p.units, 0),
         lowStockUnits:   lowStock.length,
+        criticalStock:   criticalCount,
         upcomingEvents:  events.filter((e) => e.status === 'Upcoming').length,
         totalDonations:  donors.reduce((a, d) => a + d.totalDonations, 0),
+        expiringSoon:    expiring.length,
       });
       setLoading(false);
     }, 400);
@@ -174,7 +203,7 @@ export default function DashboardPage() {
       )}
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-semibold text-slate-500">Total Blood Units</CardTitle>
@@ -184,33 +213,46 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-[28px] font-extrabold text-[#7F1D1D] leading-none">{stats.totalBloodUnits}</div>
-            <p className="text-[11px] text-slate-400 mt-1">In stock across all groups</p>
+            <p className="text-[11px] text-slate-400 mt-1">Available in stock</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-semibold text-slate-500">Low Stock Groups</CardTitle>
-            <div className="w-8 h-8 rounded-lg bg-[rgba(194,65,12,0.07)] flex items-center justify-center">
-              <AlertCircle size={16} color="#c2410c" />
+            <CardTitle className="text-xs font-semibold text-slate-500">Critical Stock</CardTitle>
+            <div className="w-8 h-8 rounded-lg bg-[rgba(220,38,38,0.1)] flex items-center justify-center">
+              <AlertTriangle size={16} color="#dc2626" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-[28px] font-extrabold text-[#c2410c] leading-none">{stats.lowStockUnits}</div>
-            <p className="text-[11px] text-slate-400 mt-1">Requires immediate action</p>
+            <div className="text-[28px] font-extrabold text-red-600 leading-none">{stats.criticalStock}</div>
+            <p className="text-[11px] text-slate-400 mt-1">Below 3 units</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-semibold text-slate-500">Total Donors</CardTitle>
+            <CardTitle className="text-xs font-semibold text-slate-500">Expiring Soon</CardTitle>
+            <div className="w-8 h-8 rounded-lg bg-[rgba(245,158,11,0.1)] flex items-center justify-center">
+              <Clock size={16} color="#f59e0b" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-[28px] font-extrabold text-orange-600 leading-none">{stats.expiringSoon}</div>
+            <p className="text-[11px] text-slate-400 mt-1">Within 7 days</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-semibold text-slate-500">Active Donors</CardTitle>
             <div className="w-8 h-8 rounded-lg bg-[rgba(127,29,29,0.08)] flex items-center justify-center">
-              <Heart size={16} color="#7F1D1D" />
+              <Users size={16} color="#7F1D1D" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-[28px] font-extrabold text-slate-900 leading-none">{stats.totalDonors}</div>
-            <p className="text-[11px] text-slate-400 mt-1">{stats.activeDonors} active this month</p>
+            <div className="text-[28px] font-extrabold text-slate-900 leading-none">{stats.activeDonors}</div>
+            <p className="text-[11px] text-slate-400 mt-1">of {stats.totalDonors} total</p>
           </CardContent>
         </Card>
 
@@ -223,28 +265,124 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-[28px] font-extrabold text-slate-900 leading-none">{stats.upcomingEvents}</div>
-            <p className="text-[11px] text-slate-400 mt-1">Scheduled collections</p>
+            <p className="text-[11px] text-slate-400 mt-1">Scheduled</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* ── Charts Row ── */}
-      <div className="flex gap-3.5 mb-6">
-        {/* Bar Chart */}
-        <Card className="flex-[2]">
-          <CardHeader>
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.15)] flex items-center justify-center flex-shrink-0">
-                <TrendingUp size={15} color="#7F1D1D" />
+      {/* ── Expiring Packs Alert ── */}
+      {expiringPacks.length > 0 && (
+        <div className="bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 border-2 border-orange-200 rounded-xl overflow-hidden mb-6 shadow-sm">
+          <div className="p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <Clock size={20} className="text-white" />
               </div>
               <div>
-                <CardTitle className="text-sm">Blood Stock by Group</CardTitle>
-                <CardDescription className="text-xs">Current units available per blood type</CardDescription>
+                <p className="text-base font-bold text-orange-900 m-0">⏰ Expiring Soon</p>
+                <p className="text-sm text-orange-700 mt-0.5">
+                  {expiringPacks.length} blood pack{expiringPacks.length !== 1 ? 's' : ''} expiring within 7 days
+                </p>
               </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+              {expiringPacks.map((pack, i) => {
+                const expiry = new Date(pack.expiryDate);
+                const daysUntil = Math.ceil((expiry.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                return (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-orange-200"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-slate-800 truncate">{pack.packCode}</p>
+                      <p className="text-xs text-orange-700 font-semibold">{pack.bloodGroup}</p>
+                    </div>
+                    <Badge variant="outline" className="text-xs bg-orange-100 text-orange-800 border-orange-300">
+                      {daysUntil}d
+                    </Badge>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Quick Actions ── */}
+      <div className="grid grid-cols-4 gap-3 mb-6">
+        <Link href="/dashboard/blood-donate/blood-collection">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-transparent hover:border-[#7F1D1D]">
+            <CardContent className="pt-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-[rgba(127,29,29,0.1)] flex items-center justify-center mx-auto mb-3">
+                <Package size={24} color="#7F1D1D" />
+              </div>
+              <p className="text-sm font-bold text-slate-900">Collect Blood</p>
+              <p className="text-xs text-slate-500 mt-1">Register new donation</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/blood-donate/donate-form">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-transparent hover:border-[#7F1D1D]">
+            <CardContent className="pt-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-[rgba(127,29,29,0.1)] flex items-center justify-center mx-auto mb-3">
+                <Activity size={24} color="#7F1D1D" />
+              </div>
+              <p className="text-sm font-bold text-slate-900">Issue Blood</p>
+              <p className="text-xs text-slate-500 mt-1">Distribute to recipient</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/donors">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-transparent hover:border-[#7F1D1D]">
+            <CardContent className="pt-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-[rgba(127,29,29,0.1)] flex items-center justify-center mx-auto mb-3">
+                <Users size={24} color="#7F1D1D" />
+              </div>
+              <p className="text-sm font-bold text-slate-900">Manage Donors</p>
+              <p className="text-xs text-slate-500 mt-1">View donor database</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/reports">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-transparent hover:border-[#7F1D1D]">
+            <CardContent className="pt-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-[rgba(127,29,29,0.1)] flex items-center justify-center mx-auto mb-3">
+                <Target size={24} color="#7F1D1D" />
+              </div>
+              <p className="text-sm font-bold text-slate-900">View Reports</p>
+              <p className="text-xs text-slate-500 mt-1">Analytics & insights</p>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
+      {/* ── Charts Row ── */}
+      <div className="mb-6">
+        {/* Blood Stock Bar Chart */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.15)] flex items-center justify-center flex-shrink-0">
+                  <TrendingUp size={15} color="#7F1D1D" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm">Blood Stock by Group</CardTitle>
+                  <CardDescription className="text-xs">Current units available per blood type</CardDescription>
+                </div>
+              </div>
+              <Link href="/dashboard/reports" className="flex items-center gap-1 text-xs font-semibold text-[#7F1D1D] no-underline py-1 opacity-85 hover:opacity-100">
+                View Reports <ArrowRight size={12} />
+              </Link>
             </div>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height={240}>
               <BarChart data={bloodData} barSize={32}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                 <XAxis
@@ -260,50 +398,6 @@ export default function DashboardPage() {
                 <Bar dataKey="units" fill="#7F1D1D" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Pie Chart */}
-        <Card className="flex-1">
-          <CardHeader>
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.15)] flex items-center justify-center flex-shrink-0">
-                <Activity size={15} color="#7F1D1D" />
-              </div>
-              <div>
-                <CardTitle className="text-sm">Type Distribution</CardTitle>
-                <CardDescription className="text-xs">Units by blood type</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center">
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={bloodDistribution}
-                  cx="50%" cy="50%"
-                  innerRadius={55} outerRadius={88}
-                  paddingAngle={3} dataKey="value"
-                >
-                  {bloodDistribution.map((_, i) => (
-                    <Cell key={`cell-${i}`} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(v) => [`${v} units`]}
-                  contentStyle={s.tooltip}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2 w-full">
-              {bloodDistribution.map((item, i) => (
-                <div key={i} className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
-                  <span className="text-[11px] text-slate-500 flex-1">{item.name}</span>
-                  <span className="text-[11px] font-bold text-gray-700">{item.value}</span>
-                </div>
-              ))}
-            </div>
           </CardContent>
         </Card>
       </div>

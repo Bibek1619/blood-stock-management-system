@@ -53,8 +53,8 @@ export default function DashboardLayout({
         <DashboardNav />
 
         <SidebarInset>
-          {/* ── Top header bar ──────────────────────────────────────── */}
-          <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+          {/* ── Top header bar (Sticky) ──────────────────────────────────────── */}
+          <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 border-b px-4 bg-white shadow-sm">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <span className="text-sm font-medium text-muted-foreground">

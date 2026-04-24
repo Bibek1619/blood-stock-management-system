@@ -95,6 +95,7 @@ export const API_PATHS = {
     GET_BY_ID: (id: string) => `/api/blood-issues/${id}`,
     CREATE: "/api/blood-issues",
     UPDATE: (id: string) => `/api/blood-issues/${id}`,
+    DELETE: (id: string) => `/api/blood-issues/${id}`,
   },
 
   /**
