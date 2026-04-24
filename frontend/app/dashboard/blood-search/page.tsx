@@ -229,9 +229,9 @@ export default function BloodSearchPage() {
     markersRef.current = [];
 
     // Helper function to add small random offset to prevent marker stacking
-    const addJitter = (lat: number, lng: number, index: number) => {
-      // Use donor ID hash for consistent but pseudo-random offset
-      const offset = 0.002; // ~200 meters
+    const addJitter = (lat: number, lng: number, index: number, hasPreciseCoords: boolean = false) => {
+      // If donor has precise coordinates from interactive map, use minimal jitter
+      const offset = hasPreciseCoords ? 0.0002 : 0.002; // 20m vs 200m
       const angle = (index * 137.5) % 360; // Golden angle for good distribution
       const distance = (index % 3) * offset / 3; // Vary distance
       return {
@@ -254,16 +254,34 @@ export default function BloodSearchPage() {
         
         if (!coords) return; // Skip if no coordinates available
 
-        // Add jitter to prevent stacking
-        coords = addJitter(coords.lat, coords.lng, index);
+        // Check if donor has precise coordinates (not just city fallback)
+        const hasPreciseCoords = !!(d.latitude && d.longitude);
+
+        // Add minimal jitter for precise coords, more for city-based coords
+        coords = addJitter(coords.lat, coords.lng, index, hasPreciseCoords);
 
         const bloodGroupDisplay = d.bloodGroup.replace('_POSITIVE', '+').replace('_NEGATIVE', '-').replace('_', '');
 
+        // Different styling for precise vs approximate coordinates
+        const markerStyle = hasPreciseCoords 
+          ? {
+              background: '#059669', // Green for precise
+              border: '3px solid #fff',
+              boxShadow: '0 2px 12px rgba(5, 150, 105, 0.4), 0 0 0 3px rgba(5, 150, 105, 0.2)', // Green glow
+              size: '36px',
+            }
+          : {
+              background: '#7F1D1D', // Red for approximate
+              border: '2px solid #fff', 
+              boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+              size: '32px',
+            };
+
         const icon = L.divIcon({
           className: "",
-          html: `<div style="width:32px;height:32px;border-radius:50%;background:#7F1D1D;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;cursor:pointer;">${bloodGroupDisplay}</div>`,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16],
+          html: `<div style="width:${markerStyle.size};height:${markerStyle.size};border-radius:50%;background:${markerStyle.background};border:${markerStyle.border};box-shadow:${markerStyle.boxShadow};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;cursor:pointer;">${bloodGroupDisplay}</div>`,
+          iconSize: [parseInt(markerStyle.size), parseInt(markerStyle.size)],
+          iconAnchor: [parseInt(markerStyle.size) / 2, parseInt(markerStyle.size) / 2],
         });
 
         const marker = L.marker([coords.lat, coords.lng], { icon }).addTo(map);
@@ -308,19 +326,47 @@ export default function BloodSearchPage() {
       
       if (!coords) return; // Skip if no coordinates available
 
-      // Add jitter to prevent stacking
-      coords = addJitter(coords.lat, coords.lng, index);
+      // Check if donor has precise coordinates (not just city fallback)
+      const hasPreciseCoords = !!(d.latitude && d.longitude);
+
+      // Add minimal jitter for precise coords, more for city-based coords
+      coords = addJitter(coords.lat, coords.lng, index, hasPreciseCoords);
 
       const dist = haversineKm(clickedPos.lat, clickedPos.lng, coords.lat, coords.lng);
       const inRadius = dist <= radius;
 
       const bloodGroupDisplay = d.bloodGroup.replace('_POSITIVE', '+').replace('_NEGATIVE', '-').replace('_', '');
 
+      // Different styling for precise vs approximate coordinates (within radius)
+      const markerStyle = inRadius && hasPreciseCoords
+        ? {
+            background: '#059669', // Green for precise
+            border: '3px solid #fff',
+            boxShadow: '0 2px 12px rgba(5, 150, 105, 0.4), 0 0 0 3px rgba(5, 150, 105, 0.2)',
+            size: '38px',
+            opacity: 1,
+          }
+        : inRadius
+        ? {
+            background: '#7F1D1D', // Red for approximate but in radius
+            border: '2px solid #fff',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+            size: '34px',
+            opacity: 1,
+          }
+        : {
+            background: '#94a3b8', // Gray for out of radius
+            border: '2px solid #fff',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+            size: '34px',
+            opacity: 0.4,
+          };
+
       const icon = L.divIcon({
         className: "",
-        html: `<div style="width:34px;height:34px;border-radius:50%;background:${inRadius ? "#7F1D1D" : "#94a3b8"};border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;opacity:${inRadius ? 1 : 0.4};cursor:${inRadius ? "pointer" : "default"}">${bloodGroupDisplay}</div>`,
-        iconSize: [34, 34],
-        iconAnchor: [17, 17],
+        html: `<div style="width:${markerStyle.size};height:${markerStyle.size};border-radius:50%;background:${markerStyle.background};border:${markerStyle.border};box-shadow:${markerStyle.boxShadow};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;opacity:${markerStyle.opacity};cursor:${inRadius ? "pointer" : "default"}">${bloodGroupDisplay}</div>`,
+        iconSize: [parseInt(markerStyle.size), parseInt(markerStyle.size)],
+        iconAnchor: [parseInt(markerStyle.size) / 2, parseInt(markerStyle.size) / 2],
       });
 
       const marker = L.marker([coords.lat, coords.lng], { icon }).addTo(map);
@@ -587,6 +633,29 @@ export default function BloodSearchPage() {
                 </p>
               </div>
             )}
+            
+            {/* Map Legend */}
+            {mapReady && !locationLoading && (
+              <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm border border-slate-200 rounded-lg p-3 shadow-lg z-[1000]">
+                <p className="text-xs font-bold text-slate-700 mb-2">Map Legend</p>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-[#059669] border-2 border-white shadow-md"></div>
+                    <span className="text-xs text-slate-600">Precise location</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-[#7F1D1D] border-2 border-white shadow-md"></div>
+                    <span className="text-xs text-slate-600">Approximate (city)</span>
+                  </div>
+                  {clickedPos && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-[#94a3b8] border-2 border-white shadow-md opacity-40"></div>
+                      <span className="text-xs text-slate-600">Out of radius</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -631,6 +700,12 @@ export default function BloodSearchPage() {
                   ? { lat: d.latitude, lng: d.longitude }
                   : getCityCoordinates(d.city || d.location);
                 
+                // Check if donor has precise coordinates
+                const hasPreciseCoords = !!(d.latitude && d.longitude);
+                const locationBadge = hasPreciseCoords 
+                  ? { text: 'Precise', color: 'bg-green-50 text-green-700 border-green-200' }
+                  : { text: 'Approx', color: 'bg-orange-50 text-orange-700 border-orange-200' };
+                
                 return (
                   <div
                     key={d.id}
@@ -650,9 +725,14 @@ export default function BloodSearchPage() {
                           </p>
                         </div>
                       </div>
-                      <span className="px-2.5 py-1 bg-red-50 text-red-800 border border-red-200 rounded-lg text-xs font-bold flex-shrink-0">
-                        {bloodGroupDisplay}
-                      </span>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="px-2.5 py-1 bg-red-50 text-red-800 border border-red-200 rounded-lg text-xs font-bold flex-shrink-0">
+                          {bloodGroupDisplay}
+                        </span>
+                        <span className={`px-2 py-0.5 border rounded text-[10px] font-medium ${locationBadge.color}`} title={hasPreciseCoords ? 'Exact location from interactive map' : 'Approximate location based on city'}>
+                          {locationBadge.text}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-2.5 flex-wrap">
