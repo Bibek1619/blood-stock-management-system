@@ -8,10 +8,16 @@
  */
 export async function geocodeLocation(location: string): Promise<{ lat: number; lng: number } | null> {
   if (!location || location.trim().length === 0) return null;
+  
   try {
-    const query = encodeURIComponent(location.trim());
+    // Clean and format the location for better geocoding
+    const cleanLocation = cleanNepalAddress(location);
+    const query = encodeURIComponent(cleanLocation);
+    
+    console.log(`🔍 Geocoding: "${location}" → cleaned: "${cleanLocation}"`);
+    
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=np`,
+      `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=3&countrycodes=np&addressdetails=1`,
       {
         headers: {
           'User-Agent': 'BloodBankManagementSystem/1.0', // Required by Nominatim
@@ -20,24 +26,82 @@ export async function geocodeLocation(location: string): Promise<{ lat: number; 
     );
 
     if (!response.ok) {
-      console.error('Nominatim API error:', response.status);
+      console.error('Nominatim API error:', response.status, response.statusText);
       return null;
     }
 
     const data = await response.json();
+    console.log(`📍 Nominatim response for "${cleanLocation}":`, data);
 
     if (data && data.length > 0) {
+      // Find the best match (prefer more specific addresses)
+      const bestMatch = findBestMatch(data, location);
+      
       return {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon),
+        lat: parseFloat(bestMatch.lat),
+        lng: parseFloat(bestMatch.lon),
       };
     }
 
+    console.log(`❌ No results found for "${cleanLocation}"`);
     return null;
   } catch (error) {
     console.error('Geocoding error:', error);
     return null;
   }
+}
+
+/**
+ * Clean and format Nepal addresses for better geocoding
+ */
+function cleanNepalAddress(address: string): string {
+  let cleaned = address.trim();
+  
+  // Handle Nepal-specific address formats
+  // Convert "pokhara-10-amarsigh" to "amarsigh, pokhara-10, pokhara"
+  if (cleaned.includes('-')) {
+    const parts = cleaned.split('-');
+    if (parts.length >= 3) {
+      const city = parts[0];
+      const ward = parts[1];
+      const area = parts.slice(2).join('-');
+      cleaned = `${area}, ${city}-${ward}, ${city}, Nepal`;
+    } else if (parts.length === 2) {
+      const city = parts[0];
+      const area = parts[1];
+      cleaned = `${area}, ${city}, Nepal`;
+    }
+  } else {
+    // Add Nepal to improve geocoding accuracy
+    if (!cleaned.toLowerCase().includes('nepal')) {
+      cleaned = `${cleaned}, Nepal`;
+    }
+  }
+  
+  return cleaned;
+}
+
+/**
+ * Find the best match from Nominatim results
+ */
+function findBestMatch(results: any[], originalQuery: string): any {
+  if (results.length === 1) return results[0];
+  
+  const query = originalQuery.toLowerCase();
+  
+  // Prefer results that match the original query better
+  for (const result of results) {
+    const displayName = result.display_name.toLowerCase();
+    
+    // Check if the result contains key parts of the original query
+    if (query.includes('amarsigh') && displayName.includes('amarsigh')) return result;
+    if (query.includes('bagar') && displayName.includes('bagar')) return result;
+    if (query.includes('lakeside') && displayName.includes('lakeside')) return result;
+    if (query.includes('mahendrapul') && displayName.includes('mahendrapul')) return result;
+  }
+  
+  // Return the first result if no specific match found
+  return results[0];
 }
 
 /**
@@ -89,9 +153,44 @@ export const cityCoordinates: Record<string, { lat: number; lng: number }> = {
   'galyang': { lat: 27.9833, lng: 83.9667 },
   'chapakot': { lat: 28.0500, lng: 83.9167 },
   
-  // Nepal - Kaski District (Pokhara area)
+  // Nepal - Kaski District (Pokhara area) - More specific locations
   'kaski': { lat: 28.2096, lng: 83.9856 },
   'lekhnath': { lat: 28.2417, lng: 84.1167 },
+  
+  // Pokhara specific areas
+  'pokhara-1': { lat: 28.2096, lng: 83.9856 }, // Baidam, Lakeside
+  'pokhara-2': { lat: 28.2150, lng: 83.9750 }, // Bagar
+  'pokhara-3': { lat: 28.2200, lng: 83.9900 }, // Miklabot
+  'pokhara-4': { lat: 28.2050, lng: 83.9800 }, // Amarsingh
+  'pokhara-5': { lat: 28.2180, lng: 83.9820 }, // Mahendrapul
+  'pokhara-6': { lat: 28.2120, lng: 83.9880 }, // Chipledhunga
+  'pokhara-7': { lat: 28.2080, lng: 83.9780 }, // Newroad
+  'pokhara-8': { lat: 28.2160, lng: 83.9760 }, // Bindyabasini
+  'pokhara-9': { lat: 28.2140, lng: 83.9840 }, // Srijana Chowk
+  'pokhara-10': { lat: 28.2100, lng: 83.9720 }, // Amarsigh area
+  'pokhara-11': { lat: 28.2220, lng: 83.9920 }, // Prithvi Chowk
+  'pokhara-12': { lat: 28.2040, lng: 83.9680 }, // Ramghat
+  'pokhara-13': { lat: 28.2180, lng: 83.9900 }, // Mahendrapul-Prithvi Chowk
+  'pokhara-14': { lat: 28.2060, lng: 83.9760 }, // Lakeside-Khahare
+  'pokhara-15': { lat: 28.2200, lng: 83.9800 }, // Bindyabasini-Mahendrapul
+  'pokhara-16': { lat: 28.2020, lng: 83.9820 }, // Baidam-Pardi
+  'pokhara-17': { lat: 28.2240, lng: 83.9880 }, // Prithvi Chowk-Chipledhunga
+  
+  // Specific areas in Pokhara
+  'lakeside': { lat: 28.2096, lng: 83.9856 },
+  'baidam': { lat: 28.2096, lng: 83.9856 },
+  'bagar': { lat: 28.2150, lng: 83.9750 },
+  'amarsigh': { lat: 28.2100, lng: 83.9720 },
+  'amarsingh': { lat: 28.2100, lng: 83.9720 },
+  'mahendrapul': { lat: 28.2180, lng: 83.9820 },
+  'chipledhunga': { lat: 28.2120, lng: 83.9880 },
+  'bindyabasini': { lat: 28.2160, lng: 83.9760 },
+  'newroad': { lat: 28.2080, lng: 83.9780 },
+  'prithvi chowk': { lat: 28.2220, lng: 83.9920 },
+  'prithvichowk': { lat: 28.2220, lng: 83.9920 },
+  'ramghat': { lat: 28.2040, lng: 83.9680 },
+  'srijana chowk': { lat: 28.2140, lng: 83.9840 },
+  'srijanachowk': { lat: 28.2140, lng: 83.9840 },
   
   // Nepal - Gandaki Province
   'gorkha': { lat: 28.0000, lng: 84.6333 },
@@ -167,8 +266,8 @@ export const cityCoordinates: Record<string, { lat: number; lng: number }> = {
 };
 
 /**
- * Get coordinates for a city
- * Supports exact match and partial match (e.g., "Syangja Municipality" matches "syangja")
+ * Get coordinates for a city from local cache
+ * Supports exact match, partial match, and Nepal-specific address formats
  */
 export function getCityCoordinates(city: string | undefined): { lat: number; lng: number } | null {
   if (!city) return null;
@@ -180,6 +279,26 @@ export function getCityCoordinates(city: string | undefined): { lat: number; lng
     return cityCoordinates[normalizedCity];
   }
   
+  // Handle Nepal-specific address formats like "pokhara-10-amarsigh"
+  if (normalizedCity.includes('-')) {
+    const parts = normalizedCity.split('-');
+    
+    // Try "pokhara-10" format
+    if (parts.length >= 2) {
+      const wardKey = `${parts[0]}-${parts[1]}`;
+      if (cityCoordinates[wardKey]) {
+        return cityCoordinates[wardKey];
+      }
+    }
+    
+    // Try individual parts
+    for (const part of parts) {
+      if (cityCoordinates[part.trim()]) {
+        return cityCoordinates[part.trim()];
+      }
+    }
+  }
+  
   // Try partial match (e.g., "Syangja Municipality" matches "syangja")
   for (const [key, coords] of Object.entries(cityCoordinates)) {
     if (normalizedCity.includes(key) || key.includes(normalizedCity)) {
@@ -187,5 +306,90 @@ export function getCityCoordinates(city: string | undefined): { lat: number; lng
     }
   }
   
+  // Try word-by-word matching for compound addresses
+  const words = normalizedCity.split(/[\s,]+/);
+  for (const word of words) {
+    if (word.length > 2 && cityCoordinates[word]) {
+      return cityCoordinates[word];
+    }
+  }
+  
   return null;
+}
+
+/**
+ * Enhanced geocoding with better fallback handling
+ */
+export async function geocodeLocationWithFallback(location: string): Promise<{ lat: number; lng: number } | null> {
+  if (!location || location.trim().length === 0) return null;
+  
+  console.log(`🔍 Starting geocoding for: "${location}"`);
+  
+  // Step 1: Try Nominatim API
+  try {
+    const apiResult = await geocodeLocation(location);
+    if (apiResult) {
+      console.log(`✅ Nominatim success: ${apiResult.lat}, ${apiResult.lng}`);
+      return apiResult;
+    }
+  } catch (error) {
+    console.log(`⚠️ Nominatim failed:`, error);
+  }
+  
+  // Step 2: Try local cache with original location
+  const cacheResult = getCityCoordinates(location);
+  if (cacheResult) {
+    console.log(`✅ Local cache success: ${cacheResult.lat}, ${cacheResult.lng}`);
+    return cacheResult;
+  }
+  
+  // Step 3: Try extracting city name and geocoding that
+  const cityName = extractCityName(location);
+  if (cityName && cityName !== location) {
+    console.log(`🔍 Trying extracted city: "${cityName}"`);
+    
+    const cityResult = getCityCoordinates(cityName);
+    if (cityResult) {
+      console.log(`✅ Extracted city success: ${cityResult.lat}, ${cityResult.lng}`);
+      return cityResult;
+    }
+  }
+  
+  console.log(`❌ All geocoding methods failed for: "${location}"`);
+  return null;
+}
+
+/**
+ * Extract city name from complex addresses
+ */
+function extractCityName(address: string): string {
+  const normalized = address.toLowerCase().trim();
+  
+  // Common Nepal city patterns
+  const cityPatterns = [
+    /pokhara/i,
+    /kathmandu/i,
+    /lalitpur/i,
+    /bhaktapur/i,
+    /biratnagar/i,
+    /bharatpur/i,
+    /butwal/i,
+    /dharan/i,
+    /hetauda/i,
+    /janakpur/i,
+    /nepalgunj/i,
+    /itahari/i,
+    /dhangadhi/i,
+  ];
+  
+  for (const pattern of cityPatterns) {
+    const match = address.match(pattern);
+    if (match) {
+      return match[0].toLowerCase();
+    }
+  }
+  
+  // If no city pattern found, return the first word
+  const words = normalized.split(/[\s,-]+/);
+  return words[0] || address;
 }

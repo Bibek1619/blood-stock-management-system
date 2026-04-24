@@ -20,6 +20,7 @@ export interface Donation {
   units: number;
   donationDate: string;
   recipientName: string;
+  notes?: string;
   createdAt: string;
 }
 
