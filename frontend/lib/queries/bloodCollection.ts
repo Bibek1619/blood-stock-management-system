@@ -9,19 +9,30 @@ export interface BloodCollectionData {
   donorPhone: string;
   donorEmail?: string;
   bloodGroup: string;
+  dateOfBirth?: string;
+  weight?: number;
   location?: string;
+  city?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
   units: string;
   collectionDate: string;
   collectionLocation: string;
   storageLocation?: string;
   notes?: string;
+  medicalNotes?: string | null;
 }
 
 export interface BulkCollectionData {
   organizationName: string;
   organizationAddress: string;
+  organizationCity?: string;
+  contactPersonName?: string;
   organizationEmail?: string;
   organizationPhone: string;
+  latitude?: number;
+  longitude?: number;
   collectionDate: string;
   bloodItems: Array<{
     bloodGroup: string;
