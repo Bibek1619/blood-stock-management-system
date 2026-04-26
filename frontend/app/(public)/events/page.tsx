@@ -3,120 +3,141 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, MapPin, Users, Clock } from "lucide-react";
+import { CalendarDays, MapPin, Users, Clock, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
+import { useEffect, useState } from "react";
+import { Event } from "@/types/event";
+import { format } from "date-fns";
 
 export default function PublicEventsPage() {
-  const events = [
-    {
-      id: 1,
-      title: "Community Blood Drive - Downtown",
-      date: "April 20, 2026",
-      time: "9:00 AM - 5:00 PM",
-      location: "Downtown Community Center, 123 Main St",
-      participants: 45,
-      description: "Join us for our monthly blood drive. All blood types needed. Refreshments provided.",
-    },
-    {
-      id: 2,
-      title: "University Campus Blood Donation",
-      date: "April 25, 2026",
-      time: "10:00 AM - 4:00 PM",
-      location: "State University Student Center",
-      participants: 32,
-      description: "Special campus event for students and faculty. Free health screening included.",
-    },
-    {
-      id: 3,
-      title: "Corporate Blood Donation Day",
-      date: "May 1, 2026",
-      time: "8:00 AM - 2:00 PM",
-      location: "Tech Park Business Complex",
-      participants: 28,
-      description: "Corporate partnership event. Open to all employees and their families.",
-    },
-    {
-      id: 4,
-      title: "Weekend Blood Drive - Westside",
-      date: "May 5, 2026",
-      time: "11:00 AM - 6:00 PM",
-      location: "Westside Medical Center",
-      participants: 18,
-      description: "Weekend convenience drive. Walk-ins welcome, appointments preferred.",
-    },
-    {
-      id: 5,
-      title: "Emergency Blood Collection",
-      date: "May 10, 2026",
-      time: "7:00 AM - 7:00 PM",
-      location: "Central Hospital Blood Bank",
-      participants: 52,
-      description: "Urgent need for O- and AB+ blood types. All donors appreciated.",
-    },
-    {
-      id: 6,
-      title: "Spring Community Health Fair",
-      date: "May 15, 2026",
-      time: "9:00 AM - 3:00 PM",
-      location: "City Park Pavilion",
-      participants: 38,
-      description: "Blood donation booth at our annual health fair. Family-friendly event.",
-    },
-  ];
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`);
+        if (!response.ok) throw new Error('Failed to fetch events');
+        const data = await response.json();
+        setEvents(data.data || []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load events');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, { color: string; label: string }> = {
+      UPCOMING: { color: 'bg-blue-50 text-blue-700 border-blue-200', label: 'Upcoming' },
+      ONGOING: { color: 'bg-green-50 text-green-700 border-green-200', label: 'Ongoing' },
+      COMPLETED: { color: 'bg-gray-50 text-gray-700 border-gray-200', label: 'Completed' },
+      CANCELLED: { color: 'bg-red-50 text-red-700 border-red-200', label: 'Cancelled' },
+    };
+    return variants[status] || variants.UPCOMING;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <PublicNav />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading events...</p>
+          </div>
+        </main>
+        <PublicFooter />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <PublicNav />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+            <p className="text-gray-900 font-semibold mb-2">Failed to load events</p>
+            <p className="text-gray-600">{error}</p>
+          </div>
+        </main>
+        <PublicFooter />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
       <PublicNav />
       <main className="flex-1">
         <div className="max-w-6xl mx-auto px-4 py-12 animate-fade-in">
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold text-gray-900">Upcoming Events</h1>
-        <p className="text-gray-600 mt-2">Join a blood donation drive near you</p>
-      </div>
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-bold text-gray-900">Blood Donation Events</h1>
+            <p className="text-gray-600 mt-2">Join a blood donation drive near you</p>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {events.map((e) => (
-          <Card key={e.id} className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-5">
-              <Badge variant="outline" className="text-[10px] mb-3 bg-red-50 text-red-700 border-red-200">
-                Upcoming
-              </Badge>
-              <h3 className="font-semibold text-gray-900 mb-3">{e.title}</h3>
-              
-              <div className="space-y-2 text-sm text-gray-600 mb-4">
-                <p className="flex items-center gap-2">
-                  <CalendarDays className="h-3.5 w-3.5" />
-                  {e.date}
-                </p>
-                <p className="flex items-center gap-2">
-                  <Clock className="h-3.5 w-3.5" />
-                  {e.time}
-                </p>
-                <p className="flex items-center gap-2">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {e.location}
-                </p>
-                <p className="flex items-center gap-2">
-                  <Users className="h-3.5 w-3.5" />
-                  {e.participants} registered
-                </p>
-              </div>
+          {events.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No events available at the moment.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {events.map((event) => {
+                const statusBadge = getStatusBadge(event.status);
+                const eventDate = new Date(event.eventDate);
+                const participantCount = event._count?.participants || event.participants?.length || 0;
 
-              {e.description && (
-                <p className="text-xs text-gray-600 mb-4 line-clamp-2">{e.description}</p>
-              )}
+                return (
+                  <Card key={event.id} className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                    <CardContent className="p-5">
+                      <Badge variant="outline" className={`text-[10px] mb-3 ${statusBadge.color}`}>
+                        {statusBadge.label}
+                      </Badge>
+                      <h3 className="font-semibold text-gray-900 mb-3 line-clamp-2">{event.title}</h3>
+                      
+                      <div className="space-y-2 text-sm text-gray-600 mb-4">
+                        <p className="flex items-center gap-2">
+                          <CalendarDays className="h-3.5 w-3.5 flex-shrink-0" />
+                          {format(eventDate, 'MMMM d, yyyy')}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                          {format(eventDate, 'h:mm a')}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="line-clamp-1">{event.location}</span>
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <Users className="h-3.5 w-3.5 flex-shrink-0" />
+                          {participantCount} registered
+                          {event.capacity && ` / ${event.capacity} capacity`}
+                        </p>
+                      </div>
 
-              <Link href="/login">
-                <Button size="sm" className="w-full bg-red-600 hover:bg-red-700">
-                  Register for Event
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                      {event.description && (
+                        <p className="text-xs text-gray-600 mb-4 line-clamp-2">{event.description}</p>
+                      )}
+
+                      <Link href={`/events/${event.id}`}>
+                        <Button size="sm" className="w-full bg-red-600 hover:bg-red-700">
+                          View Details
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
       </main>
       <PublicFooter />
