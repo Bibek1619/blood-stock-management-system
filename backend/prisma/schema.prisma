@@ -84,6 +84,7 @@ model BloodPack {
   packCode        String      @unique
   bloodGroup      BloodGroup
   donorId         String?
+  donationId      String?     // Link to the donation that created this pack
   
   // Dates
   collectionDate  DateTime
@@ -99,12 +100,14 @@ model BloodPack {
   updatedAt       DateTime    @updatedAt
 
   donor           Donor?      @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  donation        Donation?   @relation(fields: [donationId], references: [id], onDelete: SetNull)
   bloodIssueItems BloodIssueItem[]
 
   @@index([bloodGroup])
   @@index([status])
   @@index([expiryDate])
   @@index([packCode])
+  @@index([donationId])
 }
 
 // Aggregate stock view (for dashboard)
@@ -128,6 +131,7 @@ model Donation {
   id              String         @id @default(cuid())
   userId          String
   donorId         String?
+  eventId         String?        // Link to event if collected during event
   
   // Donation details
   bloodGroup      BloodGroup
@@ -144,13 +148,17 @@ model Donation {
   // Additional info
   notes           String?
   contact         String?
+  storageLocation String?        // Storage location for the blood pack
   
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event           Event?         @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  bloodPacks      BloodPack[]    // Blood packs created from this donation
 
   @@index([userId])
+  @@index([eventId])
   @@index([bloodGroup])
   @@index([donationDate])
   @@index([donationType])
@@ -227,6 +235,7 @@ model Event {
 
   participants    EventParticipant[]
   volunteers      EventVolunteer[]
+  donations       Donation[]  // Donations collected during this event
 
   @@index([eventDate])
   @@index([status])
