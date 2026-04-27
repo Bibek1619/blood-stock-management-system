@@ -21,14 +21,16 @@ export function CertificatePreview({ cert }: { cert: Certificate | null }) {
       <Watermark />
       <div className="relative z-[2] px-[8%] py-6">
         <p className="text-center text-[13px] text-[#1a5fa8] italic mb-4 tracking-wide">
-          रक्तदान गर्नका लागि ०१-४२३४५६७८
+          सम्पर्कका लागि: ०१-४२३४५६७८
         </p>
+
         <div className="flex items-center justify-center gap-5 mb-4">
           <RedCrossLogo size={64} />
           <div className="text-[clamp(28px,4vw,46px)] font-bold text-[#c0001a] leading-tight">
-            नेपाल रेडक्रस सोसाइटी
+            Samarth Innovation and Technology
           </div>
         </div>
+
         <div className="flex justify-center items-center gap-8 my-5">
           <div
             className="bg-[#c0001a] text-[#f7e650] font-bold px-[5%] py-3 tracking-wide text-[clamp(18px,2.5vw,28px)]"
@@ -38,10 +40,13 @@ export function CertificatePreview({ cert }: { cert: Certificate | null }) {
           </div>
           <BloodDrop />
         </div>
+
         <div className="w-full h-[1.5px] bg-[#c0001a] opacity-30 my-5" />
+
         <div className="text-center text-[clamp(13px,1.6vw,17px)] text-[#1a1a1a] leading-[2] px-[4%] my-6">
           <CertBody cert={cert} nameSize="clamp(15px,2vw,20px)" />
         </div>
+
         <div className="flex justify-between px-[6%] mt-10 mb-6">
           {SIGS.map((sig) => (
             <div key={sig.title} className="text-center w-[28%]">
@@ -52,6 +57,7 @@ export function CertificatePreview({ cert }: { cert: Certificate | null }) {
             </div>
           ))}
         </div>
+
         <p className="text-center text-[12px] text-gray-500 pb-5">
           मिति: {cert.date} {' | '} प्रमाणपत्र नं: {cert.id.toUpperCase()}
         </p>
@@ -64,35 +70,38 @@ export function CertificatePreview({ cert }: { cert: Certificate | null }) {
    Shared helpers
 ───────────────────────────────────────────── */
 const SIGS = [
-  { title: "निर्देशक", sub: "केन्द्रीय रकचार सेवा" },
-  { title: "सभापति", sub: "केन्द्रीय रकचार सेवा" },
-  { title: "अध्यक्ष", sub: "केन्द्रीय रकचार सेवा" },
+  { title: "निर्देशक", sub: "Samarth Innovation and Technology" },
+  { title: "सभापति", sub: "Samarth Innovation and Technology" },
+  { title: "अध्यक्ष", sub: "Samarth Innovation and Technology" },
 ];
 
 function CertBody({ cert, nameSize }: { cert: Certificate; nameSize: string }) {
   const red = { color: "#c0001a", fontWeight: "bold" as const };
+
   if (cert.type === "donation") {
     return (
       <p style={{ margin: 0 }}>
-        रक्तदान जीवनदान भन्ने मूलमन्त्रलाई आत्मसात गर्दै{" "}
+        सामाजिक सेवाको भावनालाई आत्मसात गर्दै{" "}
         <span style={red}>रक्तदान कार्यक्रम</span> आयोजना गरी स्वस्थ{" "}
-        <span style={red}>रगत संकलन कार्यमा रक्त सञ्चार सेवा</span> बुटवल/इकाई सिद्धार्थनगर लाई
-        भरमद्दत पुर्‍याउने सहयोगी{" "}
+        <span style={red}>रगत संकलन कार्यमा Samarth Innovation and Technology</span> पोखरा इकाईलाई
+        उत्कृष्ट सहयोग पुर्‍याउने सहयोगी{" "}
         <span style={{ ...red, fontSize: nameSize }}>{cert.recipientName}</span>{" "}
-        ले रक्तदान गरी सहयोग पुर्‍याउनु भएको हुँदा भविष्यमा निरन्तर सहयोग प्राप्त हुने पूर्ण अपेक्षा गर्दै
+        ले रक्तदान गरी महत्वपूर्ण योगदान दिनुभएकोमा भविष्यमा निरन्तर सहयोगको अपेक्षा गर्दै
         उत्तरोत्तर प्रगतिको मंगलमय शुभकामना सहित स-सम्मान यो{" "}
         <span style={red}>प्रशंसा-पत्र</span> प्रदान गरिएको छ ।
       </p>
     );
   }
+
   return (
     <p style={{ margin: 0 }}>
-      रक्तदान जीवनदान भन्ने मूलमन्त्रलाई आत्मसात गर्दै{" "}
+      सामाजिक सेवाको भावनालाई आत्मसात गर्दै{" "}
       <span style={red}>{cert.eventTitle}</span> कार्यक्रममा स्वयंसेवकको रूपमा{" "}
-      <span style={red}>रगत संकलन कार्यमा रक्त सञ्चार सेवा</span> लाई भरमद्दत पुर्‍याउने सहयोगी{" "}
+      <span style={red}>रगत संकलन कार्यमा Samarth Innovation and Technology</span> पोखरा इकाईलाई
+      उत्कृष्ट सहयोग पुर्‍याउने सहयोगी{" "}
       <span style={{ ...red, fontSize: nameSize }}>{cert.recipientName}</span>{" "}
-      ले स्वयंसेवा गरी सहयोग पुर्‍याउनु भएको हुँदा भविष्यमा निरन्तर सहयोग प्राप्त हुने पूर्ण
-      अपेक्षा गर्दै उत्तरोत्तर प्रगतिको मंगलमय शुभकामना सहित स-सम्मान यो{" "}
+      ले स्वयंसेवा मार्फत महत्वपूर्ण योगदान दिनुभएकोमा भविष्यमा निरन्तर सहयोगको अपेक्षा गर्दै
+      उत्तरोत्तर प्रगतिको मंगलमय शुभकामना सहित स-सम्मान यो{" "}
       <span style={red}>प्रशंसा-पत्र</span> प्रदान गरिएको छ ।
     </p>
   );

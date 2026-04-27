@@ -7,7 +7,7 @@ import PublicFooter from "@/components/PublicFooter";
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <PublicNav />
       <main className="flex-1">
         <div className="max-w-6xl mx-auto px-4 py-12 animate-fade-in">

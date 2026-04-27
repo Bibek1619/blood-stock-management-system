@@ -98,9 +98,9 @@ export default function BecomeDonorPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <PublicNav />
-      <main className="flex-1 bg-gradient-to-br from-red-50 to-white">
+      <main className="flex-1">
         <div className="max-w-2xl mx-auto px-4 py-16 animate-fade-in">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-red-600 rounded-full mb-4">

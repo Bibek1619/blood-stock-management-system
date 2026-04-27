@@ -11,7 +11,7 @@ import { ImageSlider } from "@/components/ImageSlider";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <PublicNav />
 
       {/* Main Content */}

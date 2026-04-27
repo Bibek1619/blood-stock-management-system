@@ -1,19 +1,20 @@
 # Dynamic Events Page Implementation
 
 ## Overview
-The `/events` page has been converted from static to dynamic, fetching real event data from the backend API and providing individual event detail pages.
+The `/events` page has been converted from static to dynamic, fetching real event data from the backend API using TanStack Query and providing individual event detail pages.
 
 ## Changes Made
 
-### 1. Type Definitions (`frontend/types/event.ts`)
-Created TypeScript interfaces for:
+### 1. Type Definitions
+Uses types from `frontend/lib/queries/events.ts`:
 - `Event` - Main event model with all fields
 - `EventParticipant` - Participant registration data
 - `EventVolunteer` - Volunteer registration data
 
 ### 2. Events List Page (`frontend/app/(public)/events/page.tsx`)
 **Features:**
-- Fetches events from `/api/events` endpoint
+- Uses `useEvents()` hook from TanStack Query
+- Automatic caching and refetching
 - Loading state with spinner
 - Error handling with user-friendly messages
 - Dynamic status badges (Upcoming, Ongoing, Completed, Cancelled)
@@ -22,8 +23,15 @@ Created TypeScript interfaces for:
 - Links to individual event detail pages
 - Empty state when no events available
 
+**TanStack Query Benefits:**
+- Automatic background refetching
+- Cache management
+- Request deduplication
+- Optimistic updates support
+
 ### 3. Event Detail Page (`frontend/app/(public)/events/[id]/page.tsx`)
 **Features:**
+- Uses `useEvent(id)` hook from TanStack Query
 - Dynamic route using Next.js 13+ app router
 - Fetches single event from `/api/events/:id`
 - Comprehensive event information display:
@@ -42,26 +50,41 @@ Created TypeScript interfaces for:
 - Back navigation to events list
 - 404 handling for non-existent events
 
-## API Endpoints Used
+## API Integration
 
-### GET `/api/events`
-Returns all events with participants and volunteers count.
+### Query Hooks Used
 
-### GET `/api/events/:id`
-Returns single event with full details including:
-- All event fields
-- Participants array with user details
-- Volunteers array with user details
-- Counts for participants and volunteers
+#### `useEvents(filters?)`
+Fetches all events with optional filters.
+```typescript
+const { data: events, isLoading, error } = useEvents();
+```
+
+#### `useEvent(id)`
+Fetches a single event by ID.
+```typescript
+const { data: event, isLoading, error } = useEvent(eventId);
+```
+
+### API Endpoints
+- **GET** `/api/events` - Returns all events
+- **GET** `/api/events/:id` - Returns single event with details
+
+### Configuration
+- Base URL: `process.env.NEXT_PUBLIC_BACKEND_URL` (default: `http://localhost:3001`)
+- Configured in: `frontend/lib/apiPaths.ts`
+- Axios instance: `frontend/lib/axiosInstance.ts`
 
 ## Status Types
 - `UPCOMING` - Event scheduled for future
-- `ONGOING` - Event currently happening
+- `ONGOING` - Event currently happening  
 - `COMPLETED` - Event finished
 - `CANCELLED` - Event cancelled
 
-## Dependencies Added
-- `date-fns` - For date formatting and manipulation
+## Dependencies
+- `@tanstack/react-query` - Data fetching and caching
+- `date-fns` - Date formatting and manipulation
+- `axios` - HTTP client
 
 ## User Flow
 
@@ -75,6 +98,30 @@ Returns single event with full details including:
    - Check availability (spots remaining)
    - Register as participant or volunteer
    - Navigate back to events list
+
+## Hydration Fix
+
+Both pages use `useHasMounted` hook to prevent hydration mismatches:
+```typescript
+const hasMounted = useHasMounted();
+
+if (!hasMounted || isLoading) {
+  return <LoadingState />;
+}
+```
+
+## Query Configuration
+
+Query keys are organized in `frontend/lib/queries/events.ts`:
+```typescript
+export const eventKeys = {
+  all: ['events'],
+  lists: () => [...eventKeys.all, 'list'],
+  list: (filters?) => [...eventKeys.lists(), filters],
+  details: () => [...eventKeys.all, 'detail'],
+  detail: (id) => [...eventKeys.details(), id],
+};
+```
 
 ## Next Steps (Optional Enhancements)
 
@@ -106,15 +153,18 @@ Returns single event with full details including:
 
 ## Testing Checklist
 
-- [ ] Events list loads correctly
-- [ ] Individual event details load
-- [ ] Status badges display correctly
-- [ ] Date formatting is accurate
-- [ ] Participant counts are correct
-- [ ] Capacity limits are enforced
-- [ ] Registration buttons work
-- [ ] Back navigation works
-- [ ] 404 page shows for invalid event IDs
-- [ ] Loading states display properly
-- [ ] Error states display properly
-- [ ] Responsive design on mobile
+- [x] Events list loads correctly with TanStack Query
+- [x] Individual event details load
+- [x] Status badges display correctly
+- [x] Date formatting is accurate
+- [x] Participant counts are correct
+- [x] Capacity limits are enforced
+- [x] Registration buttons work
+- [x] Back navigation works
+- [x] 404 page shows for invalid event IDs
+- [x] Loading states display properly
+- [x] Error states display properly
+- [x] Hydration issues resolved
+- [ ] Responsive design on mobile (verify)
+- [ ] Query caching works correctly
+- [ ] Background refetching works
