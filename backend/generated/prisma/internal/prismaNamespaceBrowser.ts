@@ -122,6 +122,7 @@ export const BloodPackScalarFieldEnum = {
   packCode: 'packCode',
   bloodGroup: 'bloodGroup',
   donorId: 'donorId',
+  donationId: 'donationId',
   collectionDate: 'collectionDate',
   expiryDate: 'expiryDate',
   status: 'status',
@@ -150,6 +151,7 @@ export const DonationScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   donorId: 'donorId',
+  eventId: 'eventId',
   bloodGroup: 'bloodGroup',
   units: 'units',
   donationDate: 'donationDate',
@@ -158,6 +160,7 @@ export const DonationScalarFieldEnum = {
   status: 'status',
   notes: 'notes',
   contact: 'contact',
+  storageLocation: 'storageLocation',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

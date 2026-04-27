@@ -29,6 +29,7 @@ export type BloodPackMinAggregateOutputType = {
   packCode: string | null
   bloodGroup: $Enums.BloodGroup | null
   donorId: string | null
+  donationId: string | null
   collectionDate: Date | null
   expiryDate: Date | null
   status: $Enums.PackStatus | null
@@ -42,6 +43,7 @@ export type BloodPackMaxAggregateOutputType = {
   packCode: string | null
   bloodGroup: $Enums.BloodGroup | null
   donorId: string | null
+  donationId: string | null
   collectionDate: Date | null
   expiryDate: Date | null
   status: $Enums.PackStatus | null
@@ -55,6 +57,7 @@ export type BloodPackCountAggregateOutputType = {
   packCode: number
   bloodGroup: number
   donorId: number
+  donationId: number
   collectionDate: number
   expiryDate: number
   status: number
@@ -70,6 +73,7 @@ export type BloodPackMinAggregateInputType = {
   packCode?: true
   bloodGroup?: true
   donorId?: true
+  donationId?: true
   collectionDate?: true
   expiryDate?: true
   status?: true
@@ -83,6 +87,7 @@ export type BloodPackMaxAggregateInputType = {
   packCode?: true
   bloodGroup?: true
   donorId?: true
+  donationId?: true
   collectionDate?: true
   expiryDate?: true
   status?: true
@@ -96,6 +101,7 @@ export type BloodPackCountAggregateInputType = {
   packCode?: true
   bloodGroup?: true
   donorId?: true
+  donationId?: true
   collectionDate?: true
   expiryDate?: true
   status?: true
@@ -182,6 +188,7 @@ export type BloodPackGroupByOutputType = {
   packCode: string
   bloodGroup: $Enums.BloodGroup
   donorId: string | null
+  donationId: string | null
   collectionDate: Date
   expiryDate: Date
   status: $Enums.PackStatus
@@ -216,6 +223,7 @@ export type BloodPackWhereInput = {
   packCode?: Prisma.StringFilter<"BloodPack"> | string
   bloodGroup?: Prisma.EnumBloodGroupFilter<"BloodPack"> | $Enums.BloodGroup
   donorId?: Prisma.StringNullableFilter<"BloodPack"> | string | null
+  donationId?: Prisma.StringNullableFilter<"BloodPack"> | string | null
   collectionDate?: Prisma.DateTimeFilter<"BloodPack"> | Date | string
   expiryDate?: Prisma.DateTimeFilter<"BloodPack"> | Date | string
   status?: Prisma.EnumPackStatusFilter<"BloodPack"> | $Enums.PackStatus
@@ -223,6 +231,7 @@ export type BloodPackWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"BloodPack"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"BloodPack"> | Date | string
   donor?: Prisma.XOR<Prisma.DonorNullableScalarRelationFilter, Prisma.DonorWhereInput> | null
+  donation?: Prisma.XOR<Prisma.DonationNullableScalarRelationFilter, Prisma.DonationWhereInput> | null
   bloodIssueItems?: Prisma.BloodIssueItemListRelationFilter
 }
 
@@ -231,6 +240,7 @@ export type BloodPackOrderByWithRelationInput = {
   packCode?: Prisma.SortOrder
   bloodGroup?: Prisma.SortOrder
   donorId?: Prisma.SortOrderInput | Prisma.SortOrder
+  donationId?: Prisma.SortOrderInput | Prisma.SortOrder
   collectionDate?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -238,6 +248,7 @@ export type BloodPackOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   donor?: Prisma.DonorOrderByWithRelationInput
+  donation?: Prisma.DonationOrderByWithRelationInput
   bloodIssueItems?: Prisma.BloodIssueItemOrderByRelationAggregateInput
 }
 
@@ -249,6 +260,7 @@ export type BloodPackWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.BloodPackWhereInput | Prisma.BloodPackWhereInput[]
   bloodGroup?: Prisma.EnumBloodGroupFilter<"BloodPack"> | $Enums.BloodGroup
   donorId?: Prisma.StringNullableFilter<"BloodPack"> | string | null
+  donationId?: Prisma.StringNullableFilter<"BloodPack"> | string | null
   collectionDate?: Prisma.DateTimeFilter<"BloodPack"> | Date | string
   expiryDate?: Prisma.DateTimeFilter<"BloodPack"> | Date | string
   status?: Prisma.EnumPackStatusFilter<"BloodPack"> | $Enums.PackStatus
@@ -256,6 +268,7 @@ export type BloodPackWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"BloodPack"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"BloodPack"> | Date | string
   donor?: Prisma.XOR<Prisma.DonorNullableScalarRelationFilter, Prisma.DonorWhereInput> | null
+  donation?: Prisma.XOR<Prisma.DonationNullableScalarRelationFilter, Prisma.DonationWhereInput> | null
   bloodIssueItems?: Prisma.BloodIssueItemListRelationFilter
 }, "id" | "packCode">
 
@@ -264,6 +277,7 @@ export type BloodPackOrderByWithAggregationInput = {
   packCode?: Prisma.SortOrder
   bloodGroup?: Prisma.SortOrder
   donorId?: Prisma.SortOrderInput | Prisma.SortOrder
+  donationId?: Prisma.SortOrderInput | Prisma.SortOrder
   collectionDate?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -283,6 +297,7 @@ export type BloodPackScalarWhereWithAggregatesInput = {
   packCode?: Prisma.StringWithAggregatesFilter<"BloodPack"> | string
   bloodGroup?: Prisma.EnumBloodGroupWithAggregatesFilter<"BloodPack"> | $Enums.BloodGroup
   donorId?: Prisma.StringNullableWithAggregatesFilter<"BloodPack"> | string | null
+  donationId?: Prisma.StringNullableWithAggregatesFilter<"BloodPack"> | string | null
   collectionDate?: Prisma.DateTimeWithAggregatesFilter<"BloodPack"> | Date | string
   expiryDate?: Prisma.DateTimeWithAggregatesFilter<"BloodPack"> | Date | string
   status?: Prisma.EnumPackStatusWithAggregatesFilter<"BloodPack"> | $Enums.PackStatus
@@ -302,6 +317,7 @@ export type BloodPackCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   donor?: Prisma.DonorCreateNestedOneWithoutBloodPacksInput
+  donation?: Prisma.DonationCreateNestedOneWithoutBloodPacksInput
   bloodIssueItems?: Prisma.BloodIssueItemCreateNestedManyWithoutBloodPackInput
 }
 
@@ -310,6 +326,7 @@ export type BloodPackUncheckedCreateInput = {
   packCode: string
   bloodGroup: $Enums.BloodGroup
   donorId?: string | null
+  donationId?: string | null
   collectionDate: Date | string
   expiryDate: Date | string
   status?: $Enums.PackStatus
@@ -330,6 +347,7 @@ export type BloodPackUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   donor?: Prisma.DonorUpdateOneWithoutBloodPacksNestedInput
+  donation?: Prisma.DonationUpdateOneWithoutBloodPacksNestedInput
   bloodIssueItems?: Prisma.BloodIssueItemUpdateManyWithoutBloodPackNestedInput
 }
 
@@ -338,6 +356,7 @@ export type BloodPackUncheckedUpdateInput = {
   packCode?: Prisma.StringFieldUpdateOperationsInput | string
   bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
   donorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  donationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collectionDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiryDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
@@ -352,6 +371,7 @@ export type BloodPackCreateManyInput = {
   packCode: string
   bloodGroup: $Enums.BloodGroup
   donorId?: string | null
+  donationId?: string | null
   collectionDate: Date | string
   expiryDate: Date | string
   status?: $Enums.PackStatus
@@ -377,6 +397,7 @@ export type BloodPackUncheckedUpdateManyInput = {
   packCode?: Prisma.StringFieldUpdateOperationsInput | string
   bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
   donorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  donationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collectionDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiryDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
@@ -400,6 +421,7 @@ export type BloodPackCountOrderByAggregateInput = {
   packCode?: Prisma.SortOrder
   bloodGroup?: Prisma.SortOrder
   donorId?: Prisma.SortOrder
+  donationId?: Prisma.SortOrder
   collectionDate?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -413,6 +435,7 @@ export type BloodPackMaxOrderByAggregateInput = {
   packCode?: Prisma.SortOrder
   bloodGroup?: Prisma.SortOrder
   donorId?: Prisma.SortOrder
+  donationId?: Prisma.SortOrder
   collectionDate?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -426,6 +449,7 @@ export type BloodPackMinOrderByAggregateInput = {
   packCode?: Prisma.SortOrder
   bloodGroup?: Prisma.SortOrder
   donorId?: Prisma.SortOrder
+  donationId?: Prisma.SortOrder
   collectionDate?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -485,6 +509,48 @@ export type EnumPackStatusFieldUpdateOperationsInput = {
   set?: $Enums.PackStatus
 }
 
+export type BloodPackCreateNestedManyWithoutDonationInput = {
+  create?: Prisma.XOR<Prisma.BloodPackCreateWithoutDonationInput, Prisma.BloodPackUncheckedCreateWithoutDonationInput> | Prisma.BloodPackCreateWithoutDonationInput[] | Prisma.BloodPackUncheckedCreateWithoutDonationInput[]
+  connectOrCreate?: Prisma.BloodPackCreateOrConnectWithoutDonationInput | Prisma.BloodPackCreateOrConnectWithoutDonationInput[]
+  createMany?: Prisma.BloodPackCreateManyDonationInputEnvelope
+  connect?: Prisma.BloodPackWhereUniqueInput | Prisma.BloodPackWhereUniqueInput[]
+}
+
+export type BloodPackUncheckedCreateNestedManyWithoutDonationInput = {
+  create?: Prisma.XOR<Prisma.BloodPackCreateWithoutDonationInput, Prisma.BloodPackUncheckedCreateWithoutDonationInput> | Prisma.BloodPackCreateWithoutDonationInput[] | Prisma.BloodPackUncheckedCreateWithoutDonationInput[]
+  connectOrCreate?: Prisma.BloodPackCreateOrConnectWithoutDonationInput | Prisma.BloodPackCreateOrConnectWithoutDonationInput[]
+  createMany?: Prisma.BloodPackCreateManyDonationInputEnvelope
+  connect?: Prisma.BloodPackWhereUniqueInput | Prisma.BloodPackWhereUniqueInput[]
+}
+
+export type BloodPackUpdateManyWithoutDonationNestedInput = {
+  create?: Prisma.XOR<Prisma.BloodPackCreateWithoutDonationInput, Prisma.BloodPackUncheckedCreateWithoutDonationInput> | Prisma.BloodPackCreateWithoutDonationInput[] | Prisma.BloodPackUncheckedCreateWithoutDonationInput[]
+  connectOrCreate?: Prisma.BloodPackCreateOrConnectWithoutDonationInput | Prisma.BloodPackCreateOrConnectWithoutDonationInput[]
+  upsert?: Prisma.BloodPackUpsertWithWhereUniqueWithoutDonationInput | Prisma.BloodPackUpsertWithWhereUniqueWithoutDonationInput[]
+  createMany?: Prisma.BloodPackCreateManyDonationInputEnvelope
+  set?: Prisma.BloodPackWhereUniqueInput | Prisma.BloodPackWhereUniqueInput[]
+  disconnect?: Prisma.BloodPackWhereUniqueInput | Prisma.BloodPackWhereUniqueInput[]
+  delete?: Prisma.BloodPackWhereUniqueInput | Prisma.BloodPackWhereUniqueInput[]
+  connect?: Prisma.BloodPackWhereUniqueInput | Prisma.BloodPackWhereUniqueInput[]
+  update?: Prisma.BloodPackUpdateWithWhereUniqueWithoutDonationInput | Prisma.BloodPackUpdateWithWhereUniqueWithoutDonationInput[]
+  updateMany?: Prisma.BloodPackUpdateManyWithWhereWithoutDonationInput | Prisma.BloodPackUpdateManyWithWhereWithoutDonationInput[]
+  deleteMany?: Prisma.BloodPackScalarWhereInput | Prisma.BloodPackScalarWhereInput[]
+}
+
+export type BloodPackUncheckedUpdateManyWithoutDonationNestedInput = {
+  create?: Prisma.XOR<Prisma.BloodPackCreateWithoutDonationInput, Prisma.BloodPackUncheckedCreateWithoutDonationInput> | Prisma.BloodPackCreateWithoutDonationInput[] | Prisma.BloodPackUncheckedCreateWithoutDonationInput[]
+  connectOrCreate?: Prisma.BloodPackCreateOrConnectWithoutDonationInput | Prisma.BloodPackCreateOrConnectWithoutDonationInput[]
+  upsert?: Prisma.BloodPackUpsertWithWhereUniqueWithoutDonationInput | Prisma.BloodPackUpsertWithWhereUniqueWithoutDonationInput[]
+  createMany?: Prisma.BloodPackCreateManyDonationInputEnvelope
+  set?: Prisma.BloodPackWhereUniqueInput | Prisma.BloodPackWhereUniqueInput[]
+  disconnect?: Prisma.BloodPackWhereUniqueInput | Prisma.BloodPackWhereUniqueInput[]
+  delete?: Prisma.BloodPackWhereUniqueInput | Prisma.BloodPackWhereUniqueInput[]
+  connect?: Prisma.BloodPackWhereUniqueInput | Prisma.BloodPackWhereUniqueInput[]
+  update?: Prisma.BloodPackUpdateWithWhereUniqueWithoutDonationInput | Prisma.BloodPackUpdateWithWhereUniqueWithoutDonationInput[]
+  updateMany?: Prisma.BloodPackUpdateManyWithWhereWithoutDonationInput | Prisma.BloodPackUpdateManyWithWhereWithoutDonationInput[]
+  deleteMany?: Prisma.BloodPackScalarWhereInput | Prisma.BloodPackScalarWhereInput[]
+}
+
 export type BloodPackCreateNestedOneWithoutBloodIssueItemsInput = {
   create?: Prisma.XOR<Prisma.BloodPackCreateWithoutBloodIssueItemsInput, Prisma.BloodPackUncheckedCreateWithoutBloodIssueItemsInput>
   connectOrCreate?: Prisma.BloodPackCreateOrConnectWithoutBloodIssueItemsInput
@@ -509,6 +575,7 @@ export type BloodPackCreateWithoutDonorInput = {
   storageLocation?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  donation?: Prisma.DonationCreateNestedOneWithoutBloodPacksInput
   bloodIssueItems?: Prisma.BloodIssueItemCreateNestedManyWithoutBloodPackInput
 }
 
@@ -516,6 +583,7 @@ export type BloodPackUncheckedCreateWithoutDonorInput = {
   id?: string
   packCode: string
   bloodGroup: $Enums.BloodGroup
+  donationId?: string | null
   collectionDate: Date | string
   expiryDate: Date | string
   status?: $Enums.PackStatus
@@ -559,12 +627,67 @@ export type BloodPackScalarWhereInput = {
   packCode?: Prisma.StringFilter<"BloodPack"> | string
   bloodGroup?: Prisma.EnumBloodGroupFilter<"BloodPack"> | $Enums.BloodGroup
   donorId?: Prisma.StringNullableFilter<"BloodPack"> | string | null
+  donationId?: Prisma.StringNullableFilter<"BloodPack"> | string | null
   collectionDate?: Prisma.DateTimeFilter<"BloodPack"> | Date | string
   expiryDate?: Prisma.DateTimeFilter<"BloodPack"> | Date | string
   status?: Prisma.EnumPackStatusFilter<"BloodPack"> | $Enums.PackStatus
   storageLocation?: Prisma.StringNullableFilter<"BloodPack"> | string | null
   createdAt?: Prisma.DateTimeFilter<"BloodPack"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"BloodPack"> | Date | string
+}
+
+export type BloodPackCreateWithoutDonationInput = {
+  id?: string
+  packCode: string
+  bloodGroup: $Enums.BloodGroup
+  collectionDate: Date | string
+  expiryDate: Date | string
+  status?: $Enums.PackStatus
+  storageLocation?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  donor?: Prisma.DonorCreateNestedOneWithoutBloodPacksInput
+  bloodIssueItems?: Prisma.BloodIssueItemCreateNestedManyWithoutBloodPackInput
+}
+
+export type BloodPackUncheckedCreateWithoutDonationInput = {
+  id?: string
+  packCode: string
+  bloodGroup: $Enums.BloodGroup
+  donorId?: string | null
+  collectionDate: Date | string
+  expiryDate: Date | string
+  status?: $Enums.PackStatus
+  storageLocation?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  bloodIssueItems?: Prisma.BloodIssueItemUncheckedCreateNestedManyWithoutBloodPackInput
+}
+
+export type BloodPackCreateOrConnectWithoutDonationInput = {
+  where: Prisma.BloodPackWhereUniqueInput
+  create: Prisma.XOR<Prisma.BloodPackCreateWithoutDonationInput, Prisma.BloodPackUncheckedCreateWithoutDonationInput>
+}
+
+export type BloodPackCreateManyDonationInputEnvelope = {
+  data: Prisma.BloodPackCreateManyDonationInput | Prisma.BloodPackCreateManyDonationInput[]
+  skipDuplicates?: boolean
+}
+
+export type BloodPackUpsertWithWhereUniqueWithoutDonationInput = {
+  where: Prisma.BloodPackWhereUniqueInput
+  update: Prisma.XOR<Prisma.BloodPackUpdateWithoutDonationInput, Prisma.BloodPackUncheckedUpdateWithoutDonationInput>
+  create: Prisma.XOR<Prisma.BloodPackCreateWithoutDonationInput, Prisma.BloodPackUncheckedCreateWithoutDonationInput>
+}
+
+export type BloodPackUpdateWithWhereUniqueWithoutDonationInput = {
+  where: Prisma.BloodPackWhereUniqueInput
+  data: Prisma.XOR<Prisma.BloodPackUpdateWithoutDonationInput, Prisma.BloodPackUncheckedUpdateWithoutDonationInput>
+}
+
+export type BloodPackUpdateManyWithWhereWithoutDonationInput = {
+  where: Prisma.BloodPackScalarWhereInput
+  data: Prisma.XOR<Prisma.BloodPackUpdateManyMutationInput, Prisma.BloodPackUncheckedUpdateManyWithoutDonationInput>
 }
 
 export type BloodPackCreateWithoutBloodIssueItemsInput = {
@@ -578,6 +701,7 @@ export type BloodPackCreateWithoutBloodIssueItemsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   donor?: Prisma.DonorCreateNestedOneWithoutBloodPacksInput
+  donation?: Prisma.DonationCreateNestedOneWithoutBloodPacksInput
 }
 
 export type BloodPackUncheckedCreateWithoutBloodIssueItemsInput = {
@@ -585,6 +709,7 @@ export type BloodPackUncheckedCreateWithoutBloodIssueItemsInput = {
   packCode: string
   bloodGroup: $Enums.BloodGroup
   donorId?: string | null
+  donationId?: string | null
   collectionDate: Date | string
   expiryDate: Date | string
   status?: $Enums.PackStatus
@@ -620,6 +745,7 @@ export type BloodPackUpdateWithoutBloodIssueItemsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   donor?: Prisma.DonorUpdateOneWithoutBloodPacksNestedInput
+  donation?: Prisma.DonationUpdateOneWithoutBloodPacksNestedInput
 }
 
 export type BloodPackUncheckedUpdateWithoutBloodIssueItemsInput = {
@@ -627,6 +753,7 @@ export type BloodPackUncheckedUpdateWithoutBloodIssueItemsInput = {
   packCode?: Prisma.StringFieldUpdateOperationsInput | string
   bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
   donorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  donationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collectionDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiryDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
@@ -639,6 +766,7 @@ export type BloodPackCreateManyDonorInput = {
   id?: string
   packCode: string
   bloodGroup: $Enums.BloodGroup
+  donationId?: string | null
   collectionDate: Date | string
   expiryDate: Date | string
   status?: $Enums.PackStatus
@@ -657,6 +785,7 @@ export type BloodPackUpdateWithoutDonorInput = {
   storageLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  donation?: Prisma.DonationUpdateOneWithoutBloodPacksNestedInput
   bloodIssueItems?: Prisma.BloodIssueItemUpdateManyWithoutBloodPackNestedInput
 }
 
@@ -664,6 +793,7 @@ export type BloodPackUncheckedUpdateWithoutDonorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   packCode?: Prisma.StringFieldUpdateOperationsInput | string
   bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
+  donationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collectionDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiryDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
@@ -677,6 +807,61 @@ export type BloodPackUncheckedUpdateManyWithoutDonorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   packCode?: Prisma.StringFieldUpdateOperationsInput | string
   bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
+  donationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collectionDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expiryDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
+  storageLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BloodPackCreateManyDonationInput = {
+  id?: string
+  packCode: string
+  bloodGroup: $Enums.BloodGroup
+  donorId?: string | null
+  collectionDate: Date | string
+  expiryDate: Date | string
+  status?: $Enums.PackStatus
+  storageLocation?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type BloodPackUpdateWithoutDonationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  packCode?: Prisma.StringFieldUpdateOperationsInput | string
+  bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
+  collectionDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expiryDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
+  storageLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  donor?: Prisma.DonorUpdateOneWithoutBloodPacksNestedInput
+  bloodIssueItems?: Prisma.BloodIssueItemUpdateManyWithoutBloodPackNestedInput
+}
+
+export type BloodPackUncheckedUpdateWithoutDonationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  packCode?: Prisma.StringFieldUpdateOperationsInput | string
+  bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
+  donorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collectionDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expiryDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
+  storageLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bloodIssueItems?: Prisma.BloodIssueItemUncheckedUpdateManyWithoutBloodPackNestedInput
+}
+
+export type BloodPackUncheckedUpdateManyWithoutDonationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  packCode?: Prisma.StringFieldUpdateOperationsInput | string
+  bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
+  donorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collectionDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiryDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumPackStatusFieldUpdateOperationsInput | $Enums.PackStatus
@@ -721,6 +906,7 @@ export type BloodPackSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   packCode?: boolean
   bloodGroup?: boolean
   donorId?: boolean
+  donationId?: boolean
   collectionDate?: boolean
   expiryDate?: boolean
   status?: boolean
@@ -728,6 +914,7 @@ export type BloodPackSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   createdAt?: boolean
   updatedAt?: boolean
   donor?: boolean | Prisma.BloodPack$donorArgs<ExtArgs>
+  donation?: boolean | Prisma.BloodPack$donationArgs<ExtArgs>
   bloodIssueItems?: boolean | Prisma.BloodPack$bloodIssueItemsArgs<ExtArgs>
   _count?: boolean | Prisma.BloodPackCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["bloodPack"]>
@@ -737,6 +924,7 @@ export type BloodPackSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   packCode?: boolean
   bloodGroup?: boolean
   donorId?: boolean
+  donationId?: boolean
   collectionDate?: boolean
   expiryDate?: boolean
   status?: boolean
@@ -744,6 +932,7 @@ export type BloodPackSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   createdAt?: boolean
   updatedAt?: boolean
   donor?: boolean | Prisma.BloodPack$donorArgs<ExtArgs>
+  donation?: boolean | Prisma.BloodPack$donationArgs<ExtArgs>
 }, ExtArgs["result"]["bloodPack"]>
 
 export type BloodPackSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -751,6 +940,7 @@ export type BloodPackSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   packCode?: boolean
   bloodGroup?: boolean
   donorId?: boolean
+  donationId?: boolean
   collectionDate?: boolean
   expiryDate?: boolean
   status?: boolean
@@ -758,6 +948,7 @@ export type BloodPackSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   createdAt?: boolean
   updatedAt?: boolean
   donor?: boolean | Prisma.BloodPack$donorArgs<ExtArgs>
+  donation?: boolean | Prisma.BloodPack$donationArgs<ExtArgs>
 }, ExtArgs["result"]["bloodPack"]>
 
 export type BloodPackSelectScalar = {
@@ -765,6 +956,7 @@ export type BloodPackSelectScalar = {
   packCode?: boolean
   bloodGroup?: boolean
   donorId?: boolean
+  donationId?: boolean
   collectionDate?: boolean
   expiryDate?: boolean
   status?: boolean
@@ -773,23 +965,27 @@ export type BloodPackSelectScalar = {
   updatedAt?: boolean
 }
 
-export type BloodPackOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "packCode" | "bloodGroup" | "donorId" | "collectionDate" | "expiryDate" | "status" | "storageLocation" | "createdAt" | "updatedAt", ExtArgs["result"]["bloodPack"]>
+export type BloodPackOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "packCode" | "bloodGroup" | "donorId" | "donationId" | "collectionDate" | "expiryDate" | "status" | "storageLocation" | "createdAt" | "updatedAt", ExtArgs["result"]["bloodPack"]>
 export type BloodPackInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   donor?: boolean | Prisma.BloodPack$donorArgs<ExtArgs>
+  donation?: boolean | Prisma.BloodPack$donationArgs<ExtArgs>
   bloodIssueItems?: boolean | Prisma.BloodPack$bloodIssueItemsArgs<ExtArgs>
   _count?: boolean | Prisma.BloodPackCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type BloodPackIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   donor?: boolean | Prisma.BloodPack$donorArgs<ExtArgs>
+  donation?: boolean | Prisma.BloodPack$donationArgs<ExtArgs>
 }
 export type BloodPackIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   donor?: boolean | Prisma.BloodPack$donorArgs<ExtArgs>
+  donation?: boolean | Prisma.BloodPack$donationArgs<ExtArgs>
 }
 
 export type $BloodPackPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "BloodPack"
   objects: {
     donor: Prisma.$DonorPayload<ExtArgs> | null
+    donation: Prisma.$DonationPayload<ExtArgs> | null
     bloodIssueItems: Prisma.$BloodIssueItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -797,6 +993,7 @@ export type $BloodPackPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     packCode: string
     bloodGroup: $Enums.BloodGroup
     donorId: string | null
+    donationId: string | null
     collectionDate: Date
     expiryDate: Date
     status: $Enums.PackStatus
@@ -1198,6 +1395,7 @@ readonly fields: BloodPackFieldRefs;
 export interface Prisma__BloodPackClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   donor<T extends Prisma.BloodPack$donorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BloodPack$donorArgs<ExtArgs>>): Prisma.Prisma__DonorClient<runtime.Types.Result.GetResult<Prisma.$DonorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  donation<T extends Prisma.BloodPack$donationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BloodPack$donationArgs<ExtArgs>>): Prisma.Prisma__DonationClient<runtime.Types.Result.GetResult<Prisma.$DonationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   bloodIssueItems<T extends Prisma.BloodPack$bloodIssueItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BloodPack$bloodIssueItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BloodIssueItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1232,6 +1430,7 @@ export interface BloodPackFieldRefs {
   readonly packCode: Prisma.FieldRef<"BloodPack", 'String'>
   readonly bloodGroup: Prisma.FieldRef<"BloodPack", 'BloodGroup'>
   readonly donorId: Prisma.FieldRef<"BloodPack", 'String'>
+  readonly donationId: Prisma.FieldRef<"BloodPack", 'String'>
   readonly collectionDate: Prisma.FieldRef<"BloodPack", 'DateTime'>
   readonly expiryDate: Prisma.FieldRef<"BloodPack", 'DateTime'>
   readonly status: Prisma.FieldRef<"BloodPack", 'PackStatus'>
@@ -1655,6 +1854,25 @@ export type BloodPack$donorArgs<ExtArgs extends runtime.Types.Extensions.Interna
    */
   include?: Prisma.DonorInclude<ExtArgs> | null
   where?: Prisma.DonorWhereInput
+}
+
+/**
+ * BloodPack.donation
+ */
+export type BloodPack$donationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Donation
+   */
+  select?: Prisma.DonationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Donation
+   */
+  omit?: Prisma.DonationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DonationInclude<ExtArgs> | null
+  where?: Prisma.DonationWhereInput
 }
 
 /**
