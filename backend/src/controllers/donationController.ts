@@ -5,7 +5,7 @@ import { sendDonationThankYou } from "../services/notificationService";
 import { geocodeLocation } from "../utils/geocoding";
 
 export const getAllDonations = async (req: Request, res: Response) => {
-  const { bloodGroup, donationType, status, userId, donorId } = req.query;
+  const { bloodGroup, donationType, status, userId, donorId, eventId } = req.query;
 
   const donations = await prisma.donation.findMany({
     where: {
@@ -14,6 +14,7 @@ export const getAllDonations = async (req: Request, res: Response) => {
       ...(status && { status: status as any }),
       ...(userId && { userId: userId as string }),
       ...(donorId && { donorId: donorId as string }),
+      ...(eventId && { eventId: eventId as string }),
     },
     include: {
       user: {
@@ -22,6 +23,13 @@ export const getAllDonations = async (req: Request, res: Response) => {
           name: true,
           email: true,
           phone: true,
+        },
+      },
+      bloodPacks: {
+        select: {
+          id: true,
+          packCode: true,
+          status: true,
         },
       },
     },
@@ -137,6 +145,7 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
     units,
     collectionDate,
     collectionLocation,
+    eventId, // Add eventId from frontend
     storageLocation,
     notes,
     medicalNotes,
@@ -291,6 +300,7 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
       data: {
         userId,
         donorId: donor?.id,
+        eventId: eventId || undefined, // Link to event if provided
         bloodGroup: dbBloodGroup as any,
         units: parseInt(units) || 1,
         donationDate: new Date(collectionDate),
@@ -299,6 +309,7 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
         status: 'COMPLETED',
         notes,
         contact: donorPhone,
+        storageLocation: storageLocation || 'Main Storage', // Add storage location
       },
     });
 
@@ -331,6 +342,7 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
         packCode,
         bloodGroup: dbBloodGroup as any,
         donorId: donor?.id,
+        donationId: donation.id, // Link to the donation
         collectionDate: new Date(collectionDate),
         expiryDate,
         status: 'AVAILABLE',
@@ -619,6 +631,7 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
           status: 'COMPLETED',
           notes: `Bulk collection from ${organizationName} - Contact: ${contactPersonName}`,
           contact: organizationPhone,
+          storageLocation: 'ORGANIZATION_DONOR', // Set storage location for bulk collections
         },
       });
 
@@ -641,6 +654,7 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
             packCode,
             bloodGroup: dbBloodGroup as any,
             donorId: orgDonor.id, // Link to donor profile
+            donationId: donation.id, // Link to the donation
             collectionDate: new Date(collectionDate),
             expiryDate,
             status: 'AVAILABLE',

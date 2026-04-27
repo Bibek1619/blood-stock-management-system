@@ -26,6 +26,7 @@ interface Donation {
   status: 'PENDING' | 'COMPLETED' | 'CANCELLED' | 'REJECTED';
   notes?: string;
   contact?: string;
+  storageLocation?: string;
   createdAt: string;
   updatedAt: string;
   user?: {
@@ -34,6 +35,11 @@ interface Donation {
     email: string;
     phone: string;
   };
+  bloodPacks?: {
+    id: string;
+    packCode: string;
+    status: string;
+  }[];
 }
 
 interface CreateDonationData {
@@ -88,6 +94,21 @@ export function useDonationsByDonor(donorId: string) {
       return response.data.data;
     },
     enabled: !!donorId,
+  });
+}
+
+// Fetch donations by event ID
+export function useDonationsByEvent(eventId: string) {
+  return useQuery({
+    queryKey: [...donationKeys.all, 'event', eventId],
+    queryFn: async () => {
+      const response = await axiosInstance.get<{ status: string; data: Donation[] }>(
+        API_PATHS.DONATION.GET_ALL,
+        { params: { eventId } }
+      );
+      return response.data.data;
+    },
+    enabled: !!eventId,
   });
 }
 

@@ -19,6 +19,7 @@ export interface BloodCollectionData {
   units: string;
   collectionDate: string;
   collectionLocation: string;
+  eventId?: string;
   storageLocation?: string;
   notes?: string;
   medicalNotes?: string | null;

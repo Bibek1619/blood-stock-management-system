@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import {
   Heart, Users, Droplet, Calendar, AlertCircle,
   TrendingUp, ArrowRight, Home, Clock, Package, Activity,
-  Award, Target, AlertTriangle,
+  Award, Target, AlertTriangle, Loader2,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -15,8 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
-import { MOCK_DONORS, MOCK_EVENTS, EVENT_STATUS_CONFIG, LOW_STOCK_THRESHOLD, CRITICAL_STOCK_THRESHOLD, type Donor, type BloodEvent, getDonorTier } from "@/lib/data";
-import { useData } from "@/lib/data-store";
+import { useBloodStockSummary, useBloodPacks } from "@/lib/queries/bloodStock";
+import { useDonors } from "@/lib/queries/donors";
+import { useEvents } from "@/lib/queries/events";
+import { useDonations } from "@/lib/queries/donations";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -26,15 +28,15 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
+// Constants
+const ALL_BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+const LOW_STOCK_THRESHOLD = 5;
+const CRITICAL_STOCK_THRESHOLD = 3;
+
 // ── Types ──────────────────────────────────────────────────────────────────────
 type ChartData = {
   name: string;
   units: number;
-};
-
-type PieData = {
-  name: string;
-  value: number;
 };
 
 // ── Custom Tooltip ─────────────────────────────────────────────────────────────
@@ -50,81 +52,89 @@ const CustomBarTooltip = ({ active, payload, label }: any) => {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const { bloodPacks, getStockByGroup } = useData();
-  
-  const [stats, setStats] = useState({
-    totalDonors: 0, totalBloodUnits: 0, lowStockUnits: 0,
-    upcomingEvents: 0, totalDonations: 0, activeDonors: 0,
-    expiringSoon: 0, criticalStock: 0,
-  });
-  const [bloodData, setBloodData]                   = useState<ChartData[]>([]);
-  const [lowStockAlerts, setLowStockAlerts]         = useState<{ bloodGroup: string; units: number; isCritical: boolean }[]>([]);
-  const [expiringPacks, setExpiringPacks]           = useState<any[]>([]);
-  const [recentDonors, setRecentDonors]             = useState<Donor[]>([]);
-  const [recentEvents, setRecentEvents]             = useState<BloodEvent[]>([]);
-  const [todayEvents, setTodayEvents]               = useState<BloodEvent[]>([]);
-  const [loading, setLoading]                       = useState(true);
+  // Fetch all data using TanStack Query
+  const { data: bloodStockSummary = [], isLoading: stockLoading } = useBloodStockSummary();
+  const { data: bloodPacks = [], isLoading: packsLoading } = useBloodPacks();
+  const { data: donors = [], isLoading: donorsLoading } = useDonors();
+  const { data: events = [], isLoading: eventsLoading } = useEvents();
+  const { data: donations = [], isLoading: donationsLoading } = useDonations();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const stockByGroup = getStockByGroup();
-      const donors       = MOCK_DONORS;
-      const events       = MOCK_EVENTS;
+  // Calculate all statistics using useMemo for performance
+  const stats = useMemo(() => {
+    // Blood stock data with all blood groups
+    const bloodData: ChartData[] = ALL_BLOOD_GROUPS.map(bloodGroup => {
+      const dbFormat = bloodGroup.replace('+', '_POSITIVE').replace('-', '_NEGATIVE');
+      const stockData = bloodStockSummary.find(stock => stock.bloodGroup === dbFormat);
+      return {
+        name: bloodGroup,
+        units: stockData?.available || 0
+      };
+    });
 
-      // Convert stock data to array format
-      const bloodAllData = Object.entries(stockByGroup).map(([bloodGroup, data]) => ({
-        bloodGroup,
-        units: data.available
+    // Low stock alerts
+    const lowStockAlerts = bloodData
+      .filter(bg => bg.units < LOW_STOCK_THRESHOLD)
+      .map(bg => ({
+        bloodGroup: bg.name,
+        units: bg.units,
+        isCritical: bg.units < CRITICAL_STOCK_THRESHOLD
       }));
 
-      // Low stock and critical stock
-      const lowStock = bloodAllData.filter((p) => p.units < LOW_STOCK_THRESHOLD).map(p => ({
-        bloodGroup: p.bloodGroup,
-        units: p.units,
-        isCritical: p.units < CRITICAL_STOCK_THRESHOLD
-      }));
-      
-      const criticalCount = lowStock.filter(p => p.isCritical).length;
-      
-      setLowStockAlerts(lowStock);
-      setBloodData(bloodAllData.map((p) => ({ name: p.bloodGroup, units: p.units })));
-      
-      // Expiring soon packs (within 7 days)
-      const now = new Date();
-      const expiring = bloodPacks.filter(p => {
-        if (p.status !== 'Available') return false;
-        const expiry = new Date(p.expiryDate);
+    // Expiring packs (within 7 days)
+    const now = new Date();
+    const expiringPacks = bloodPacks
+      .filter(pack => {
+        if (pack.status !== 'AVAILABLE') return false;
+        const expiry = new Date(pack.expiryDate);
         const daysUntil = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
         return daysUntil <= 7 && daysUntil > 0;
-      }).slice(0, 5);
-      setExpiringPacks(expiring);
-      
-      // Today's events
-      const today = new Date().toISOString().split('T')[0];
-      const todayEvts = events.filter(e => e.date === today);
-      setTodayEvents(todayEvts);
-      
-      setRecentDonors(donors.slice(0, 5));
-      setRecentEvents(events.filter(e => e.status === 'Upcoming').slice(0, 3));
-      setStats({
-        totalDonors:     donors.length,
-        activeDonors:    donors.filter((d) => d.totalDonations > 0).length,
-        totalBloodUnits: bloodAllData.reduce((a, p) => a + p.units, 0),
-        lowStockUnits:   lowStock.length,
-        criticalStock:   criticalCount,
-        upcomingEvents:  events.filter((e) => e.status === 'Upcoming').length,
-        totalDonations:  donors.reduce((a, d) => a + d.totalDonations, 0),
-        expiringSoon:    expiring.length,
-      });
-      setLoading(false);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [bloodPacks, getStockByGroup]);
+      })
+      .slice(0, 5);
 
-  if (loading) {
+    // Recent donors (last 5)
+    const recentDonors = donors
+      .sort((a, b) => new Date(b.user?.createdAt || 0).getTime() - new Date(a.user?.createdAt || 0).getTime())
+      .slice(0, 5);
+
+    // Recent events (upcoming events)
+    const recentEvents = events
+      .filter(event => event.status === 'UPCOMING')
+      .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime())
+      .slice(0, 3);
+
+    // Calculate statistics
+    const totalBloodUnits = bloodData.reduce((sum, bg) => sum + bg.units, 0);
+    const activeDonors = donors.filter(donor => donor.totalDonations > 0).length;
+    const upcomingEvents = events.filter(event => event.status === 'UPCOMING').length;
+    const criticalStock = lowStockAlerts.filter(alert => alert.isCritical).length;
+
+    return {
+      bloodData,
+      lowStockAlerts,
+      expiringPacks,
+      recentDonors,
+      recentEvents,
+      totalDonors: donors.length,
+      activeDonors,
+      totalBloodUnits,
+      lowStockUnits: lowStockAlerts.length,
+      criticalStock,
+      upcomingEvents,
+      totalDonations: donations.length,
+      expiringSoon: expiringPacks.length,
+    };
+  }, [bloodStockSummary, bloodPacks, donors, events, donations]);
+
+  // Loading state
+  const isLoading = stockLoading || packsLoading || donorsLoading || eventsLoading || donationsLoading;
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-11 h-11 rounded-full border-3 border-slate-100 border-t-[#7F1D1D] animate-spin" />
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-11 h-11 text-[#7F1D1D] animate-spin" />
+          <p className="text-sm text-slate-600">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -157,7 +167,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Low Stock Alert Card ── */}
-      {lowStockAlerts.length > 0 && (
+      {stats.lowStockAlerts.length > 0 && (
         <div className="bg-gradient-to-r from-red-50 via-rose-50 to-red-50 border-2 border-red-200 rounded-xl overflow-hidden mb-6 shadow-sm">
           <div className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -167,15 +177,15 @@ export default function DashboardPage() {
               <div>
                 <p className="text-base font-bold text-red-900 m-0">⚠️ Low Stock Alert</p>
                 <p className="text-sm text-red-700 mt-0.5">
-                  {lowStockAlerts.length} blood group{lowStockAlerts.length !== 1 ? 's' : ''} need immediate attention
+                  {stats.lowStockAlerts.length} blood group{stats.lowStockAlerts.length !== 1 ? 's' : ''} need immediate attention
                 </p>
               </div>
             </div>
             
             {/* Blood Groups in a clean row */}
             <div className="flex items-center gap-3">
-              {lowStockAlerts.slice(0, 4).map((alert, i) => {
-                const isCritical = alert.units < 3;
+              {stats.lowStockAlerts.slice(0, 4).map((alert, i) => {
+                const isCritical = alert.units < CRITICAL_STOCK_THRESHOLD;
                 return (
                   <div
                     key={i}
@@ -226,7 +236,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-[28px] font-extrabold text-red-600 leading-none">{stats.criticalStock}</div>
-            <p className="text-[11px] text-slate-400 mt-1">Below 3 units</p>
+            <p className="text-[11px] text-slate-400 mt-1">Below {CRITICAL_STOCK_THRESHOLD} units</p>
           </CardContent>
         </Card>
 
@@ -271,7 +281,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Expiring Packs Alert ── */}
-      {expiringPacks.length > 0 && (
+      {stats.expiringPacks.length > 0 && (
         <div className="bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 border-2 border-orange-200 rounded-xl overflow-hidden mb-6 shadow-sm">
           <div className="p-4">
             <div className="flex items-center gap-3 mb-3">
@@ -281,13 +291,13 @@ export default function DashboardPage() {
               <div>
                 <p className="text-base font-bold text-orange-900 m-0">⏰ Expiring Soon</p>
                 <p className="text-sm text-orange-700 mt-0.5">
-                  {expiringPacks.length} blood pack{expiringPacks.length !== 1 ? 's' : ''} expiring within 7 days
+                  {stats.expiringPacks.length} blood pack{stats.expiringPacks.length !== 1 ? 's' : ''} expiring within 7 days
                 </p>
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
-              {expiringPacks.map((pack, i) => {
+              {stats.expiringPacks.map((pack, i) => {
                 const expiry = new Date(pack.expiryDate);
                 const daysUntil = Math.ceil((expiry.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                 return (
@@ -383,7 +393,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={bloodData} barSize={32}>
+              <BarChart data={stats.bloodData} barSize={32}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                 <XAxis
                   dataKey="name"
@@ -394,10 +404,70 @@ export default function DashboardPage() {
                   tick={{ fontSize: 11, fill: '#94a3b8', fontFamily: 'inherit' }}
                   axisLine={false} tickLine={false}
                 />
-                <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(127,29,29,0.04)' }} />
-                <Bar dataKey="units" fill="#7F1D1D" radius={[6, 6, 0, 0]} />
+                <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(34,197,94,0.04)' }} />
+                <Bar dataKey="units" fill="#16a34a" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            
+            {/* All Blood Group Names */}
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <p className="text-xs font-semibold text-slate-600 mb-3">All Blood Groups</p>
+              <div className="grid grid-cols-8 gap-2">
+                {ALL_BLOOD_GROUPS.map((bloodGroup) => {
+                  const groupData = stats.bloodData.find(bg => bg.name === bloodGroup);
+                  const units = groupData?.units || 0;
+                  const isLowStock = units < LOW_STOCK_THRESHOLD;
+                  const isCritical = units < CRITICAL_STOCK_THRESHOLD;
+                  
+                  return (
+                    <div
+                      key={bloodGroup}
+                      className={`text-center p-3 rounded-lg border-2 transition-all ${
+                        isCritical 
+                          ? 'bg-red-50 border-red-200 shadow-sm' 
+                          : isLowStock 
+                          ? 'bg-orange-50 border-orange-200' 
+                          : 'bg-green-50 border-green-200'
+                      }`}
+                    >
+                      <p className={`text-lg font-bold mb-1 ${
+                        isCritical 
+                          ? 'text-red-800' 
+                          : isLowStock 
+                          ? 'text-orange-700' 
+                          : 'text-green-700'
+                      }`}>
+                        {bloodGroup}
+                      </p>
+                      <p className={`text-2xl font-extrabold ${
+                        isCritical 
+                          ? 'text-red-600' 
+                          : isLowStock 
+                          ? 'text-orange-600' 
+                          : 'text-green-600'
+                      }`}>
+                        {units}
+                      </p>
+                      <p className="text-xs text-slate-500">units</p>
+                      {isCritical && (
+                        <div className="mt-1">
+                          <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full font-bold">
+                            CRITICAL
+                          </span>
+                        </div>
+                      )}
+                      {isLowStock && !isCritical && (
+                        <div className="mt-1">
+                          <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-bold">
+                            LOW
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -422,22 +492,29 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col">
-              {recentDonors.map((donor, i) => (
-                <div key={i} className={`flex items-center gap-3 py-2.5 ${i < recentDonors.length - 1 ? 'border-b border-slate-100' : ''}`}>
+              {stats.recentDonors.map((donor, i) => (
+                <div key={i} className={`flex items-center gap-3 py-2.5 ${i < stats.recentDonors.length - 1 ? 'border-b border-slate-100' : ''}`}>
                   <Avatar className="w-9 h-9 bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.15)]">
                     <AvatarFallback className="text-sm font-bold text-[#7F1D1D] bg-transparent">
-                      {donor.name.charAt(0)}
+                      {donor.user?.name?.charAt(0) || 'D'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-semibold text-slate-800 m-0">{donor.name}</p>
-                    <p className="text-[11px] text-slate-400 mt-[1px]">{donor.bloodGroup} · {donor.location}</p>
+                    <p className="text-[13px] font-semibold text-slate-800 m-0">{donor.user?.name || 'Unknown Donor'}</p>
+                    <p className="text-[11px] text-slate-400 mt-[1px]">
+                      {donor.bloodGroup.replace('_POSITIVE', '+').replace('_NEGATIVE', '-').replace('_', '')} · {donor.location}
+                    </p>
                   </div>
                   <Badge variant="outline" className="text-xs font-bold text-[#7F1D1D] bg-[rgba(127,29,29,0.08)] border-[rgba(127,29,29,0.15)]">
                     {donor.totalDonations}×
                   </Badge>
                 </div>
               ))}
+              {stats.recentDonors.length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-sm text-slate-500">No donors registered yet</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -460,24 +537,37 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-2">
-              {recentEvents.map((event, i) => {
-                const es = EVENT_STATUS_CONFIG[event.status as keyof typeof EVENT_STATUS_CONFIG] ?? EVENT_STATUS_CONFIG.Completed;
+              {stats.recentEvents.map((event, i) => {
+                const eventDate = new Date(event.eventDate).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric'
+                });
+                
                 return (
                   <div key={i} className="flex items-center justify-between p-2.5 px-3 bg-slate-50 rounded-[9px] border border-slate-100 gap-2.5">
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-semibold text-slate-800 m-0">{event.title}</p>
-                      <p className="text-[11px] text-slate-400 mt-[2px]">{event.location}</p>
+                      <p className="text-[11px] text-slate-400 mt-[2px]">{event.location} • {eventDate}</p>
                     </div>
                     <Badge 
                       variant="outline"
-                      className="text-[11px] flex-shrink-0"
-                      style={{ background: es.bg, color: es.text, borderColor: es.border }}
+                      className={`text-[11px] flex-shrink-0 ${
+                        event.status === 'UPCOMING' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                        event.status === 'RUNNING' ? 'bg-green-50 text-green-700 border-green-200' :
+                        event.status === 'COMPLETED' ? 'bg-slate-50 text-slate-600 border-slate-200' :
+                        'bg-red-50 text-red-600 border-red-200'
+                      }`}
                     >
                       {event.status}
                     </Badge>
                   </div>
                 );
               })}
+              {stats.recentEvents.length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-sm text-slate-500">No upcoming events</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -495,5 +585,5 @@ const s = {
     boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
   },
   tooltipLabel: { fontSize: 12, fontWeight: 600, color: '#374151', margin: 0 },
-  tooltipValue: { fontSize: 14, fontWeight: 800, color: '#7F1D1D', margin: '2px 0 0' },
+  tooltipValue: { fontSize: 14, fontWeight: 800, color: '#16a34a', margin: '2px 0 0' },
 };

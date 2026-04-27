@@ -69,10 +69,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <PublicNav />
 
-      <main className="flex-1 bg-gradient-to-br from-red-50 to-white flex items-center justify-center">
+      <main className="flex-1 flex items-center justify-center">
         <div className="w-full max-w-md px-4">
 
           {/* Header */}

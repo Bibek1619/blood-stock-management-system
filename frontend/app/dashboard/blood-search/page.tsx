@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDonors } from "@/lib/queries/donors";
-import { getCityCoordinates, getCoordinatesWithFallback } from "@/lib/geocoding";
+import { getCityCoordinates } from "@/lib/geocoding";
 import {
   BLOOD_GROUPS,
   LOW_STOCK_GROUPS,
@@ -14,7 +14,6 @@ import {
   getInitials,
   getDonorTier,
   haversineKm,
-  type BloodGroup,
 } from "@/lib/data";
 import {
   Breadcrumb,
@@ -44,12 +43,10 @@ export default function BloodSearchPage() {
   const [radius, setRadius] = useState<number>(5);
   const [clickedPos, setClickedPos] = useState<{ lat: number; lng: number } | null>(null);
   const [mapReady, setMapReady] = useState(false);
-  const [activeDonor, setActiveDonor] = useState<any | null>(null);
   const [sheetDonor, setSheetDonor] = useState<any | null>(null);
   const [fullMapOpen, setFullMapOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [locationChecked, setLocationChecked] = useState(false); // Track if we've checked for location
   const [locationLoading, setLocationLoading] = useState(true);
 
   const { toasts, toast } = useToast();
@@ -591,9 +588,7 @@ export default function BloodSearchPage() {
 
           {!clickedPos && (
             <p className="text-xs text-slate-500 text-center px-4 pb-4">
-              � All donors are shown on the map
-              <span className="block mt-1">👆 Click anywhere to drop a pin and filter by radius</span>
-              {userLocation && <span className="block mt-1">💡 Or use "Use My Location" button to search near you</span>}
+              Click anywhere on the map to drop a pin and filter donors by radius
             </p>
           )}
         </div>
@@ -710,42 +705,49 @@ export default function BloodSearchPage() {
                   <div
                     key={d.id}
                     onClick={() => setSheetDonor(d)}
-                    className="bg-white border border-slate-200 hover:border-red-300 rounded-xl p-3.5 cursor-pointer transition-all hover:shadow-md"
+                    className="bg-white border border-slate-200 hover:border-red-300 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md"
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-xs font-bold text-red-800">
+                    {/* Header with name and blood group */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-12 h-12 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-sm font-bold text-red-800 flex-shrink-0">
                           {getInitials(name)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-slate-900">{name}</p>
-                          <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5 truncate">
-                            <MapPin size={10} className="flex-shrink-0" /> 
-                            <span className="truncate" title={fullAddress}>{fullAddress}</span>
+                          <p className="text-sm font-semibold text-slate-900 truncate" title={name}>{name}</p>
+                          <div className="flex items-center gap-1 mt-1">
+                            <span className={`px-2 py-0.5 border rounded text-[10px] font-medium ${locationBadge.color} flex-shrink-0`} title={hasPreciseCoords ? 'Exact location from interactive map' : 'Approximate location based on city'}>
+                              {locationBadge.text}
+                            </span>
+                            <span className="text-xs text-slate-500">•</span>
+                            <span className="text-xs text-slate-500">{d.totalDonations}× donated</span>
+                          </div>
+                        </div>
+                      </div>
+                      <span className="px-3 py-1.5 bg-red-50 text-red-800 border border-red-200 rounded-lg text-sm font-bold flex-shrink-0 ml-2">
+                        {bloodGroupDisplay}
+                      </span>
+                    </div>
+
+                    {/* Location - Full width with proper truncation */}
+                    <div className="mb-3">
+                      <div className="flex items-start gap-2">
+                        <MapPin size={12} className="text-slate-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-slate-600 leading-relaxed break-words" title={fullAddress}>
+                            {fullAddress}
                           </p>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="px-2.5 py-1 bg-red-50 text-red-800 border border-red-200 rounded-lg text-xs font-bold flex-shrink-0">
-                          {bloodGroupDisplay}
-                        </span>
-                        <span className={`px-2 py-0.5 border rounded text-[10px] font-medium ${locationBadge.color}`} title={hasPreciseCoords ? 'Exact location from interactive map' : 'Approximate location based on city'}>
-                          {locationBadge.text}
-                        </span>
-                      </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-2.5 flex-wrap">
+                    {/* Stats row */}
+                    <div className="flex items-center justify-between text-xs text-slate-500 mb-3">
                       <span>Last: {lastDonation}</span>
-                      <span>·</span>
-                      <span>{d.totalDonations}× donated</span>
                       {clickedPos && coords && (
-                        <>
-                          <span>·</span>
-                          <span className="text-red-800 font-semibold">
-                            {haversineKm(clickedPos.lat, clickedPos.lng, coords.lat, coords.lng).toFixed(1)} km
-                          </span>
-                        </>
+                        <span className="text-red-800 font-semibold">
+                          {haversineKm(clickedPos.lat, clickedPos.lng, coords.lat, coords.lng).toFixed(1)} km away
+                        </span>
                       )}
                     </div>
 

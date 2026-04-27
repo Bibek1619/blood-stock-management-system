@@ -53,10 +53,10 @@ export default function ProfilePage() {
   const backUrl = user.role === 'DONOR' ? '/home' : '/dashboard';
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <PublicNav />
       
-      <main className="flex-1 bg-gradient-to-br from-red-50 to-white">
+      <main className="flex-1">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6">
             <Link href={backUrl}>

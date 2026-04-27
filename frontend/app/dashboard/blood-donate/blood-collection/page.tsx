@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,15 +44,20 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSearchDonors, useRecordBloodCollection, useRecordBulkCollection } from '@/lib/queries/bloodCollection';
+import { useEvents } from '@/lib/queries/events';
 import { LocationAutocomplete } from '@/components/ui/location-autocomplete';
 import { FullAddressAutocomplete } from '@/components/ui/full-address-autocomplete';
 import { InteractiveLocationMap } from '@/components/ui/interactive-location-map';
+import { BirthdayPicker } from '@/components/ui/birthday-picker';
 import { geocodeLocationWithFallback } from '@/lib/geocoding';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 export default function BloodCollectionPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const eventIdFromUrl = searchParams.get('eventId');
+  
   const [donorSearch, setDonorSearch] = useState('');
   const [searchEnabled, setSearchEnabled] = useState(false);
   const [selectedDonor, setSelectedDonor] = useState<any>(null);
@@ -74,6 +79,7 @@ export default function BloodCollectionPage() {
     units: '1',
     collectionDate: new Date().toISOString().split('T')[0],
     collectionLocation: 'WALK_IN', // Default to Walk-in (Office)
+    selectedEventId: eventIdFromUrl || '', // Auto-select event from URL
     storageLocation: '',
     notes: '',
     hasMedicalCondition: 'no',
@@ -93,6 +99,17 @@ export default function BloodCollectionPage() {
       { bloodGroup: '', quantity: 1 }
     ]
   });
+
+  // Auto-select event and set collection type when coming from event page
+  useEffect(() => {
+    if (eventIdFromUrl) {
+      setFormData(prev => ({
+        ...prev,
+        collectionLocation: 'EVENT',
+        selectedEventId: eventIdFromUrl
+      }));
+    }
+  }, [eventIdFromUrl]);
 
   // Show map when both city and address are provided
   useEffect(() => {
@@ -153,6 +170,7 @@ export default function BloodCollectionPage() {
 
   // Query hooks
   const { data: searchResults, isLoading: isSearching } = useSearchDonors(donorSearch, searchEnabled);
+  const { data: events = [] } = useEvents({ status: 'RUNNING' }); // Only get running events
   const recordCollection = useRecordBloodCollection();
   const recordBulkCollection = useRecordBulkCollection();
 
@@ -417,6 +435,7 @@ export default function BloodCollectionPage() {
         units: formData.units,
         collectionDate: formData.collectionDate,
         collectionLocation: formData.collectionLocation,
+        eventId: formData.collectionLocation === 'EVENT' ? formData.selectedEventId : undefined, // Add event ID
         storageLocation: formData.storageLocation,
         notes: formData.notes,
         medicalNotes: formData.hasMedicalCondition === 'yes' ? formData.medicalConditionDetails : null,
@@ -708,25 +727,16 @@ export default function BloodCollectionPage() {
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="dateOfBirth">
-                        Date of Birth <span className="text-red-600">*</span>
-                      </Label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
-                        <Input
-                          id="dateOfBirth"
-                          type="date"
-                          value={formData.dateOfBirth}
-                          onChange={(e) =>
-                            setFormData({ ...formData, dateOfBirth: e.target.value })
-                          }
-                          className="pl-10"
-                          max={new Date().toISOString().split('T')[0]}
-                          required
-                        />
-                      </div>
-                    </div>
+                    <BirthdayPicker
+                      id="dateOfBirth"
+                      label="Date of Birth"
+                      value={formData.dateOfBirth}
+                      onChange={(value) =>
+                        setFormData({ ...formData, dateOfBirth: value })
+                      }
+                      placeholder="Select date of birth"
+                      required
+                    />
 
                     <div className="space-y-2">
                       <Label htmlFor="weight">
@@ -926,9 +936,13 @@ export default function BloodCollectionPage() {
                       </Label>
                       <Select
                         value={formData.collectionLocation}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, collectionLocation: value })
-                        }
+                        onValueChange={(value) => {
+                          setFormData({ ...formData, collectionLocation: value });
+                          // Clear event selection if switching away from EVENT
+                          if (value !== 'EVENT') {
+                            setFormData(prev => ({ ...prev, selectedEventId: '' }));
+                          }
+                        }}
                         required
                       >
                         <SelectTrigger id="collectionLocation">
@@ -940,6 +954,42 @@ export default function BloodCollectionPage() {
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {/* Event Selection - Only show when collection type is EVENT */}
+                    {formData.collectionLocation === 'EVENT' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="selectedEvent">
+                          Select Event <span className="text-red-600">*</span>
+                        </Label>
+                        <Select
+                          value={formData.selectedEventId}
+                          onValueChange={(value) =>
+                            setFormData({ ...formData, selectedEventId: value })
+                          }
+                          required={formData.collectionLocation === 'EVENT'}
+                        >
+                          <SelectTrigger id="selectedEvent">
+                            <SelectValue placeholder="Choose running event..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {events.length > 0 ? (
+                              events.map((event) => (
+                                <SelectItem key={event.id} value={event.id}>
+                                  {event.title} - {new Date(event.eventDate).toLocaleDateString()}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="" disabled>
+                                No running events available
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-slate-500">
+                          Only events with "RUNNING" status are shown
+                        </p>
+                      </div>
+                    )}
 
                     <div className="space-y-2">
                       <Label htmlFor="storageLocation">Storage Location</Label>

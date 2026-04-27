@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,41 +17,16 @@ import {
 import Link from "next/link";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
-import { Event } from "@/types/event";
 import { format } from "date-fns";
+import { useHasMounted } from "@/hooks/useHasMounted";
+import { useEvent } from "@/lib/queries/events";
 
 export default function EventDetailPage() {
+  const hasMounted = useHasMounted();
   const params = useParams();
-  const router = useRouter();
   const eventId = params.id as string;
 
-  const [event, setEvent] = useState<Event | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchEvent = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${eventId}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Event not found');
-          }
-          throw new Error('Failed to fetch event details');
-        }
-        const data = await response.json();
-        setEvent(data.data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load event');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (eventId) {
-      fetchEvent();
-    }
-  }, [eventId]);
+  const { data: event, isLoading, error } = useEvent(eventId);
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { color: string; label: string }> = {
@@ -64,7 +38,7 @@ export default function EventDetailPage() {
     return variants[status] || variants.UPCOMING;
   };
 
-  if (loading) {
+  if (!hasMounted || isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
         <PublicNav />
@@ -87,7 +61,9 @@ export default function EventDetailPage() {
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
             <p className="text-gray-900 font-semibold mb-2">Event Not Found</p>
-            <p className="text-gray-600 mb-6">{error || 'The event you are looking for does not exist.'}</p>
+            <p className="text-gray-600 mb-6">
+              {error instanceof Error ? error.message : 'The event you are looking for does not exist.'}
+            </p>
             <Link href="/events">
               <Button variant="outline">
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -103,12 +79,12 @@ export default function EventDetailPage() {
 
   const statusBadge = getStatusBadge(event.status);
   const eventDate = new Date(event.eventDate);
-  const participantCount = event._count?.participants || event.participants?.length || 0;
-  const volunteerCount = event._count?.volunteers || event.volunteers?.length || 0;
+  const participantCount = event.participants?.length || 0;
+  const volunteerCount = event.volunteers?.length || 0;
   const spotsRemaining = event.capacity ? event.capacity - participantCount : null;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <PublicNav />
       <main className="flex-1">
         <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
@@ -219,7 +195,7 @@ export default function EventDetailPage() {
                     )}
                   </div>
 
-                  {event.status === 'UPCOMING' || event.status === 'ONGOING' ? (
+                  {event.status === 'UPCOMING' || event.status === 'RUNNING' ? (
                     <div className="space-y-3">
                       <Link href="/login">
                         <Button 

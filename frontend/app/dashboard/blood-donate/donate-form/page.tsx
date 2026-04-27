@@ -10,8 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast as sonnerToast } from "sonner";
-import { BLOOD_GROUPS } from "@/lib/data";
-import { useBloodPacks } from "@/lib/queries/bloodPacks";
+import { useBloodPacks } from "@/lib/queries/bloodStock";
 import { useCreateBloodIssue } from "@/lib/queries/bloodIssues";
 import {
   Breadcrumb,
@@ -49,11 +48,37 @@ export default function DonateFormPage() {
   const { data: allBloodPacks = [], isLoading: packsLoading } = useBloodPacks();
   const createBloodIssue = useCreateBloodIssue();
 
+  // Get unique blood groups that have available stock (dynamic)
+  const availableBloodGroups = useMemo(() => {
+    const bloodGroupsWithStock = new Set<string>();
+    allBloodPacks
+      .filter(pack => pack.status === 'AVAILABLE')
+      .forEach(pack => {
+        // Convert database format to display format
+        const displayFormat = pack.bloodGroup
+          .replace('_POSITIVE', '+')
+          .replace('_NEGATIVE', '-')
+          .replace('_', '');
+        bloodGroupsWithStock.add(displayFormat);
+      });
+    
+    // Sort blood groups in standard order
+    const sortOrder = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+    return sortOrder.filter(bg => bloodGroupsWithStock.has(bg));
+  }, [allBloodPacks]);
+
   // Filter available packs based on blood group (memoized to prevent infinite loop)
   const availablePacks = useMemo(() => {
+    if (!formData.bloodGroup) return [];
+    
+    // Convert display format back to database format for filtering
+    const dbFormat = formData.bloodGroup
+      .replace('+', '_POSITIVE')
+      .replace('-', '_NEGATIVE');
+    
     return allBloodPacks
       .filter(pack => 
-        pack.bloodGroup === formData.bloodGroup && 
+        pack.bloodGroup === dbFormat && 
         pack.status === 'AVAILABLE'
       )
       .sort((a, b) => {
@@ -114,7 +139,7 @@ export default function DonateFormPage() {
       await createBloodIssue.mutateAsync({
         recipientName: formData.name,
         recipientType: formData.donationType === 'person' ? 'PERSON' : 'ORGANIZATION',
-        bloodGroup: formData.bloodGroup,
+        bloodGroup: formData.bloodGroup.replace('+', '_POSITIVE').replace('-', '_NEGATIVE'), // Convert to DB format
         unitsRequested: unitsNeeded,
         contact: formData.contact,
         notes: formData.notes || undefined,
@@ -233,16 +258,42 @@ export default function DonateFormPage() {
                   <Select 
                     value={formData.bloodGroup} 
                     onValueChange={(value) => setFormData({ ...formData, bloodGroup: value })}
+                    disabled={packsLoading || availableBloodGroups.length === 0}
                   >
                     <SelectTrigger id="bloodGroup">
-                      <SelectValue placeholder="Select" />
+                      <SelectValue placeholder={
+                        packsLoading 
+                          ? "Loading..." 
+                          : availableBloodGroups.length === 0 
+                          ? "No stock available" 
+                          : "Select blood group"
+                      } />
                     </SelectTrigger>
                     <SelectContent>
-                      {BLOOD_GROUPS.map((group) => (
-                        <SelectItem key={group} value={group}>{group}</SelectItem>
-                      ))}
+                      {availableBloodGroups.length > 0 ? (
+                        availableBloodGroups.map((group) => (
+                          <SelectItem key={group} value={group}>
+                            {group}
+                            <span className="ml-2 text-xs text-slate-500">
+                              ({allBloodPacks.filter(p => 
+                                p.bloodGroup === group.replace('+', '_POSITIVE').replace('-', '_NEGATIVE') && 
+                                p.status === 'AVAILABLE'
+                              ).length} available)
+                            </span>
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>
+                          No blood groups with available stock
+                        </SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
+                  {!packsLoading && availableBloodGroups.length === 0 && (
+                    <p className="text-xs text-red-600">
+                      No blood groups have available stock. Please check blood collection.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">

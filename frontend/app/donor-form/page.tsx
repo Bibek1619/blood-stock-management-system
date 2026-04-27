@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Heart, Droplet, Calendar, Weight, MapPin, AlertCircle, CheckCircle } from "lucide-react";
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 import { FullAddressAutocomplete } from "@/components/ui/full-address-autocomplete";
+import { BirthdayPicker } from "@/components/ui/birthday-picker";
+import { InteractiveLocationMap } from "@/components/ui/interactive-location-map";
+import { geocodeLocationWithFallback } from "@/lib/geocoding";
 
 export default function DonorFormPage() {
   const router = useRouter();
@@ -27,6 +30,8 @@ export default function DonorFormPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [user, setUser] = useState<any>(null);
+  const [showLocationMap, setShowLocationMap] = useState(false);
+  const [manualCoordinates, setManualCoordinates] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
     // Check if user is logged in
@@ -40,6 +45,34 @@ export default function DonorFormPage() {
 
     setUser(JSON.parse(userData));
   }, [router]);
+
+  // Show map when both city and address are provided
+  useEffect(() => {
+    if (form.city && form.address && form.city.length > 2 && form.address.length > 3) {
+      setShowLocationMap(true);
+    } else {
+      setShowLocationMap(false);
+      setManualCoordinates(null);
+    }
+  }, [form.city, form.address]);
+
+  const handleLocationSelect = (lat: number, lng: number) => {
+    setManualCoordinates({ lat, lng });
+    console.log(`📍 User selected coordinates: ${lat}, ${lng}`);
+  };
+
+  const handleAddressUpdate = (newAddress: string, newCity: string) => {
+    console.log(`🔄 Updating address from coordinates: ${newAddress}, ${newCity}`);
+    setForm(prev => ({
+      ...prev,
+      address: newAddress,
+      city: newCity,
+    }));
+  };
+
+  const handleCloseMap = () => {
+    setShowLocationMap(false);
+  };
 
   const calculateAge = (dob: string) => {
     const birthDate = new Date(dob);
@@ -89,6 +122,51 @@ export default function DonorFormPage() {
         'O-': 'O_NEGATIVE',
       };
 
+      // Use manual coordinates if user selected them, otherwise geocode
+      let latitude: number | undefined;
+      let longitude: number | undefined;
+      
+      if (manualCoordinates) {
+        // User manually selected coordinates from map
+        latitude = manualCoordinates.lat;
+        longitude = manualCoordinates.lng;
+        console.log(`✅ Using manual coordinates: ${latitude}, ${longitude}`);
+      } else if (form.address && form.city) {
+        // Fallback to automatic geocoding
+        const fullAddress = `${form.address}, ${form.city}`;
+        console.log(`🔍 Attempting to geocode: "${fullAddress}"`);
+        
+        try {
+          const coords = await geocodeLocationWithFallback(fullAddress);
+          
+          if (coords) {
+            latitude = coords.lat;
+            longitude = coords.lng;
+            console.log(`✅ Geocoded address: ${fullAddress} → ${coords.lat}, ${coords.lng}`);
+          } else {
+            console.log(`⚠️ Could not geocode address: ${fullAddress}`);
+          }
+        } catch (geocodeError) {
+          console.error('Geocoding failed:', geocodeError);
+        }
+      } else if (form.city) {
+        // Try geocoding just the city if no full address
+        console.log(`🔍 Geocoding city only: "${form.city}"`);
+        
+        try {
+          const coords = await geocodeLocationWithFallback(form.city);
+          if (coords) {
+            latitude = coords.lat;
+            longitude = coords.lng;
+            console.log(`✅ Geocoded city: ${form.city} → ${coords.lat}, ${coords.lng}`);
+          }
+        } catch (geocodeError) {
+          console.error('City geocoding failed:', geocodeError);
+        }
+      } else {
+        console.log('⚠️ No address or city provided for geocoding');
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/donors`, {
         method: 'POST',
         headers: {
@@ -103,6 +181,8 @@ export default function DonorFormPage() {
           location: form.city, // Use city as location
           city: form.city,
           address: form.address,
+          latitude, // Add geocoded latitude
+          longitude, // Add geocoded longitude
           medicalNotes: form.hasMedicalCondition === 'yes' ? form.medicalConditionDetails : null,
         }),
       });
@@ -212,22 +292,15 @@ export default function DonorFormPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="dateOfBirth" className="text-gray-700">Date of Birth *</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                      <Input
-                        id="dateOfBirth"
-                        type="date"
-                        value={form.dateOfBirth}
-                        onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
-                        className="pl-10 h-11"
-                        required
-                        disabled={loading}
-                        max={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                  </div>
+                  <BirthdayPicker
+                    id="dateOfBirth"
+                    label="Date of Birth"
+                    value={form.dateOfBirth}
+                    onChange={(value) => setForm({ ...form, dateOfBirth: value })}
+                    placeholder="Select your date of birth"
+                    required
+                    disabled={loading}
+                  />
 
                   <div className="space-y-2">
                     <Label htmlFor="weight" className="text-gray-700">Weight (kg) *</Label>
@@ -280,6 +353,31 @@ export default function DonorFormPage() {
                     disabled={loading}
                     className="text-gray-700"
                   />
+
+                  {/* Interactive Location Map */}
+                  {showLocationMap && (
+                    <div className="md:col-span-2">
+                      <InteractiveLocationMap
+                        address={form.address}
+                        city={form.city}
+                        onLocationSelect={handleLocationSelect}
+                        onAddressUpdate={handleAddressUpdate}
+                        onClose={handleCloseMap}
+                        initialLat={manualCoordinates?.lat}
+                        initialLng={manualCoordinates?.lng}
+                      />
+                      {manualCoordinates && (
+                        <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-sm text-green-800 font-medium">
+                              Precise location selected: {manualCoordinates.lat.toFixed(6)}, {manualCoordinates.lng.toFixed(6)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

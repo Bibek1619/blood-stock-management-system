@@ -73,6 +73,23 @@ export function useDonor(id: string) {
   });
 }
 
+// Fetch donor by user ID
+export function useDonorByUserId(userId: string) {
+  return useQuery({
+    queryKey: [...donorKeys.all, 'user', userId],
+    queryFn: async () => {
+      const response = await axiosInstance.get<{ status: string; data: Donor[] }>(
+        API_PATHS.DONOR.GET_ALL,
+        { params: { userId } }
+      );
+      // Return the first donor (should be only one per user)
+      const donors = response.data.data;
+      return Array.isArray(donors) ? donors[0] || null : null;
+    },
+    enabled: !!userId,
+  });
+}
+
 // Create donor
 export function useCreateDonor() {
   const queryClient = useQueryClient();

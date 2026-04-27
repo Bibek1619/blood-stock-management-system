@@ -7,31 +7,13 @@ import { CalendarDays, MapPin, Users, Clock, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
-import { useEffect, useState } from "react";
-import { Event } from "@/types/event";
 import { format } from "date-fns";
+import { useHasMounted } from "@/hooks/useHasMounted";
+import { useEvents } from "@/lib/queries/events";
 
 export default function PublicEventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`);
-        if (!response.ok) throw new Error('Failed to fetch events');
-        const data = await response.json();
-        setEvents(data.data || []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load events');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, []);
+  const hasMounted = useHasMounted();
+  const { data: events = [], isLoading, error } = useEvents();
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { color: string; label: string }> = {
@@ -43,7 +25,7 @@ export default function PublicEventsPage() {
     return variants[status] || variants.UPCOMING;
   };
 
-  if (loading) {
+  if (!hasMounted || isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
         <PublicNav />
@@ -62,11 +44,11 @@ export default function PublicEventsPage() {
     return (
       <div className="min-h-screen flex flex-col">
         <PublicNav />
-        <main className="flex-1 flex items-center justify-center">
+        <main className="flex-1 flex items-center justify-center ">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
             <p className="text-gray-900 font-semibold mb-2">Failed to load events</p>
-            <p className="text-gray-600">{error}</p>
+            <p className="text-gray-600">{error instanceof Error ? error.message : 'An error occurred'}</p>
           </div>
         </main>
         <PublicFooter />
@@ -75,7 +57,7 @@ export default function PublicEventsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <PublicNav />
       <main className="flex-1">
         <div className="max-w-6xl mx-auto px-4 py-12 animate-fade-in">
@@ -93,7 +75,7 @@ export default function PublicEventsPage() {
               {events.map((event) => {
                 const statusBadge = getStatusBadge(event.status);
                 const eventDate = new Date(event.eventDate);
-                const participantCount = event._count?.participants || event.participants?.length || 0;
+                const participantCount = event.participants?.length || 0;
 
                 return (
                   <Card key={event.id} className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">

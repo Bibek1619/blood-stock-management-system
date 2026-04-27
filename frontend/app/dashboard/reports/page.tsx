@@ -114,8 +114,8 @@ export default function ReportsPage() {
       const bgData: BloodGroupData[] = BLOOD_GROUPS.map(bg => ({
         name: bg,
         available: stockByGroup[bg]?.available || 0,
-        used: stockByGroup[bg]?.used || 0,
-        expired: stockByGroup[bg]?.expired || 0,
+        used: (stockByGroup[bg]?.total || 0) - (stockByGroup[bg]?.available || 0),
+        expired: 0, // Not tracked in current data structure
       }));
       setBloodGroupData(bgData);
 
@@ -269,63 +269,45 @@ export default function ReportsPage() {
 
       {/* Main Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Collections vs Issues Trend */}
+        {/* Event Reports Button */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.15)] flex items-center justify-center">
-                <Activity size={15} color="#7F1D1D" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.15)] flex items-center justify-center">
+                  <Activity size={15} color="#7F1D1D" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm">Event Analysis & Reports</CardTitle>
+                  <CardDescription className="text-xs">Detailed analysis of blood collection events and their performance</CardDescription>
+                </div>
               </div>
-              <div>
-                <CardTitle className="text-sm">Blood Collection vs Issue Trend</CardTitle>
-                <CardDescription className="text-xs">6-month comparison showing supply and demand patterns</CardDescription>
-              </div>
+              <button
+                onClick={() => window.location.href = '/dashboard/reports/events'}
+                className="px-4 py-2 bg-[#7F1D1D] hover:bg-[#991B1B] text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
+              >
+                <Calendar size={14} />
+                See Event Report
+              </button>
             </div>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis
-                  dataKey="month"
-                  tick={{ fontSize: 12, fill: '#64748b' }}
-                  axisLine={false} tickLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: '#94a3b8' }}
-                  axisLine={false} tickLine={false}
-                />
-                <Tooltip content={<CustomLineTooltip />} />
-                <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" />
-                <Line 
-                  type="monotone" 
-                  dataKey="collections" 
-                  stroke="#16a34a" 
-                  strokeWidth={3}
-                  name="Collections"
-                  dot={{ fill: '#16a34a', r: 5 }}
-                  activeDot={{ r: 7 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="issues" 
-                  stroke="#dc2626" 
-                  strokeWidth={3}
-                  name="Issues"
-                  dot={{ fill: '#dc2626', r: 5 }}
-                  activeDot={{ r: 7 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="events" 
-                  stroke="#f59e0b" 
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  name="Events"
-                  dot={{ fill: '#f59e0b', r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="flex items-center justify-center h-64 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
+              <div className="text-center">
+                <Calendar size={48} className="text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">Event Performance Analytics</h3>
+                <p className="text-sm text-slate-500 mb-4 max-w-md">
+                  Get detailed insights into event-wise blood collection performance, donor participation, and efficiency metrics.
+                </p>
+                <button
+                  onClick={() => window.location.href = '/dashboard/reports/events'}
+                  className="px-6 py-3 bg-[#7F1D1D] hover:bg-[#991B1B] text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 mx-auto"
+                >
+                  <Activity size={16} />
+                  View Event Reports
+                </button>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
