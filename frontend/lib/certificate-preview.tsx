@@ -148,7 +148,6 @@ function RedCrossLogo({ size }: { size: number }) {
     </svg>
   );
 }
-
 function BloodDrop() {
   return (
     <svg width="48" height="62" viewBox="0 0 50 65">
