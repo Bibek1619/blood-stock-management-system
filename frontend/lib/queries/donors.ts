@@ -16,6 +16,7 @@ export interface Donor {
   id: string;
   userId: string;
   bloodGroup: string;
+  donorType?: 'PERSON' | 'ORGANIZATION'; // Add donorType field
   location: string;
   city?: string;
   address?: string;
