@@ -118,8 +118,11 @@ export default function BloodSearchPage() {
 
   // ── Filter donors ─────────────────────────────────────────────────────────
   const filtered = donors.filter((d) => {
-    // Filter by blood group
-    if (selectedGroup !== "all" && d.bloodGroup !== selectedGroup) return false;
+    // Filter by blood group - convert display format to database format for comparison
+    if (selectedGroup !== "all") {
+      const dbFormat = selectedGroup.replace('+', '_POSITIVE').replace('-', '_NEGATIVE');
+      if (d.bloodGroup !== dbFormat) return false;
+    }
     
     // Filter by location query - search in address, location, or city
     const fullAddress = (d.address || d.location || d.city || '').toLowerCase();
@@ -217,7 +220,14 @@ export default function BloodSearchPage() {
   const updateMapOverlays = useCallback(() => {
     const L = leafletRef.current;
     const map = mapObjRef.current;
-    if (!L || !map) return;
+    
+    // Don't update if map not ready
+    if (!L || !map) {
+      console.log('Map not ready yet');
+      return;
+    }
+
+    console.log('Updating map overlays with', donors.length, 'donors');
 
     // Remove old pin + circle
     if (pinRef.current) { map.removeLayer(pinRef.current); pinRef.current = null; }
@@ -240,7 +250,12 @@ export default function BloodSearchPage() {
     if (!clickedPos) {
       // Show all donors (no radius) with simple markers
       donors.forEach((d, index) => {
-        if (selectedGroup !== "all" && d.bloodGroup !== selectedGroup) return;
+        // Filter by blood group - convert display format to database format
+        if (selectedGroup !== "all") {
+          const dbFormat = selectedGroup.replace('+', '_POSITIVE').replace('-', '_NEGATIVE');
+          if (d.bloodGroup !== dbFormat) return;
+        }
+        
         const fullAddress = (d.address || d.location || d.city || '').toLowerCase();
         if (locationQuery && !fullAddress.includes(locationQuery.toLowerCase())) return;
         
@@ -259,24 +274,45 @@ export default function BloodSearchPage() {
 
         const bloodGroupDisplay = d.bloodGroup.replace('_POSITIVE', '+').replace('_NEGATIVE', '-').replace('_', '');
 
-        // Different styling for precise vs approximate coordinates
-        const markerStyle = hasPreciseCoords 
-          ? {
-              background: '#059669', // Green for precise
-              border: '3px solid #fff',
-              boxShadow: '0 2px 12px rgba(5, 150, 105, 0.4), 0 0 0 3px rgba(5, 150, 105, 0.2)', // Green glow
-              size: '36px',
-            }
-          : {
-              background: '#7F1D1D', // Red for approximate
-              border: '2px solid #fff', 
-              boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-              size: '32px',
-            };
+        // Check if this is an organization based on donorType field
+        const isOrganization = d.donorType === 'ORGANIZATION';
+
+        // Different styling for organizations vs individuals
+        let markerStyle;
+        let markerContent;
+        
+        if (isOrganization) {
+          // Organization marker - building icon
+          markerStyle = {
+            background: '#2563eb', // Blue for organizations
+            border: '3px solid #fff',
+            boxShadow: '0 2px 12px rgba(37, 99, 235, 0.4), 0 0 0 3px rgba(37, 99, 235, 0.2)',
+            size: '40px',
+          };
+          markerContent = `<svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 6h.01M9 10h.01M9 14h.01M15 6h.01M15 10h.01M15 14h.01"/></svg>`;
+        } else if (hasPreciseCoords) {
+          // Individual with precise location
+          markerStyle = {
+            background: '#059669', // Green for precise
+            border: '3px solid #fff',
+            boxShadow: '0 2px 12px rgba(5, 150, 105, 0.4), 0 0 0 3px rgba(5, 150, 105, 0.2)',
+            size: '36px',
+          };
+          markerContent = bloodGroupDisplay;
+        } else {
+          // Individual with approximate location
+          markerStyle = {
+            background: '#7F1D1D', // Red for approximate
+            border: '2px solid #fff', 
+            boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+            size: '32px',
+          };
+          markerContent = bloodGroupDisplay;
+        }
 
         const icon = L.divIcon({
           className: "",
-          html: `<div style="width:${markerStyle.size};height:${markerStyle.size};border-radius:50%;background:${markerStyle.background};border:${markerStyle.border};box-shadow:${markerStyle.boxShadow};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;cursor:pointer;">${bloodGroupDisplay}</div>`,
+          html: `<div style="width:${markerStyle.size};height:${markerStyle.size};border-radius:50%;background:${markerStyle.background};border:${markerStyle.border};box-shadow:${markerStyle.boxShadow};display:flex;align-items:center;justify-content:center;font-size:${isOrganization ? '16px' : '10px'};font-weight:700;color:#fff;cursor:pointer;">${markerContent}</div>`,
           iconSize: [parseInt(markerStyle.size), parseInt(markerStyle.size)],
           iconAnchor: [parseInt(markerStyle.size) / 2, parseInt(markerStyle.size) / 2],
         });
@@ -312,7 +348,12 @@ export default function BloodSearchPage() {
 
     // Donor markers within radius
     donors.forEach((d, index) => {
-      if (selectedGroup !== "all" && d.bloodGroup !== selectedGroup) return;
+      // Filter by blood group - convert display format to database format
+      if (selectedGroup !== "all") {
+        const dbFormat = selectedGroup.replace('+', '_POSITIVE').replace('-', '_NEGATIVE');
+        if (d.bloodGroup !== dbFormat) return;
+      }
+      
       const fullAddress = (d.address || d.location || d.city || '').toLowerCase();
       if (locationQuery && !fullAddress.includes(locationQuery.toLowerCase())) return;
       
@@ -334,34 +375,68 @@ export default function BloodSearchPage() {
 
       const bloodGroupDisplay = d.bloodGroup.replace('_POSITIVE', '+').replace('_NEGATIVE', '-').replace('_', '');
 
-      // Different styling for precise vs approximate coordinates (within radius)
-      const markerStyle = inRadius && hasPreciseCoords
-        ? {
-            background: '#059669', // Green for precise
-            border: '3px solid #fff',
-            boxShadow: '0 2px 12px rgba(5, 150, 105, 0.4), 0 0 0 3px rgba(5, 150, 105, 0.2)',
-            size: '38px',
-            opacity: 1,
-          }
-        : inRadius
-        ? {
-            background: '#7F1D1D', // Red for approximate but in radius
-            border: '2px solid #fff',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-            size: '34px',
-            opacity: 1,
-          }
-        : {
-            background: '#94a3b8', // Gray for out of radius
-            border: '2px solid #fff',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-            size: '34px',
-            opacity: 0.4,
-          };
+      // Check if this is an organization based on donorType field
+      const isOrganization = d.donorType === 'ORGANIZATION';
+
+      // Different styling for organizations vs individuals (within radius)
+      let markerStyle;
+      let markerContent;
+      
+      if (isOrganization && inRadius) {
+        // Organization marker - building icon
+        markerStyle = {
+          background: '#2563eb', // Blue for organizations
+          border: '3px solid #fff',
+          boxShadow: '0 2px 12px rgba(37, 99, 235, 0.4), 0 0 0 3px rgba(37, 99, 235, 0.2)',
+          size: '40px',
+          opacity: 1,
+        };
+        markerContent = `<svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 6h.01M9 10h.01M9 14h.01M15 6h.01M15 10h.01M15 14h.01"/></svg>`;
+      } else if (isOrganization && !inRadius) {
+        // Organization out of radius
+        markerStyle = {
+          background: '#94a3b8', // Gray for out of radius
+          border: '2px solid #fff',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+          size: '40px',
+          opacity: 0.4,
+        };
+        markerContent = `<svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 6h.01M9 10h.01M9 14h.01M15 6h.01M15 10h.01M15 14h.01"/></svg>`;
+      } else if (inRadius && hasPreciseCoords) {
+        // Individual with precise location
+        markerStyle = {
+          background: '#059669', // Green for precise
+          border: '3px solid #fff',
+          boxShadow: '0 2px 12px rgba(5, 150, 105, 0.4), 0 0 0 3px rgba(5, 150, 105, 0.2)',
+          size: '38px',
+          opacity: 1,
+        };
+        markerContent = bloodGroupDisplay;
+      } else if (inRadius) {
+        // Individual with approximate location
+        markerStyle = {
+          background: '#7F1D1D', // Red for approximate but in radius
+          border: '2px solid #fff',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+          size: '34px',
+          opacity: 1,
+        };
+        markerContent = bloodGroupDisplay;
+      } else {
+        // Out of radius
+        markerStyle = {
+          background: '#94a3b8', // Gray for out of radius
+          border: '2px solid #fff',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+          size: '34px',
+          opacity: 0.4,
+        };
+        markerContent = bloodGroupDisplay;
+      }
 
       const icon = L.divIcon({
         className: "",
-        html: `<div style="width:${markerStyle.size};height:${markerStyle.size};border-radius:50%;background:${markerStyle.background};border:${markerStyle.border};box-shadow:${markerStyle.boxShadow};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;opacity:${markerStyle.opacity};cursor:${inRadius ? "pointer" : "default"}">${bloodGroupDisplay}</div>`,
+        html: `<div style="width:${markerStyle.size};height:${markerStyle.size};border-radius:50%;background:${markerStyle.background};border:${markerStyle.border};box-shadow:${markerStyle.boxShadow};display:flex;align-items:center;justify-content:center;font-size:${isOrganization ? '16px' : '9px'};font-weight:700;color:#fff;opacity:${markerStyle.opacity};cursor:${inRadius ? "pointer" : "default"}">${markerContent}</div>`,
         iconSize: [parseInt(markerStyle.size), parseInt(markerStyle.size)],
         iconAnchor: [parseInt(markerStyle.size) / 2, parseInt(markerStyle.size) / 2],
       });
@@ -380,6 +455,14 @@ export default function BloodSearchPage() {
   useEffect(() => {
     updateMapOverlays();
   }, [updateMapOverlays]);
+
+  // Force update markers when donors finish loading
+  useEffect(() => {
+    if (!isLoading && donors.length > 0 && mapObjRef.current) {
+      console.log('Donors loaded, updating map with', donors.length, 'donors');
+      updateMapOverlays();
+    }
+  }, [isLoading, donors.length, updateMapOverlays]);
 
   const clearPin = () => setClickedPos(null);
 
@@ -492,19 +575,23 @@ export default function BloodSearchPage() {
             <Droplets size={15} className="text-red-800" />
             <span className="text-sm font-medium text-red-800">Suggested — search donors for low-stock groups:</span>
             <div className="flex flex-wrap gap-2">
-              {LOW_STOCK_GROUPS.map((g) => (
-                <button
-                  key={g}
-                  onClick={() => setSelectedGroup(selectedGroup === g ? "all" : g)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
-                    selectedGroup === g
-                      ? "bg-red-100 text-red-800 border-red-300 font-bold"
-                      : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                  }`}
-                >
-                  {g}
-                </button>
-              ))}
+              {LOW_STOCK_GROUPS.map((g) => {
+                // Convert database format to display format
+                const displayFormat = g.replace('_POSITIVE', '+').replace('_NEGATIVE', '-').replace('_', '');
+                return (
+                  <button
+                    key={g}
+                    onClick={() => setSelectedGroup(selectedGroup === displayFormat ? "all" : displayFormat)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                      selectedGroup === displayFormat
+                        ? "bg-red-100 text-red-800 border-red-300 font-bold"
+                        : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                    }`}
+                  >
+                    {displayFormat}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -527,11 +614,15 @@ export default function BloodSearchPage() {
                 className="w-full h-9 px-3 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="all">All Groups</option>
-                {BLOOD_GROUPS.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
-                ))}
+                {BLOOD_GROUPS.map((g) => {
+                  // Convert database format to display format
+                  const displayFormat = g.replace('_POSITIVE', '+').replace('_NEGATIVE', '-').replace('_', '');
+                  return (
+                    <option key={g} value={displayFormat}>
+                      {displayFormat}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -634,6 +725,15 @@ export default function BloodSearchPage() {
               <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm border border-slate-200 rounded-lg p-3 shadow-lg z-[1000]">
                 <p className="text-xs font-bold text-slate-700 mb-2">Map Legend</p>
                 <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-[#2563eb] border-2 border-white shadow-md flex items-center justify-center">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                        <rect x="4" y="2" width="16" height="20" rx="2"/>
+                        <path d="M9 6h.01M9 10h.01M9 14h.01M15 6h.01M15 10h.01M15 14h.01"/>
+                      </svg>
+                    </div>
+                    <span className="text-xs text-slate-600 font-semibold">Organization</span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded-full bg-[#059669] border-2 border-white shadow-md"></div>
                     <span className="text-xs text-slate-600">Precise location</span>

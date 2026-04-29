@@ -45,6 +45,7 @@ model Donor {
   id              String    @id @default(cuid())
   userId          String    @unique
   bloodGroup      BloodGroup
+  donorType       DonationType @default(PERSON)  // Type: PERSON or ORGANIZATION
   location        String
   city            String?
   address         String?
@@ -73,6 +74,7 @@ model Donor {
   @@index([location])
   @@index([isEligible])
   @@index([latitude, longitude])
+  @@index([donorType])
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

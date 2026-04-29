@@ -519,7 +519,7 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
       console.log('Creating new organization user');
       orgUser = await prisma.user.create({
         data: {
-          name: contactPersonName, // Contact person name as donor name
+          name: organizationName, // Use organization name as donor name for bulk orders
           phone: organizationPhone,
           email: organizationEmail || `${organizationPhone}@org.local`,
           password: 'ORGANIZATION', // Placeholder
@@ -528,11 +528,11 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
         },
       });
     } else {
-      // Update existing user with contact person name if different
-      if (orgUser.name !== contactPersonName) {
+      // Update existing user with organization name if different
+      if (orgUser.name !== organizationName) {
         orgUser = await prisma.user.update({
           where: { id: orgUser.id },
-          data: { name: contactPersonName },
+          data: { name: organizationName },
         });
       }
     }
@@ -571,6 +571,7 @@ export const recordBulkCollection = async (req: Request, res: Response) => {
         data: {
           userId: orgUser.id,
           bloodGroup: firstBloodGroup as any,
+          donorType: 'ORGANIZATION', // Set donor type to ORGANIZATION
           location: organizationCity,
           city: organizationCity,
           address: organizationAddress,

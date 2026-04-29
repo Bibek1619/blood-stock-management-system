@@ -1286,6 +1286,7 @@ export const DonorScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   bloodGroup: 'bloodGroup',
+  donorType: 'donorType',
   location: 'location',
   city: 'city',
   address: 'address',
@@ -1538,6 +1539,20 @@ export type ListEnumBloodGroupFieldRefInput<$PrismaModel> = FieldRefInputType<$P
 
 
 /**
+ * Reference to a field of type 'DonationType'
+ */
+export type EnumDonationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationType'>
+    
+
+
+/**
+ * Reference to a field of type 'DonationType[]'
+ */
+export type ListEnumDonationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationType[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1576,20 +1591,6 @@ export type EnumPackStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'PackStatus[]'
  */
 export type ListEnumPackStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PackStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'DonationType'
- */
-export type EnumDonationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationType'>
-    
-
-
-/**
- * Reference to a field of type 'DonationType[]'
- */
-export type ListEnumDonationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationType[]'>
     
 
 

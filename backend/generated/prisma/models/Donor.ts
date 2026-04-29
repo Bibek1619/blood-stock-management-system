@@ -44,6 +44,7 @@ export type DonorMinAggregateOutputType = {
   id: string | null
   userId: string | null
   bloodGroup: $Enums.BloodGroup | null
+  donorType: $Enums.DonationType | null
   location: string | null
   city: string | null
   address: string | null
@@ -63,6 +64,7 @@ export type DonorMaxAggregateOutputType = {
   id: string | null
   userId: string | null
   bloodGroup: $Enums.BloodGroup | null
+  donorType: $Enums.DonationType | null
   location: string | null
   city: string | null
   address: string | null
@@ -82,6 +84,7 @@ export type DonorCountAggregateOutputType = {
   id: number
   userId: number
   bloodGroup: number
+  donorType: number
   location: number
   city: number
   address: number
@@ -117,6 +120,7 @@ export type DonorMinAggregateInputType = {
   id?: true
   userId?: true
   bloodGroup?: true
+  donorType?: true
   location?: true
   city?: true
   address?: true
@@ -136,6 +140,7 @@ export type DonorMaxAggregateInputType = {
   id?: true
   userId?: true
   bloodGroup?: true
+  donorType?: true
   location?: true
   city?: true
   address?: true
@@ -155,6 +160,7 @@ export type DonorCountAggregateInputType = {
   id?: true
   userId?: true
   bloodGroup?: true
+  donorType?: true
   location?: true
   city?: true
   address?: true
@@ -261,6 +267,7 @@ export type DonorGroupByOutputType = {
   id: string
   userId: string
   bloodGroup: $Enums.BloodGroup
+  donorType: $Enums.DonationType
   location: string
   city: string | null
   address: string | null
@@ -303,6 +310,7 @@ export type DonorWhereInput = {
   id?: Prisma.StringFilter<"Donor"> | string
   userId?: Prisma.StringFilter<"Donor"> | string
   bloodGroup?: Prisma.EnumBloodGroupFilter<"Donor"> | $Enums.BloodGroup
+  donorType?: Prisma.EnumDonationTypeFilter<"Donor"> | $Enums.DonationType
   location?: Prisma.StringFilter<"Donor"> | string
   city?: Prisma.StringNullableFilter<"Donor"> | string | null
   address?: Prisma.StringNullableFilter<"Donor"> | string | null
@@ -324,6 +332,7 @@ export type DonorOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   bloodGroup?: Prisma.SortOrder
+  donorType?: Prisma.SortOrder
   location?: Prisma.SortOrder
   city?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -348,6 +357,7 @@ export type DonorWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.DonorWhereInput[]
   NOT?: Prisma.DonorWhereInput | Prisma.DonorWhereInput[]
   bloodGroup?: Prisma.EnumBloodGroupFilter<"Donor"> | $Enums.BloodGroup
+  donorType?: Prisma.EnumDonationTypeFilter<"Donor"> | $Enums.DonationType
   location?: Prisma.StringFilter<"Donor"> | string
   city?: Prisma.StringNullableFilter<"Donor"> | string | null
   address?: Prisma.StringNullableFilter<"Donor"> | string | null
@@ -369,6 +379,7 @@ export type DonorOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   bloodGroup?: Prisma.SortOrder
+  donorType?: Prisma.SortOrder
   location?: Prisma.SortOrder
   city?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -396,6 +407,7 @@ export type DonorScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Donor"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Donor"> | string
   bloodGroup?: Prisma.EnumBloodGroupWithAggregatesFilter<"Donor"> | $Enums.BloodGroup
+  donorType?: Prisma.EnumDonationTypeWithAggregatesFilter<"Donor"> | $Enums.DonationType
   location?: Prisma.StringWithAggregatesFilter<"Donor"> | string
   city?: Prisma.StringNullableWithAggregatesFilter<"Donor"> | string | null
   address?: Prisma.StringNullableWithAggregatesFilter<"Donor"> | string | null
@@ -414,6 +426,7 @@ export type DonorScalarWhereWithAggregatesInput = {
 export type DonorCreateInput = {
   id?: string
   bloodGroup: $Enums.BloodGroup
+  donorType?: $Enums.DonationType
   location: string
   city?: string | null
   address?: string | null
@@ -435,6 +448,7 @@ export type DonorUncheckedCreateInput = {
   id?: string
   userId: string
   bloodGroup: $Enums.BloodGroup
+  donorType?: $Enums.DonationType
   location: string
   city?: string | null
   address?: string | null
@@ -454,6 +468,7 @@ export type DonorUncheckedCreateInput = {
 export type DonorUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
+  donorType?: Prisma.EnumDonationTypeFieldUpdateOperationsInput | $Enums.DonationType
   location?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -475,6 +490,7 @@ export type DonorUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
+  donorType?: Prisma.EnumDonationTypeFieldUpdateOperationsInput | $Enums.DonationType
   location?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -495,6 +511,7 @@ export type DonorCreateManyInput = {
   id?: string
   userId: string
   bloodGroup: $Enums.BloodGroup
+  donorType?: $Enums.DonationType
   location: string
   city?: string | null
   address?: string | null
@@ -513,6 +530,7 @@ export type DonorCreateManyInput = {
 export type DonorUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
+  donorType?: Prisma.EnumDonationTypeFieldUpdateOperationsInput | $Enums.DonationType
   location?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -532,6 +550,7 @@ export type DonorUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
+  donorType?: Prisma.EnumDonationTypeFieldUpdateOperationsInput | $Enums.DonationType
   location?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -556,6 +575,7 @@ export type DonorCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   bloodGroup?: Prisma.SortOrder
+  donorType?: Prisma.SortOrder
   location?: Prisma.SortOrder
   city?: Prisma.SortOrder
   address?: Prisma.SortOrder
@@ -582,6 +602,7 @@ export type DonorMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   bloodGroup?: Prisma.SortOrder
+  donorType?: Prisma.SortOrder
   location?: Prisma.SortOrder
   city?: Prisma.SortOrder
   address?: Prisma.SortOrder
@@ -601,6 +622,7 @@ export type DonorMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   bloodGroup?: Prisma.SortOrder
+  donorType?: Prisma.SortOrder
   location?: Prisma.SortOrder
   city?: Prisma.SortOrder
   address?: Prisma.SortOrder
@@ -659,6 +681,10 @@ export type EnumBloodGroupFieldUpdateOperationsInput = {
   set?: $Enums.BloodGroup
 }
 
+export type EnumDonationTypeFieldUpdateOperationsInput = {
+  set?: $Enums.DonationType
+}
+
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
@@ -702,6 +728,7 @@ export type DonorUpdateOneWithoutBloodPacksNestedInput = {
 export type DonorCreateWithoutUserInput = {
   id?: string
   bloodGroup: $Enums.BloodGroup
+  donorType?: $Enums.DonationType
   location: string
   city?: string | null
   address?: string | null
@@ -721,6 +748,7 @@ export type DonorCreateWithoutUserInput = {
 export type DonorUncheckedCreateWithoutUserInput = {
   id?: string
   bloodGroup: $Enums.BloodGroup
+  donorType?: $Enums.DonationType
   location: string
   city?: string | null
   address?: string | null
@@ -756,6 +784,7 @@ export type DonorUpdateToOneWithWhereWithoutUserInput = {
 export type DonorUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
+  donorType?: Prisma.EnumDonationTypeFieldUpdateOperationsInput | $Enums.DonationType
   location?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -775,6 +804,7 @@ export type DonorUpdateWithoutUserInput = {
 export type DonorUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
+  donorType?: Prisma.EnumDonationTypeFieldUpdateOperationsInput | $Enums.DonationType
   location?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -794,6 +824,7 @@ export type DonorUncheckedUpdateWithoutUserInput = {
 export type DonorCreateWithoutBloodPacksInput = {
   id?: string
   bloodGroup: $Enums.BloodGroup
+  donorType?: $Enums.DonationType
   location: string
   city?: string | null
   address?: string | null
@@ -814,6 +845,7 @@ export type DonorUncheckedCreateWithoutBloodPacksInput = {
   id?: string
   userId: string
   bloodGroup: $Enums.BloodGroup
+  donorType?: $Enums.DonationType
   location: string
   city?: string | null
   address?: string | null
@@ -848,6 +880,7 @@ export type DonorUpdateToOneWithWhereWithoutBloodPacksInput = {
 export type DonorUpdateWithoutBloodPacksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
+  donorType?: Prisma.EnumDonationTypeFieldUpdateOperationsInput | $Enums.DonationType
   location?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -868,6 +901,7 @@ export type DonorUncheckedUpdateWithoutBloodPacksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   bloodGroup?: Prisma.EnumBloodGroupFieldUpdateOperationsInput | $Enums.BloodGroup
+  donorType?: Prisma.EnumDonationTypeFieldUpdateOperationsInput | $Enums.DonationType
   location?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -918,6 +952,7 @@ export type DonorSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   id?: boolean
   userId?: boolean
   bloodGroup?: boolean
+  donorType?: boolean
   location?: boolean
   city?: boolean
   address?: boolean
@@ -940,6 +975,7 @@ export type DonorSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   id?: boolean
   userId?: boolean
   bloodGroup?: boolean
+  donorType?: boolean
   location?: boolean
   city?: boolean
   address?: boolean
@@ -960,6 +996,7 @@ export type DonorSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   id?: boolean
   userId?: boolean
   bloodGroup?: boolean
+  donorType?: boolean
   location?: boolean
   city?: boolean
   address?: boolean
@@ -980,6 +1017,7 @@ export type DonorSelectScalar = {
   id?: boolean
   userId?: boolean
   bloodGroup?: boolean
+  donorType?: boolean
   location?: boolean
   city?: boolean
   address?: boolean
@@ -995,7 +1033,7 @@ export type DonorSelectScalar = {
   updatedAt?: boolean
 }
 
-export type DonorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "bloodGroup" | "location" | "city" | "address" | "dateOfBirth" | "latitude" | "longitude" | "lastDonationDate" | "totalDonations" | "isEligible" | "weight" | "medicalNotes" | "createdAt" | "updatedAt", ExtArgs["result"]["donor"]>
+export type DonorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "bloodGroup" | "donorType" | "location" | "city" | "address" | "dateOfBirth" | "latitude" | "longitude" | "lastDonationDate" | "totalDonations" | "isEligible" | "weight" | "medicalNotes" | "createdAt" | "updatedAt", ExtArgs["result"]["donor"]>
 export type DonorInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   bloodPacks?: boolean | Prisma.Donor$bloodPacksArgs<ExtArgs>
@@ -1018,6 +1056,7 @@ export type $DonorPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     id: string
     userId: string
     bloodGroup: $Enums.BloodGroup
+    donorType: $Enums.DonationType
     location: string
     city: string | null
     address: string | null
@@ -1459,6 +1498,7 @@ export interface DonorFieldRefs {
   readonly id: Prisma.FieldRef<"Donor", 'String'>
   readonly userId: Prisma.FieldRef<"Donor", 'String'>
   readonly bloodGroup: Prisma.FieldRef<"Donor", 'BloodGroup'>
+  readonly donorType: Prisma.FieldRef<"Donor", 'DonationType'>
   readonly location: Prisma.FieldRef<"Donor", 'String'>
   readonly city: Prisma.FieldRef<"Donor", 'String'>
   readonly address: Prisma.FieldRef<"Donor", 'String'>

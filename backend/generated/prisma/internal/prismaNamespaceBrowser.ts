@@ -99,6 +99,7 @@ export const DonorScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   bloodGroup: 'bloodGroup',
+  donorType: 'donorType',
   location: 'location',
   city: 'city',
   address: 'address',

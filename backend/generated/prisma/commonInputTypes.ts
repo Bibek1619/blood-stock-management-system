@@ -109,6 +109,13 @@ export type EnumBloodGroupFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumBloodGroupFilter<$PrismaModel> | $Enums.BloodGroup
 }
 
+export type EnumDonationTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationType | Prisma.EnumDonationTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationTypeFilter<$PrismaModel> | $Enums.DonationType
+}
+
 export type StringNullableFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
@@ -170,6 +177,16 @@ export type EnumBloodGroupWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumBloodGroupFilter<$PrismaModel>
   _max?: Prisma.NestedEnumBloodGroupFilter<$PrismaModel>
+}
+
+export type EnumDonationTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationType | Prisma.EnumDonationTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationTypeWithAggregatesFilter<$PrismaModel> | $Enums.DonationType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDonationTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDonationTypeFilter<$PrismaModel>
 }
 
 export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -253,28 +270,11 @@ export type EnumPackStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumPackStatusFilter<$PrismaModel>
 }
 
-export type EnumDonationTypeFilter<$PrismaModel = never> = {
-  equals?: $Enums.DonationType | Prisma.EnumDonationTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
-  notIn?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumDonationTypeFilter<$PrismaModel> | $Enums.DonationType
-}
-
 export type EnumDonationStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.DonationStatus | Prisma.EnumDonationStatusFieldRefInput<$PrismaModel>
   in?: $Enums.DonationStatus[] | Prisma.ListEnumDonationStatusFieldRefInput<$PrismaModel>
   notIn?: $Enums.DonationStatus[] | Prisma.ListEnumDonationStatusFieldRefInput<$PrismaModel>
   not?: Prisma.NestedEnumDonationStatusFilter<$PrismaModel> | $Enums.DonationStatus
-}
-
-export type EnumDonationTypeWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.DonationType | Prisma.EnumDonationTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
-  notIn?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumDonationTypeWithAggregatesFilter<$PrismaModel> | $Enums.DonationType
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumDonationTypeFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumDonationTypeFilter<$PrismaModel>
 }
 
 export type EnumDonationStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -520,6 +520,13 @@ export type NestedEnumBloodGroupFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumBloodGroupFilter<$PrismaModel> | $Enums.BloodGroup
 }
 
+export type NestedEnumDonationTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationType | Prisma.EnumDonationTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationTypeFilter<$PrismaModel> | $Enums.DonationType
+}
+
 export type NestedStringNullableFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
@@ -564,6 +571,16 @@ export type NestedEnumBloodGroupWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumBloodGroupFilter<$PrismaModel>
   _max?: Prisma.NestedEnumBloodGroupFilter<$PrismaModel>
+}
+
+export type NestedEnumDonationTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationType | Prisma.EnumDonationTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationTypeWithAggregatesFilter<$PrismaModel> | $Enums.DonationType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDonationTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDonationTypeFilter<$PrismaModel>
 }
 
 export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -668,28 +685,11 @@ export type NestedEnumPackStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumPackStatusFilter<$PrismaModel>
 }
 
-export type NestedEnumDonationTypeFilter<$PrismaModel = never> = {
-  equals?: $Enums.DonationType | Prisma.EnumDonationTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
-  notIn?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumDonationTypeFilter<$PrismaModel> | $Enums.DonationType
-}
-
 export type NestedEnumDonationStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.DonationStatus | Prisma.EnumDonationStatusFieldRefInput<$PrismaModel>
   in?: $Enums.DonationStatus[] | Prisma.ListEnumDonationStatusFieldRefInput<$PrismaModel>
   notIn?: $Enums.DonationStatus[] | Prisma.ListEnumDonationStatusFieldRefInput<$PrismaModel>
   not?: Prisma.NestedEnumDonationStatusFilter<$PrismaModel> | $Enums.DonationStatus
-}
-
-export type NestedEnumDonationTypeWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.DonationType | Prisma.EnumDonationTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
-  notIn?: $Enums.DonationType[] | Prisma.ListEnumDonationTypeFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumDonationTypeWithAggregatesFilter<$PrismaModel> | $Enums.DonationType
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumDonationTypeFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumDonationTypeFilter<$PrismaModel>
 }
 
 export type NestedEnumDonationStatusWithAggregatesFilter<$PrismaModel = never> = {

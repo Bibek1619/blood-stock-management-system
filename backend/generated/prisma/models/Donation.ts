@@ -653,10 +653,6 @@ export type DonationUpdateOneWithoutBloodPacksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.DonationUpdateToOneWithWhereWithoutBloodPacksInput, Prisma.DonationUpdateWithoutBloodPacksInput>, Prisma.DonationUncheckedUpdateWithoutBloodPacksInput>
 }
 
-export type EnumDonationTypeFieldUpdateOperationsInput = {
-  set?: $Enums.DonationType
-}
-
 export type EnumDonationStatusFieldUpdateOperationsInput = {
   set?: $Enums.DonationStatus
 }
