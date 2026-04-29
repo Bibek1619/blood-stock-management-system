@@ -9,9 +9,10 @@ interface DonorMapProps {
   longitude: number;
   donorName: string;
   bloodGroup: string;
+  donorType?: string; // 'PERSON' or 'ORGANIZATION'
 }
 
-export default function DonorMap({ latitude, longitude, donorName, bloodGroup }: DonorMapProps) {
+export default function DonorMap({ latitude, longitude, donorName, bloodGroup, donorType }: DonorMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,36 +37,70 @@ export default function DonorMap({ latitude, longitude, donorName, bloodGroup }:
         maxZoom: 19,
       }).addTo(map);
 
-      // Create custom icon HTML
-      const iconHtml = `
-        <div style="
-          position: relative;
-          width: 40px;
-          height: 40px;
-        ">
+      // Check if this is an organization
+      const isOrganization = donorType === 'ORGANIZATION';
+
+      // Create custom icon HTML based on donor type
+      let iconHtml;
+      
+      if (isOrganization) {
+        // Organization marker - blue building icon
+        iconHtml = `
           <div style="
-            background-color: #7F1D1D;
+            position: relative;
             width: 40px;
             height: 40px;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            border: 3px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
           ">
             <div style="
-              transform: rotate(45deg);
-              color: white;
-              font-weight: bold;
-              font-size: 12px;
+              background-color: #2563eb;
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              border: 3px solid white;
+              box-shadow: 0 2px 12px rgba(37, 99, 235, 0.4), 0 0 0 3px rgba(37, 99, 235, 0.2);
+              display: flex;
+              align-items: center;
+              justify-content: center;
             ">
-              ${bloodGroup}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1.5">
+                <rect x="4" y="2" width="16" height="20" rx="2"/>
+                <path d="M9 6h.01M9 10h.01M9 14h.01M15 6h.01M15 10h.01M15 14h.01"/>
+              </svg>
             </div>
           </div>
-        </div>
-      `;
+        `;
+      } else {
+        // Individual donor marker - blood group with red teardrop
+        iconHtml = `
+          <div style="
+            position: relative;
+            width: 40px;
+            height: 40px;
+          ">
+            <div style="
+              background-color: #7F1D1D;
+              width: 40px;
+              height: 40px;
+              border-radius: 50% 50% 50% 0;
+              transform: rotate(-45deg);
+              border: 3px solid white;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <div style="
+                transform: rotate(45deg);
+                color: white;
+                font-weight: bold;
+                font-size: 12px;
+              ">
+                ${bloodGroup}
+              </div>
+            </div>
+          </div>
+        `;
+      }
 
       // Create custom icon
       const customIcon = L.divIcon({
@@ -79,13 +114,22 @@ export default function DonorMap({ latitude, longitude, donorName, bloodGroup }:
       // Add marker
       const marker = L.marker([latitude, longitude], { icon: customIcon }).addTo(map);
 
-      // Add popup
-      marker.bindPopup(`
-        <div style="text-align: center; padding: 8px; min-width: 150px;">
-          <strong style="font-size: 14px; color: #7F1D1D;">${donorName}</strong><br/>
-          <span style="font-size: 12px; color: #64748b;">Blood Group: ${bloodGroup}</span>
-        </div>
-      `).openPopup();
+      // Add popup with appropriate content
+      const popupContent = isOrganization
+        ? `
+          <div style="text-align: center; padding: 8px; min-width: 150px;">
+            <strong style="font-size: 14px; color: #2563eb;">🏢 ${donorName}</strong><br/>
+            <span style="font-size: 12px; color: #64748b;">Organization</span>
+          </div>
+        `
+        : `
+          <div style="text-align: center; padding: 8px; min-width: 150px;">
+            <strong style="font-size: 14px; color: #7F1D1D;">${donorName}</strong><br/>
+            <span style="font-size: 12px; color: #64748b;">Blood Group: ${bloodGroup}</span>
+          </div>
+        `;
+
+      marker.bindPopup(popupContent).openPopup();
 
       // Force map to invalidate size after a short delay
       setTimeout(() => {
@@ -104,7 +148,7 @@ export default function DonorMap({ latitude, longitude, donorName, bloodGroup }:
         mapInstanceRef.current = null;
       }
     };
-  }, [latitude, longitude, donorName, bloodGroup]);
+  }, [latitude, longitude, donorName, bloodGroup, donorType]);
 
   if (error) {
     return (
