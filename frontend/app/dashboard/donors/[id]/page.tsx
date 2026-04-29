@@ -611,6 +611,7 @@ export default function DonorProfilePage() {
                       longitude={coordinates.lng}
                       donorName={name}
                       bloodGroup={bloodGroup}
+                      donorType={donor.donorType}
                     />
                     <div className="mt-2.5 p-2.5 bg-slate-50 rounded-lg border border-slate-100">
                       <p className="text-xs text-slate-600 flex items-center gap-2">
