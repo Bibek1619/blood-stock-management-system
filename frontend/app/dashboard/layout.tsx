@@ -1,7 +1,6 @@
 'use client';
 
 import { DashboardNav } from '@/components/DashboardNav';
-import { DataProvider } from '@/lib/data-store';
 import {
   SidebarProvider,
   SidebarInset,
@@ -48,26 +47,24 @@ export default function DashboardLayout({
   }
 
   return (
-    <DataProvider>
-      <SidebarProvider>
-        <DashboardNav />
+    <SidebarProvider>
+      <DashboardNav />
 
-        <SidebarInset>
-          {/* ── Top header bar (Sticky) ──────────────────────────────────────── */}
-          <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 border-b px-4 bg-white shadow-sm">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <span className="text-sm font-medium text-muted-foreground">
-              Blood Bank Management
-            </span>
-          </header>
+      <SidebarInset>
+        {/* ── Top header bar (Sticky) ──────────────────────────────────────── */}
+        <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 border-b px-4 bg-white shadow-sm">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <span className="text-sm font-medium text-muted-foreground">
+            Blood Bank Management
+          </span>
+        </header>
 
-          {/* ── Page content ────────────────────────────────────────── */}
-          <div className="flex flex-1 flex-col gap-4 p-6 md:p-8 bg-[#fafafc]" suppressHydrationWarning>
-            {children}
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
-    </DataProvider>
+        {/* ── Page content ────────────────────────────────────────── */}
+        <div className="flex flex-1 flex-col gap-4 p-6 md:p-8 bg-[#fafafc]" suppressHydrationWarning>
+          {children}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

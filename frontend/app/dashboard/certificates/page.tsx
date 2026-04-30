@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from "react";
-import { useData } from "@/lib/data-store";
+import { useCertificates, useCreateCertificate } from "@/lib/queries/certificates";
+import { useDonors } from "@/lib/queries/donors";
+import { useEvents } from "@/lib/queries/events";
 import { CertificatePreview } from "@/lib/certificate-preview";
 import { IDCardPreview } from "@/lib/idcard-preview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +16,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Award, CreditCard, FileText, Home } from "lucide-react";
 import { toast } from "sonner";
-import type { Certificate } from "@/lib/data-store";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -25,38 +26,80 @@ import {
 } from "@/components/ui/breadcrumb";
 
 export default function CertificatesPage() {
-    const { certificates, addCertificate, donors, events } = useData();
+    // Fetch data using TanStack Query
+    const { data: certificates = [], isLoading: certificatesLoading, error: certificatesError } = useCertificates();
+    const { data: donors = [], isLoading: donorsLoading } = useDonors();
+    const { data: events = [] } = useEvents();
+    const { mutate: createCertificate, isPending: isCreating } = useCreateCertificate();
+    
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [previewCert, setPreviewCert] = useState<Certificate | null>(null);
+    const [previewCert, setPreviewCert] = useState<any | null>(null);
     const [previewType, setPreviewType] = useState<"certificate" | "idcard">("certificate");
 
     const [newCert, setNewCert] = useState({
-        type: "donation" as Certificate["type"],
+        type: "DONATION" as "DONATION" | "VOLUNTEER",
         recipientId: "",
         recipientName: "",
         eventTitle: "",
-        date: "",
         volunteerId: "",
+        date: new Date().toISOString().split('T')[0], // Add date field with today's date as default
     });
 
     const handleCreate = () => {
-        if (!newCert.recipientName || !newCert.date) {
-            toast.error("Recipient name and date are required");
+        if (!newCert.recipientName.trim()) {
+            toast.error("Recipient name is required");
             return;
         }
-        const volId =
-            newCert.type === "volunteer"
-                ? `VOL-${new Date().getFullYear()}-${String(certificates.length + 1).padStart(3, "0")}`
-                : undefined;
-        addCertificate({ ...newCert, volunteerId: volId });
-        setDialogOpen(false);
-        setNewCert({ type: "donation", recipientId: "", recipientName: "", eventTitle: "", date: "", volunteerId: "" });
-        toast.success("Certificate created successfully");
+        
+        if (newCert.type === "VOLUNTEER" && !newCert.eventTitle.trim()) {
+            toast.error("Event title is required for volunteer certificates");
+            return;
+        }
+        
+        // Generate certificate number
+        const certNumber = newCert.type === "VOLUNTEER"
+            ? `VOL-${new Date().getFullYear()}-${String(certificates.length + 1).padStart(3, "0")}`
+            : `DON-${new Date().getFullYear()}-${String(certificates.length + 1).padStart(3, "0")}`;
+        
+        // Generate volunteer ID for volunteer certificates
+        const volId = newCert.type === "VOLUNTEER"
+            ? `VOL-${new Date().getFullYear()}-${String(certificates.length + 1).padStart(3, "0")}`
+            : undefined;
+
+        // Create certificate data
+        const certificateData = {
+            certificateNumber: certNumber,
+            type: newCert.type,
+            userId: newCert.recipientId,
+            recipientName: newCert.recipientName.trim(),
+            eventTitle: newCert.eventTitle.trim() || undefined,
+            volunteerId: volId,
+        };
+
+        createCertificate(certificateData, {
+            onSuccess: () => {
+                setDialogOpen(false);
+                setNewCert({ 
+                    type: "DONATION", 
+                    recipientId: "", 
+                    recipientName: "", 
+                    eventTitle: "", 
+                    volunteerId: "",
+                    date: new Date().toISOString().split('T')[0],
+                });
+                toast.success("Certificate created successfully!");
+            },
+            onError: (error: any) => {
+                toast.error(error.message || "Failed to create certificate");
+            }
+        });
     };
 
     const handleDonorSelect = (donorId: string) => {
         const donor = donors.find((d) => d.id === donorId);
-        if (donor) setNewCert({ ...newCert, recipientId: donorId, recipientName: donor.name });
+        if (donor && donor.user) {
+            setNewCert({ ...newCert, recipientId: donorId, recipientName: donor.user.name });
+        }
     };
 
     return (
@@ -101,26 +144,28 @@ export default function CertificatesPage() {
                             <div className="space-y-4 mt-4">
                                 <div>
                                     <Label className="text-sm font-semibold text-slate-700">Certificate Type</Label>
-                                    <Select value={newCert.type} onValueChange={(v) => setNewCert({ ...newCert, type: v as Certificate["type"] })}>
+                                    <Select value={newCert.type} onValueChange={(v) => setNewCert({ ...newCert, type: v as "DONATION" | "VOLUNTEER" })}>
                                         <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="donation">Donation Certificate</SelectItem>
-                                            <SelectItem value="volunteer">Volunteer Certificate</SelectItem>
+                                            <SelectItem value="DONATION">Donation Certificate</SelectItem>
+                                            <SelectItem value="VOLUNTEER">Volunteer Certificate</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div>
                                     <Label className="text-sm font-semibold text-slate-700">Recipient</Label>
-                                    <Select value={newCert.recipientId} onValueChange={handleDonorSelect}>
-                                        <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select donor/volunteer" /></SelectTrigger>
+                                    <Select value={newCert.recipientId} onValueChange={handleDonorSelect} disabled={donorsLoading}>
+                                        <SelectTrigger className="mt-1.5">
+                                            <SelectValue placeholder={donorsLoading ? "Loading donors..." : "Select donor/volunteer"} />
+                                        </SelectTrigger>
                                         <SelectContent>
                                             {donors.map((d) => (
-                                                <SelectItem key={d.id} value={d.id}>{d.name} ({d.bloodGroup})</SelectItem>
+                                                <SelectItem key={d.id} value={d.id}>{d.user?.name || 'Unknown'} ({d.bloodGroup})</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                {newCert.type === "volunteer" && (
+                                {newCert.type === "VOLUNTEER" && (
                                     <div>
                                         <Label className="text-sm font-semibold text-slate-700">Event</Label>
                                         <Select value={newCert.eventTitle} onValueChange={(v) => setNewCert({ ...newCert, eventTitle: v })}>
@@ -137,8 +182,12 @@ export default function CertificatesPage() {
                                     <Label className="text-sm font-semibold text-slate-700">Date</Label>
                                     <Input type="date" value={newCert.date} onChange={(e) => setNewCert({ ...newCert, date: e.target.value })} className="mt-1.5" />
                                 </div>
-                                <Button onClick={handleCreate} className="w-full bg-red-800 hover:bg-red-900">
-                                    Generate Certificate
+                                <Button 
+                                    onClick={handleCreate} 
+                                    disabled={isCreating || donorsLoading}
+                                    className="w-full bg-red-800 hover:bg-red-900 disabled:opacity-50"
+                                >
+                                    {isCreating ? "Generating..." : "Generate Certificate"}
                                 </Button>
                             </div>
                         </DialogContent>
@@ -169,7 +218,19 @@ export default function CertificatesPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {certificates.length === 0 ? (
+                                    {certificatesLoading ? (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="text-center py-12 text-slate-500">
+                                                Loading certificates...
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : certificatesError ? (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="text-center py-12 text-red-500">
+                                                Error loading certificates. Please try again.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : certificates.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={6} className="text-center py-12 text-slate-500">
                                                 No certificates generated yet. Click "Generate Certificate" to create one.
@@ -181,14 +242,20 @@ export default function CertificatesPage() {
                                                 <TableCell className="font-medium text-slate-900">{c.recipientName}</TableCell>
                                                 <TableCell>
                                                     <Badge
-                                                        variant={c.type === "donation" ? "default" : "secondary"}
-                                                        className={`text-xs ${c.type === "donation" ? "bg-red-100 text-red-800 border-red-200" : "bg-blue-100 text-blue-800 border-blue-200"}`}
+                                                        variant={c.type === "DONATION" ? "default" : "secondary"}
+                                                        className={`text-xs ${c.type === "DONATION" ? "bg-red-100 text-red-800 border-red-200" : "bg-blue-100 text-blue-800 border-blue-200"}`}
                                                     >
-                                                        {c.type === "donation" ? "Donation" : "Volunteer"}
+                                                        {c.type === "DONATION" ? "Donation" : "Volunteer"}
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-xs text-slate-600 hidden md:table-cell">{c.eventTitle || "—"}</TableCell>
-                                                <TableCell className="text-xs text-slate-600">{c.date}</TableCell>
+                                                <TableCell className="text-xs text-slate-600">
+                                                    {new Date(c.issueDate).toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'short',
+                                                        day: 'numeric'
+                                                    })}
+                                                </TableCell>
                                                 <TableCell className="font-mono text-xs text-slate-600 hidden md:table-cell">{c.volunteerId || "—"}</TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
@@ -199,7 +266,7 @@ export default function CertificatesPage() {
                                                         >
                                                             <Award className="h-3 w-3 mr-1" />Certificate
                                                         </Button>
-                                                        {c.type === "volunteer" && (
+                                                        {c.type === "VOLUNTEER" && (
                                                             <Button
                                                                 variant="ghost" size="sm"
                                                                 className="text-xs h-8 hover:bg-blue-50 hover:text-blue-800"
@@ -234,19 +301,19 @@ export default function CertificatesPage() {
                                     : "Preview and download the volunteer ID card as PDF"}
                             </DialogDescription>
                         </DialogHeader>
-                       // In CertificatesPage.tsx — replace the print button
-<div className="print:hidden mb-4">
-  <Button onClick={() => {
-    // Briefly move certificate outside the dialog portal before printing
-    const el = document.getElementById('print-area');
-    if (el) {
-      document.body.appendChild(el); // reparent to body directly
-    }
-    setTimeout(() => window.print(), 50);
-  }}>
-    Print Certificate
-  </Button>
-</div>
+                        
+                        <div className="print:hidden mb-4">
+                            <Button onClick={() => {
+                                // Briefly move certificate outside the dialog portal before printing
+                                const el = document.getElementById('print-area');
+                                if (el) {
+                                    document.body.appendChild(el); // reparent to body directly
+                                }
+                                setTimeout(() => window.print(), 50);
+                            }}>
+                                Print Certificate
+                            </Button>
+                        </div>
                        
                         <div id="print-area">
                             <div className="print-container">

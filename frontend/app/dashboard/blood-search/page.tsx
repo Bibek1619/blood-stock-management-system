@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDonors } from "@/lib/queries/donors";
+import { useBloodSearchStore, useToast } from "@/lib/store";
 import { getCityCoordinates } from "@/lib/geocoding";
 import {
   BLOOD_GROUPS,
@@ -24,32 +25,35 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-// ─── TOAST ────────────────────────────────────────────────────────────────────
-function useToast() {
-  const [toasts, setToasts] = useState<{ id: number; msg: string; type: string }[]>([]);
-  const add = (msg: string, type = "success") => {
-    const id = Date.now();
-    setToasts((t) => [...t, { id, msg, type }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3000);
-  };
-  return { toasts, toast: add };
-}
-
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function BloodSearchPage() {
   const router = useRouter();
-  const [selectedGroup, setSelectedGroup] = useState<string>("all");
-  const [locationQuery, setLocationQuery] = useState("");
-  const [radius, setRadius] = useState<number>(5);
-  const [clickedPos, setClickedPos] = useState<{ lat: number; lng: number } | null>(null);
+  
+  // Zustand stores
+  const selectedGroup = useBloodSearchStore((state) => state.selectedBloodGroup);
+  const setSelectedGroup = useBloodSearchStore((state) => state.setSelectedBloodGroup);
+  const locationQuery = useBloodSearchStore((state) => state.locationQuery);
+  const setLocationQuery = useBloodSearchStore((state) => state.setLocationQuery);
+  const radius = useBloodSearchStore((state) => state.radius);
+  const setRadius = useBloodSearchStore((state) => state.setRadius);
+  const clickedPos = useBloodSearchStore((state) => state.clickedPosition);
+  const setClickedPos = useBloodSearchStore((state) => state.setClickedPosition);
+  const fullMapOpen = useBloodSearchStore((state) => state.fullMapOpen);
+  const setFullMapOpen = useBloodSearchStore((state) => state.setFullMapOpen);
+  const sheetDonor = useBloodSearchStore((state) => state.selectedDonor);
+  const setSheetDonor = useBloodSearchStore((state) => state.setSelectedDonor);
+  const userLocation = useBloodSearchStore((state) => state.userLocation);
+  const setUserLocation = useBloodSearchStore((state) => state.setUserLocation);
+  const locationError = useBloodSearchStore((state) => state.locationError);
+  const setLocationError = useBloodSearchStore((state) => state.setLocationError);
+  const locationLoading = useBloodSearchStore((state) => state.locationLoading);
+  const setLocationLoading = useBloodSearchStore((state) => state.setLocationLoading);
+  const clearPin = useBloodSearchStore((state) => state.clearPin);
+  
+  // Local state
   const [mapReady, setMapReady] = useState(false);
-  const [sheetDonor, setSheetDonor] = useState<any | null>(null);
-  const [fullMapOpen, setFullMapOpen] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [locationError, setLocationError] = useState<string | null>(null);
-  const [locationLoading, setLocationLoading] = useState(true);
 
-  const { toasts, toast } = useToast();
+  const { toast } = useToast();
 
   // Fetch donors using TanStack Query
   const { data: donors = [], isLoading, error } = useDonors();
@@ -59,7 +63,7 @@ export default function BloodSearchPage() {
     if (error) {
       toast('Failed to load donors. Please refresh the page.', 'error');
     }
-  }, [error]);
+  }, [error, toast]);
 
   // Get user's current location
   useEffect(() => {
@@ -464,8 +468,6 @@ export default function BloodSearchPage() {
     }
   }, [isLoading, donors.length, updateMapOverlays]);
 
-  const clearPin = () => setClickedPos(null);
-
   const useMyLocation = () => {
     if (userLocation) {
       setClickedPos(userLocation);
@@ -498,21 +500,6 @@ export default function BloodSearchPage() {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-        </div>
-        {/* Toast */}
-        <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-50">
-          {toasts.map((t) => (
-            <div
-              key={t.id}
-              className={`px-4 py-2.5 rounded-lg border text-sm font-medium shadow-lg ${
-                t.type === "error"
-                  ? "bg-red-50 border-red-200 text-red-800"
-                  : "bg-green-50 border-green-200 text-green-800"
-              }`}
-            >
-              {t.msg}
-            </div>
-          ))}
         </div>
 
         {/* Header */}

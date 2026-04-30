@@ -1,5 +1,5 @@
 import { QrCode } from "lucide-react";
-import type { Certificate } from "@/lib/data-store";
+import type { Certificate } from "@/lib/queries/certificates";
 
 /* ─────────────────────────────────────────────
    ID Card - Preview (with Tailwind)
@@ -25,7 +25,7 @@ export function IDCardPreview({ cert }: { cert: Certificate | null }) {
             <p className="font-bold text-base text-slate-900">{cert.recipientName}</p>
             <p className="text-sm text-slate-600">स्वयंसेवक</p>
             <p className="font-mono text-sm text-red-800 font-semibold mt-1">
-              {cert.volunteerId || "VOL-2026-XXX"}
+              {cert.certificateNumber || "CERT-2026-XXX"}
             </p>
           </div>
         </div>
@@ -33,7 +33,11 @@ export function IDCardPreview({ cert }: { cert: Certificate | null }) {
           <QrCode className="h-20 w-20 text-slate-400" />
         </div>
         <div className="text-center space-y-1 pt-2 border-t border-slate-100">
-          <p className="text-xs text-slate-500">जारी मिति: {cert.date}</p>
+          <p className="text-xs text-slate-500">जारी मिति: {new Date(cert.issueDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          })}</p>
           <p className="text-xs text-slate-400">स्वयंसेवक गतिविधिका लागि मान्य</p>
         </div>
       </div>

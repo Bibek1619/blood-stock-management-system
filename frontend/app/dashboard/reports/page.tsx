@@ -21,7 +21,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { useData } from "@/lib/data-store";
+import { useDonors } from "@/lib/queries/donors";
+import { useBloodPacks } from "@/lib/queries/bloodPacks";
+import { useEvents } from "@/lib/queries/events";
+import { useBloodStockSummary } from "@/lib/queries/bloodStock";
 import { BLOOD_GROUPS, getDonorTier } from "@/lib/data";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -87,9 +90,26 @@ const CustomPieTooltip = ({ active, payload }: any) => {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function ReportsPage() {
-  const { donors, bloodPacks, events, getStockByGroup } = useData();
+  // Fetch data using TanStack Query
+  const { data: donors = [] } = useDonors();
+  const { data: bloodPacks = [] } = useBloodPacks();
+  const { data: events = [] } = useEvents();
+  const { data: bloodStockData = [] } = useBloodStockSummary();
   
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
+  
+  // Calculate stock by group from bloodStockData
+  const getStockByGroup = () => {
+    const stock: Record<string, { available: number; total: number }> = {};
+    for (const bg of BLOOD_GROUPS) {
+      const stockItem = bloodStockData.find(item => item.bloodGroup === bg);
+      stock[bg] = {
+        available: stockItem?.available || 0,
+        total: stockItem?.total || 0
+      };
+    }
+    return stock;
+  };
   const [bloodGroupData, setBloodGroupData] = useState<BloodGroupData[]>([]);
   const [donorTierData, setDonorTierData] = useState<DonorTierData[]>([]);
   const [eventEffectiveness, setEventEffectiveness] = useState<EventEffectivenessData[]>([]);
@@ -148,14 +168,14 @@ export default function ReportsPage() {
       const expiringSoon = bloodPacks.filter(p => {
         const expiry = new Date(p.expiryDate);
         const daysUntil = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-        return p.status === 'Available' && daysUntil <= 7 && daysUntil > 0;
+        return p.status === 'AVAILABLE' && daysUntil <= 7 && daysUntil > 0;
       }).length;
       
-      const expired = bloodPacks.filter(p => p.status === 'Expired').length;
+      const expired = bloodPacks.filter(p => p.status === 'EXPIRED').length;
       const safe = bloodPacks.filter(p => {
         const expiry = new Date(p.expiryDate);
         const daysUntil = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-        return p.status === 'Available' && daysUntil > 7;
+        return p.status === 'AVAILABLE' && daysUntil > 7;
       }).length;
 
       setExpiryData([
@@ -499,7 +519,7 @@ export default function ReportsPage() {
             </div>
             <div className="text-center">
               <div className="text-3xl font-extrabold text-blue-600 mb-1">
-                {bloodPacks.filter(p => p.status === 'Available').length}
+                {bloodPacks.filter(p => p.status === 'AVAILABLE').length}
               </div>
               <p className="text-xs text-slate-500">Available Units</p>
               <p className="text-xs text-slate-400 mt-1">Across all groups</p>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/lib/query-provider";
+import GlobalNotifications from "@/components/GlobalNotifications";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,6 +35,7 @@ export default function RootLayout({
         <QueryProvider>
           {children}
           <Toaster position="bottom-right" />
+          <GlobalNotifications />
         </QueryProvider>
       </body>
     </html>

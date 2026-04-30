@@ -1,4 +1,4 @@
-import type { Certificate } from "@/lib/data-store";
+import type { Certificate } from "@/lib/queries/certificates";
 
 /* ─────────────────────────────────────────────
    Certificate Preview Component
@@ -59,7 +59,11 @@ export function CertificatePreview({ cert }: { cert: Certificate | null }) {
         </div>
 
         <p className="text-center text-[12px] text-gray-500 pb-5">
-          मिति: {cert.date} {' | '} प्रमाणपत्र नं: {cert.id.toUpperCase()}
+          मिति: {new Date(cert.issueDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short', 
+            day: 'numeric'
+          })} {' | '} प्रमाणपत्र नं: {cert.certificateNumber}
         </p>
       </div>
     </div>
@@ -78,7 +82,10 @@ const SIGS = [
 function CertBody({ cert, nameSize }: { cert: Certificate; nameSize: string }) {
   const red = { color: "#c0001a", fontWeight: "bold" as const };
 
-  if (cert.type === "donation") {
+  // Use the correct API structure
+  const isVolunteer = cert.type === "VOLUNTEER";
+  
+  if (!isVolunteer) {
     return (
       <p style={{ margin: 0 }}>
         सामाजिक सेवाको भावनालाई आत्मसात गर्दै{" "}
@@ -96,7 +103,7 @@ function CertBody({ cert, nameSize }: { cert: Certificate; nameSize: string }) {
   return (
     <p style={{ margin: 0 }}>
       सामाजिक सेवाको भावनालाई आत्मसात गर्दै{" "}
-      <span style={red}>{cert.eventTitle}</span> कार्यक्रममा स्वयंसेवकको रूपमा{" "}
+      <span style={red}>{cert.eventTitle || "Event Name"}</span> कार्यक्रममा स्वयंसेवकको रूपमा{" "}
       <span style={red}>रगत संकलन कार्यमा Samarth Innovation and Technology</span> पोखरा इकाईलाई
       उत्कृष्ट सहयोग पुर्‍याउने सहयोगी{" "}
       <span style={{ ...red, fontSize: nameSize }}>{cert.recipientName}</span>{" "}
