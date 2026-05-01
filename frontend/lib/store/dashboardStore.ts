@@ -24,7 +24,6 @@ interface DashboardState {
   setChartType: (type: 'bar' | 'line' | 'pie') => void;
   resetFilters: () => void;
 }
-
 export const useDashboardStore = create<DashboardState>()(
   persist(
     (set) => ({
