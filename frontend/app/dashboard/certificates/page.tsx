@@ -46,8 +46,15 @@ export default function CertificatesPage() {
     });
 
     const handleCreate = () => {
+        console.log('Form data before validation:', newCert);
+        
         if (!newCert.recipientName.trim()) {
             toast.error("Recipient name is required");
+            return;
+        }
+        
+        if (!newCert.recipientId.trim()) {
+            toast.error("Please select a recipient");
             return;
         }
         
@@ -76,8 +83,12 @@ export default function CertificatesPage() {
             volunteerId: volId,
         };
 
+        console.log('Creating certificate with data:', certificateData);
+        console.log('API URL:', process.env.NEXT_PUBLIC_BACKEND_URL);
+
         createCertificate(certificateData, {
-            onSuccess: () => {
+            onSuccess: (data) => {
+                console.log('Certificate created successfully:', data);
                 setDialogOpen(false);
                 setNewCert({ 
                     type: "DONATION", 
@@ -90,15 +101,26 @@ export default function CertificatesPage() {
                 toast.success("Certificate created successfully!");
             },
             onError: (error: any) => {
+                console.error('Certificate creation failed:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
                 toast.error(error.message || "Failed to create certificate");
             }
         });
     };
 
     const handleDonorSelect = (donorId: string) => {
+        console.log('Selecting donor with ID:', donorId);
         const donor = donors.find((d) => d.id === donorId);
+        console.log('Found donor:', donor);
         if (donor && donor.user) {
-            setNewCert({ ...newCert, recipientId: donorId, recipientName: donor.user.name });
+            console.log('Setting recipient ID to user ID:', donor.user.id);
+            setNewCert({ ...newCert, recipientId: donor.user.id, recipientName: donor.user.name });
+        } else {
+            console.error('Donor not found or donor has no user:', { donorId, donor });
         }
     };
 
