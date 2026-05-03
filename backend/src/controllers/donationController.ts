@@ -5,17 +5,29 @@ import { sendDonationThankYou } from "../services/notificationService";
 import { geocodeLocation } from "../utils/geocoding";
 
 export const getAllDonations = async (req: Request, res: Response) => {
-  const { bloodGroup, donationType, status, userId, donorId, eventId } = req.query;
+  const { bloodGroup, donationType, status, userId, donorId, eventId, page = '1', limit = '20' } = req.query;
 
+  // Parse pagination parameters
+  const pageNum = parseInt(page as string);
+  const limitNum = parseInt(limit as string);
+  const skip = (pageNum - 1) * limitNum;
+
+  // Build where clause
+  const where = {
+    ...(bloodGroup && { bloodGroup: bloodGroup as any }),
+    ...(donationType && { donationType: donationType as any }),
+    ...(status && { status: status as any }),
+    ...(userId && { userId: userId as string }),
+    ...(donorId && { donorId: donorId as string }),
+    ...(eventId && { eventId: eventId as string }),
+  };
+
+  // Get total count for pagination
+  const total = await prisma.donation.count({ where });
+
+  // Get paginated donations
   const donations = await prisma.donation.findMany({
-    where: {
-      ...(bloodGroup && { bloodGroup: bloodGroup as any }),
-      ...(donationType && { donationType: donationType as any }),
-      ...(status && { status: status as any }),
-      ...(userId && { userId: userId as string }),
-      ...(donorId && { donorId: donorId as string }),
-      ...(eventId && { eventId: eventId as string }),
-    },
+    where,
     include: {
       user: {
         select: {
@@ -34,9 +46,20 @@ export const getAllDonations = async (req: Request, res: Response) => {
       },
     },
     orderBy: { donationDate: "desc" },
+    skip,
+    take: limitNum,
   });
 
-  res.json({ status: "success", data: donations });
+  res.json({ 
+    status: "success", 
+    data: donations,
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      total,
+      totalPages: Math.ceil(total / limitNum),
+    }
+  });
 };
 
 export const getDonationById = async (req: Request, res: Response) => {
