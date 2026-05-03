@@ -3,13 +3,25 @@ import { prisma } from "../../lib/prisma";
 import { AppError } from "../middleware/errorHandler";
 
 export const getBloodStock = async (req: Request, res: Response) => {
-  const { bloodGroup, status } = req.query;
+  const { bloodGroup, status, page = '1', limit = '20' } = req.query;
 
+  // Parse pagination parameters
+  const pageNum = parseInt(page as string);
+  const limitNum = parseInt(limit as string);
+  const skip = (pageNum - 1) * limitNum;
+
+  // Build where clause
+  const where = {
+    ...(bloodGroup && { bloodGroup: bloodGroup as any }),
+    ...(status && { status: status as any }),
+  };
+
+  // Get total count for pagination
+  const total = await prisma.bloodPack.count({ where });
+
+  // Get paginated blood packs
   const bloodPacks = await prisma.bloodPack.findMany({
-    where: {
-      ...(bloodGroup && { bloodGroup: bloodGroup as any }),
-      ...(status && { status: status as any }),
-    },
+    where,
     include: {
       donor: {
         include: {
@@ -23,9 +35,20 @@ export const getBloodStock = async (req: Request, res: Response) => {
       },
     },
     orderBy: { collectionDate: "desc" },
+    skip,
+    take: limitNum,
   });
 
-  res.json({ status: "success", data: bloodPacks });
+  res.json({ 
+    status: "success", 
+    data: bloodPacks,
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      total,
+      totalPages: Math.ceil(total / limitNum),
+    }
+  });
 };
 
 export const getBloodStockSummary = async (req: Request, res: Response) => {
