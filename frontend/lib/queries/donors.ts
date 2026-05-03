@@ -36,6 +36,17 @@ export interface Donor {
     createdAt?: string;
   };
 }
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 interface CreateDonorData {
   userId: string;
   bloodGroup: string;
@@ -46,15 +57,33 @@ interface CreateDonorData {
   address?: string;
 }
 
-// Fetch all donors
-export function useDonors(filters?: any) {
+// Fetch all donors with pagination
+export function useDonors(filters?: any, page?: number, limit?: number) {
+  const shouldPaginate = page !== undefined || limit !== undefined;
+  const actualPage = page || 1;
+  const actualLimit = limit || 20;
+
   return useQuery({
-    queryKey: donorKeys.list(filters),
+    queryKey: donorKeys.list({ ...filters, ...(shouldPaginate && { page: actualPage, limit: actualLimit }) }),
     queryFn: async () => {
-      const response = await axiosInstance.get<{ status: string; data: Donor[] }>(
+      const params = shouldPaginate 
+        ? { ...filters, page: actualPage, limit: actualLimit }
+        : filters;
+      
+      const response = await axiosInstance.get<{ status: string; data: Donor[]; pagination?: any }>(
         API_PATHS.DONOR.GET_ALL,
-        { params: filters }
+        { params }
       );
+      
+      // If pagination is requested, return the full response
+      if (shouldPaginate && response.data.pagination) {
+        return {
+          data: response.data.data,
+          pagination: response.data.pagination,
+        };
+      }
+      
+      // Otherwise, return just the data for backward compatibility
       return response.data.data;
     },
   });

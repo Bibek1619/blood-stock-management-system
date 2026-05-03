@@ -15,6 +15,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Pagination } from "@/components/ui/pagination";
 import { useDonors } from "@/lib/queries/donors";
 
 // Utility function to format blood group
@@ -73,9 +74,15 @@ export default function DonorsPage() {
   const [activeTab, setActiveTab] = useState<"all" | "organization" | "unregistered">("all");
 
   const { toasts, toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageLimit = 20;
 
-  // Fetch donors using TanStack Query
-  const { data: donors = [], isLoading, error } = useDonors();
+  // Fetch donors using TanStack Query with pagination
+  const { data, isLoading, error } = useDonors({}, currentPage, pageLimit);
+  
+  // Extract donors and pagination info
+  const donors = Array.isArray(data) ? data : (data?.data || []);
+  const pagination = !Array.isArray(data) ? data?.pagination : undefined;
 
   // Show error toast if fetch fails
   if (error) {
@@ -349,11 +356,22 @@ export default function DonorsPage() {
             )}
           </tbody>
         </table>
-        <div className="px-3.5 py-2.5 border-t border-slate-100 text-xs text-slate-400">
-          Showing {filtered.length} of {tabFilteredDonors.length} donors
-          {activeTab === "organization" && " (bulk collection organizations)"}
-          {activeTab === "unregistered" && " (haven't claimed their account)"}
-        </div>
+        {pagination && (
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            limit={pagination.limit}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        )}
+        {!pagination && (
+          <div className="px-3.5 py-2.5 border-t border-slate-100 text-xs text-slate-400">
+            Showing {filtered.length} of {tabFilteredDonors.length} donors
+            {activeTab === "organization" && " (bulk collection organizations)"}
+            {activeTab === "unregistered" && " (haven't claimed their account)"}
+          </div>
+        )}
       </div>
     </div>
     </div>

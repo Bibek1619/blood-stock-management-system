@@ -7,61 +7,61 @@ import Image from "next/image";
 const images = [
   {
     id: 1,
-    src: "https://images.unsplash.com/photo-1612277795421-9bc7706a4a34?w=400&h=300&fit=crop&crop=center",
+    src: "/blood1.jpg",
     name: "Blood Donation Process",
     alt: "Person donating blood with medical professional"
   },
   {
     id: 2,
-    src: "https://images.unsplash.com/photo-1628348068343-c6a848d2b6dd?w=400&h=300&fit=crop&crop=center",
+    src: "/blood2.avif",
     name: "Blood Collection Setup",
     alt: "Medical staff setting up blood collection equipment"
   },
   {
     id: 3,
-    src: "https://images.unsplash.com/photo-1559757175-c8d6ed95b8f8?w=400&h=300&fit=crop&crop=center",
+    src: "/blood3.jpg",
     name: "Community Blood Drive",
     alt: "Community blood donation event with volunteers"
   },
   {
     id: 4,
-    src: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=300&fit=crop&crop=center",
+    src: "/blood4.webp",
     name: "Donor Registration",
     alt: "Volunteer registering for blood donation"
   },
   {
     id: 5,
-    src: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&crop=center",
+    src: "/blood6.jpeg",
     name: "Blood Donation Chair",
     alt: "Donor in blood donation chair with nurse"
   },
   {
     id: 6,
-    src: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop&crop=center",
+    src: "/blood1.jpg",
     name: "Medical Staff Assistance",
     alt: "Healthcare worker assisting blood donor"
   },
   {
     id: 7,
-    src: "https://images.unsplash.com/photo-1631815588091-d4bfec5b1ccb?w=400&h=300&fit=crop&crop=center",
+    src: "/blood2.avif",
     name: "Blood Collection Process",
     alt: "Medical professional during blood collection"
   },
   {
     id: 8,
-    src: "https://images.unsplash.com/photo-1559757175-8a5c3c6c4e8e?w=400&h=300&fit=crop&crop=center",
+    src: "/blood3.jpg",
     name: "Volunteer Blood Donors",
     alt: "Group of volunteers at blood donation event"
   },
   {
     id: 9,
-    src: "https://images.unsplash.com/photo-1666214280391-8ff5bd3c0bf0?w=400&h=300&fit=crop&crop=center",
+    src: "/blood4.webp",
     name: "Donation Drive Setup",
     alt: "Blood donation drive setup with medical equipment"
   },
   {
     id: 10,
-    src: "https://images.unsplash.com/photo-1638202993928-7267aad84c31?w=400&h=300&fit=crop&crop=center",
+    src: "/blood6.jpeg",
     name: "Blood Donor Care",
     alt: "Medical team caring for blood donor during process"
   }

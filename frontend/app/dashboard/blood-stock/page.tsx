@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Pagination } from "@/components/ui/pagination";
 import { toast } from "sonner";
 import {
   Breadcrumb,
@@ -50,11 +51,17 @@ export default function BloodStockPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageLimit = 20;
 
-  // Fetch data using TanStack Query
-  const { data: bloodPacks = [], isLoading: isLoadingPacks } = useBloodPacks();
+  // Fetch data using TanStack Query with pagination
+  const { data: packsData, isLoading: isLoadingPacks } = useBloodPacks({}, currentPage, pageLimit);
   const { data: stockSummary = [], isLoading: isLoadingSummary } = useBloodStockSummary();
   const updateStatus = useUpdateBloodPackStatus();
+
+  // Extract blood packs and pagination info
+  const bloodPacks = Array.isArray(packsData) ? packsData : (packsData?.data || []);
+  const pagination = !Array.isArray(packsData) ? packsData?.pagination : undefined;
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -400,9 +407,20 @@ export default function BloodStockPage() {
             )}
           </TableBody>
         </Table>
-        <div className="px-3.5 py-2.5 border-t text-xs text-slate-400">
-          Showing {Math.min(filteredPacks.length, 50)} of {filteredPacks.length} packs
-        </div>
+        {pagination && (
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            limit={pagination.limit}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        )}
+        {!pagination && (
+          <div className="px-3.5 py-2.5 border-t text-xs text-slate-400">
+            Showing {Math.min(filteredPacks.length, 50)} of {filteredPacks.length} packs
+          </div>
+        )}
       </Card>
     </div>
   );

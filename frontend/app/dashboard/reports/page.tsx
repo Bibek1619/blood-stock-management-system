@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import {
   Calendar, Activity, Droplet, TrendingUp, Home, Users, Award,
-  AlertTriangle, TrendingDown, Package, Clock, MapPin, Target,
+  AlertTriangle, TrendingDown, Package, Clock, MapPin, Target, Download,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -25,7 +26,16 @@ import { useDonors } from "@/lib/queries/donors";
 import { useBloodPacks } from "@/lib/queries/bloodPacks";
 import { useEvents } from "@/lib/queries/events";
 import { useBloodStockSummary } from "@/lib/queries/bloodStock";
+import { useBloodIssues } from "@/lib/queries/bloodIssues";
+import { useDonations } from "@/lib/queries/donations";
 import { BLOOD_GROUPS, getDonorTier } from "@/lib/data";
+import { 
+  exportBloodIssuesToExcel, 
+  exportBloodPacksToExcel, 
+  exportDonorsToExcel,
+  exportDonationsToExcel 
+} from "@/lib/exportToExcel";
+import { toast } from "sonner";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type MonthlyData = {
@@ -59,6 +69,12 @@ type ExpiryData = {
   status: string;
   count: number;
   color: string;
+};
+
+type MonthlyIssueData = {
+  month: string;
+  person: number;
+  organization: number;
 };
 
 // ── Custom Tooltips ────────────────────────────────────────────────────────────
@@ -95,21 +111,11 @@ export default function ReportsPage() {
   const { data: bloodPacks = [] } = useBloodPacks();
   const { data: events = [] } = useEvents();
   const { data: bloodStockData = [] } = useBloodStockSummary();
+  const { data: bloodIssues = [] } = useBloodIssues();
+  const { data: donations = [] } = useDonations();
   
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
-  
-  // Calculate stock by group from bloodStockData
-  const getStockByGroup = () => {
-    const stock: Record<string, { available: number; total: number }> = {};
-    for (const bg of BLOOD_GROUPS) {
-      const stockItem = bloodStockData.find(item => item.bloodGroup === bg);
-      stock[bg] = {
-        available: stockItem?.available || 0,
-        total: stockItem?.total || 0
-      };
-    }
-    return stock;
-  };
+  const [monthlyIssueData, setMonthlyIssueData] = useState<MonthlyIssueData[]>([]);
   const [bloodGroupData, setBloodGroupData] = useState<BloodGroupData[]>([]);
   const [donorTierData, setDonorTierData] = useState<DonorTierData[]>([]);
   const [eventEffectiveness, setEventEffectiveness] = useState<EventEffectivenessData[]>([]);
@@ -118,25 +124,79 @@ export default function ReportsPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Monthly trend data (last 6 months)
-      const demoMonthlyData: MonthlyData[] = [
-        { month: 'Jan', collections: 45, issues: 38, events: 3 },
-        { month: 'Feb', collections: 52, issues: 41, events: 4 },
-        { month: 'Mar', collections: 48, issues: 45, events: 3 },
-        { month: 'Apr', collections: 61, issues: 52, events: 5 },
-        { month: 'May', collections: 58, issues: 49, events: 4 },
-        { month: 'Jun', collections: 65, issues: 58, events: 6 },
-      ];
-      setMonthlyData(demoMonthlyData);
+      // Monthly trend data (last 6 months) - DYNAMIC from real data
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+      const dynamicMonthlyData: MonthlyData[] = monthNames.map((month, index) => {
+        const monthDate = new Date();
+        monthDate.setMonth(monthDate.getMonth() - (5 - index));
+        
+        // Count collections (completed donations) for this month
+        const monthCollections = donations.filter(donation => {
+          const donationDate = new Date(donation.donationDate);
+          return donationDate.getMonth() === monthDate.getMonth() && 
+                 donationDate.getFullYear() === monthDate.getFullYear() &&
+                 donation.status === 'COMPLETED';
+        }).length;
+        
+        // Count issues (completed blood issues) for this month
+        const monthIssues = bloodIssues.filter(issue => {
+          const issueDate = new Date(issue.issueDate);
+          return issueDate.getMonth() === monthDate.getMonth() && 
+                 issueDate.getFullYear() === monthDate.getFullYear() &&
+                 issue.status === 'COMPLETED';
+        }).length;
+        
+        // Count events for this month
+        const monthEvents = events.filter(event => {
+          const eventDate = new Date(event.eventDate);
+          return eventDate.getMonth() === monthDate.getMonth() && 
+                 eventDate.getFullYear() === monthDate.getFullYear();
+        }).length;
+        
+        return {
+          month,
+          collections: monthCollections,
+          issues: monthIssues,
+          events: monthEvents,
+        };
+      });
+      setMonthlyData(dynamicMonthlyData);
 
-      // Blood group distribution
-      const stockByGroup = getStockByGroup();
-      const bgData: BloodGroupData[] = BLOOD_GROUPS.map(bg => ({
-        name: bg,
-        available: stockByGroup[bg]?.available || 0,
-        used: (stockByGroup[bg]?.total || 0) - (stockByGroup[bg]?.available || 0),
-        expired: 0, // Not tracked in current data structure
-      }));
+      // Monthly blood issue data (Person vs Organization) - reuse monthNames
+      const monthlyIssues: MonthlyIssueData[] = monthNames.map((month, index) => {
+        const monthDate = new Date();
+        monthDate.setMonth(monthDate.getMonth() - (5 - index));
+        
+        const monthIssues = bloodIssues.filter(issue => {
+          const issueDate = new Date(issue.issueDate);
+          return issueDate.getMonth() === monthDate.getMonth() && 
+                 issueDate.getFullYear() === monthDate.getFullYear() &&
+                 issue.status === 'COMPLETED';
+        });
+        
+        const personIssues = monthIssues.filter(i => i.recipientType === 'PERSON').reduce((sum, i) => sum + i.unitsIssued, 0);
+        const orgIssues = monthIssues.filter(i => i.recipientType === 'ORGANIZATION' || i.recipientType === 'HOSPITAL').reduce((sum, i) => sum + i.unitsIssued, 0);
+        
+        return {
+          month,
+          person: personIssues,
+          organization: orgIssues,
+        };
+      });
+      setMonthlyIssueData(monthlyIssues);
+
+      // Blood group distribution - Fully Dynamic from API
+      const bgData: BloodGroupData[] = BLOOD_GROUPS.map(bg => {
+        // Convert display format (A+) to database format (A_POSITIVE)
+        const dbFormat = bg.replace('+', '_POSITIVE').replace('-', '_NEGATIVE');
+        const stockItem = bloodStockData.find(item => item.bloodGroup === dbFormat);
+        return {
+          name: bg,
+          available: stockItem?.available || 0,
+          used: stockItem?.used || 0,
+          expired: stockItem?.expired || 0,
+        };
+      });
       setBloodGroupData(bgData);
 
       // Donor tier distribution
@@ -187,7 +247,7 @@ export default function ReportsPage() {
       setLoading(false);
     }, 400);
     return () => clearTimeout(timer);
-  }, [donors, bloodPacks, events, getStockByGroup]);
+  }, [donors, bloodPacks, events, bloodIssues, donations, bloodStockData]);
 
   if (loading) {
     return (
@@ -227,9 +287,82 @@ export default function ReportsPage() {
       </div>
 
       {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-[26px] font-extrabold text-slate-900 m-0 tracking-tight">Reports & Analytics</h1>
-        <p className="text-[13px] text-slate-500 mt-[3px]">Comprehensive insights and performance metrics for blood bank operations</p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-[26px] font-extrabold text-slate-900 m-0 tracking-tight">Reports & Analytics</h1>
+          <p className="text-[13px] text-slate-500 mt-[3px]">Comprehensive insights and performance metrics for blood bank operations</p>
+        </div>
+        
+        {/* Export Buttons */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const success = exportBloodIssuesToExcel(bloodIssues);
+              if (success) {
+                toast.success('Blood issues report exported successfully!');
+              } else {
+                toast.error('Failed to export report');
+              }
+            }}
+            className="gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Export Blood Issues
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const success = exportBloodPacksToExcel(bloodPacks);
+              if (success) {
+                toast.success('Blood packs report exported successfully!');
+              } else {
+                toast.error('Failed to export report');
+              }
+            }}
+            className="gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Export Blood Packs
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const success = exportDonorsToExcel(donors);
+              if (success) {
+                toast.success('Donors report exported successfully!');
+              } else {
+                toast.error('Failed to export report');
+              }
+            }}
+            className="gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Export Donors
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const success = exportDonationsToExcel(donations);
+              if (success) {
+                toast.success('Donations report exported successfully!');
+              } else {
+                toast.error('Failed to export report');
+              }
+            }}
+            className="gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Export Donations
+          </Button>
+        </div>
       </div>
 
       {/* Key Performance Indicators */}
@@ -288,9 +421,9 @@ export default function ReportsPage() {
       </div>
 
       {/* Main Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Event Reports Button */}
-        <Card className="lg:col-span-2">
+      <div className="space-y-6 mb-6">
+        {/* Event Reports Button - Full Width */}
+        <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -307,32 +440,16 @@ export default function ReportsPage() {
                 className="px-4 py-2 bg-[#7F1D1D] hover:bg-[#991B1B] text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
               >
                 <Calendar size={14} />
-                See Event Report
+                View Reports
               </button>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center h-64 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
-              <div className="text-center">
-                <Calendar size={48} className="text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">Event Performance Analytics</h3>
-                <p className="text-sm text-slate-500 mb-4 max-w-md">
-                  Get detailed insights into event-wise blood collection performance, donor participation, and efficiency metrics.
-                </p>
-                <button
-                  onClick={() => window.location.href = '/dashboard/reports/events'}
-                  className="px-6 py-3 bg-[#7F1D1D] hover:bg-[#991B1B] text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 mx-auto"
-                >
-                  <Activity size={16} />
-                  View Event Reports
-                </button>
-              </div>
-            </div>
-          </CardContent>
         </Card>
 
-        {/* Blood Group Distribution */}
-        <Card>
+        {/* Blood Group Stock Analysis & Blood Issue Report - Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Blood Group Distribution */}
+          <Card>
           <CardHeader>
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.15)] flex items-center justify-center">
@@ -367,6 +484,45 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
 
+        {/* Blood Issue Report - Monthly */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.15)] flex items-center justify-center">
+                <Package size={15} color="#7F1D1D" />
+              </div>
+              <div>
+                <CardTitle className="text-sm">Blood Issue Report</CardTitle>
+                <CardDescription className="text-xs">Monthly blood distribution to persons and organizations</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={monthlyIssueData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  axisLine={false} tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  axisLine={false} tickLine={false}
+                />
+                <Tooltip content={<CustomLineTooltip />} />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Bar dataKey="person" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Person" />
+                <Bar dataKey="organization" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="Organization" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+
+      {/* Secondary Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Donor Tier Distribution */}
         <Card>
           <CardHeader>
@@ -407,10 +563,7 @@ export default function ReportsPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Secondary Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Event Effectiveness */}
         <Card>
           <CardHeader>
