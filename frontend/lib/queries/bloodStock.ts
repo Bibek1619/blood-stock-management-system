@@ -41,16 +41,34 @@ export const bloodStockKeys = {
 };
 
 /**
- * Hook to fetch all blood packs with optional filters
+ * Hook to fetch all blood packs with optional filters and pagination
  */
-export function useBloodPacks(filters?: { bloodGroup?: string; status?: string }) {
+export function useBloodPacks(filters?: { bloodGroup?: string; status?: string }, page?: number, limit?: number) {
+  const shouldPaginate = page !== undefined || limit !== undefined;
+  const actualPage = page || 1;
+  const actualLimit = limit || 20;
+
   return useQuery({
-    queryKey: bloodStockKeys.list(filters),
+    queryKey: bloodStockKeys.list({ ...filters, ...(shouldPaginate && { page: actualPage, limit: actualLimit }) }),
     queryFn: async () => {
-      const response = await axiosInstance.get<{ status: string; data: BloodPack[] }>(
+      const params = shouldPaginate 
+        ? { ...filters, page: actualPage, limit: actualLimit }
+        : filters;
+      
+      const response = await axiosInstance.get<{ status: string; data: BloodPack[]; pagination?: any }>(
         API_PATHS.BLOOD_PACK.GET_ALL,
-        { params: filters }
+        { params }
       );
+      
+      // If pagination is requested, return the full response
+      if (shouldPaginate && response.data.pagination) {
+        return {
+          data: response.data.data,
+          pagination: response.data.pagination,
+        };
+      }
+      
+      // Otherwise, return just the data for backward compatibility
       return response.data.data;
     },
     staleTime: 30000, // 30 seconds
