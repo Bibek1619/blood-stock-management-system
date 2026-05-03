@@ -4,14 +4,26 @@ import { AppError } from "../middleware/errorHandler";
 import { geocodeLocation } from "../utils/geocoding";
 
 export const getAllDonors = async (req: Request, res: Response) => {
-  const { bloodGroup, location, isEligible } = req.query;
+  const { bloodGroup, location, isEligible, page = '1', limit = '20' } = req.query;
 
+  // Parse pagination parameters
+  const pageNum = parseInt(page as string);
+  const limitNum = parseInt(limit as string);
+  const skip = (pageNum - 1) * limitNum;
+
+  // Build where clause
+  const where = {
+    ...(bloodGroup && { bloodGroup: bloodGroup as any }),
+    ...(location && { location: { contains: location as string, mode: "insensitive" as const } }),
+    ...(isEligible !== undefined && { isEligible: isEligible === "true" }),
+  };
+
+  // Get total count for pagination
+  const total = await prisma.donor.count({ where });
+
+  // Get paginated donors
   const donors = await prisma.donor.findMany({
-    where: {
-      ...(bloodGroup && { bloodGroup: bloodGroup as any }),
-      ...(location && { location: { contains: location as string, mode: "insensitive" } }),
-      ...(isEligible !== undefined && { isEligible: isEligible === "true" }),
-    },
+    where,
     include: {
       user: {
         select: {
@@ -24,9 +36,20 @@ export const getAllDonors = async (req: Request, res: Response) => {
       },
     },
     orderBy: { createdAt: "desc" },
+    skip,
+    take: limitNum,
   });
 
-  res.json({ status: "success", data: donors });
+  res.json({ 
+    status: "success", 
+    data: donors,
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      total,
+      totalPages: Math.ceil(total / limitNum),
+    }
+  });
 };
 
 export const getDonorById = async (req: Request, res: Response) => {
