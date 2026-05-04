@@ -2,3 +2,8 @@ node_modules
 dist
 .env
 *.log
+
+# Prevent compiled JS files in source directories
+lib/**/*.js
+generated/**/*.js
+src/**/*.js

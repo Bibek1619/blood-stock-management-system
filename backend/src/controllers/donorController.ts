@@ -24,7 +24,23 @@ export const getAllDonors = async (req: Request, res: Response) => {
   // Get paginated donors
   const donors = await prisma.donor.findMany({
     where,
-    include: {
+    select: {
+      id: true,
+      userId: true,
+      bloodGroup: true,
+      donorType: true, // Explicitly include donorType
+      location: true,
+      city: true,
+      address: true,
+      dateOfBirth: true,
+      weight: true,
+      latitude: true,
+      longitude: true,
+      lastDonationDate: true,
+      totalDonations: true,
+      isEligible: true,
+      createdAt: true,
+      updatedAt: true,
       user: {
         select: {
           id: true,
@@ -56,8 +72,24 @@ export const getDonorById = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   const donor = await prisma.donor.findUnique({
-    where: { id },
-    include: {
+    where: { id: id as string },
+    select: {
+      id: true,
+      userId: true,
+      bloodGroup: true,
+      donorType: true, // Explicitly include donorType
+      location: true,
+      city: true,
+      address: true,
+      dateOfBirth: true,
+      weight: true,
+      latitude: true,
+      longitude: true,
+      lastDonationDate: true,
+      totalDonations: true,
+      isEligible: true,
+      createdAt: true,
+      updatedAt: true,
       user: true,
       bloodPacks: true,
     },
@@ -102,6 +134,7 @@ export const createDonor = async (req: Request, res: Response) => {
     data: {
       userId,
       bloodGroup,
+      donorType: 'PERSON', // Default to PERSON for individual donors
       location,
       city,
       address,
@@ -110,7 +143,23 @@ export const createDonor = async (req: Request, res: Response) => {
       latitude: finalLatitude,
       longitude: finalLongitude,
     },
-    include: {
+    select: {
+      id: true,
+      userId: true,
+      bloodGroup: true,
+      donorType: true,
+      location: true,
+      city: true,
+      address: true,
+      dateOfBirth: true,
+      weight: true,
+      latitude: true,
+      longitude: true,
+      lastDonationDate: true,
+      totalDonations: true,
+      isEligible: true,
+      createdAt: true,
+      updatedAt: true,
       user: true,
     },
   });
@@ -133,9 +182,25 @@ export const updateDonor = async (req: Request, res: Response) => {
   const updateData = req.body;
 
   const donor = await prisma.donor.update({
-    where: { id },
+    where: { id: id as string },
     data: updateData,
-    include: {
+    select: {
+      id: true,
+      userId: true,
+      bloodGroup: true,
+      donorType: true,
+      location: true,
+      city: true,
+      address: true,
+      dateOfBirth: true,
+      weight: true,
+      latitude: true,
+      longitude: true,
+      lastDonationDate: true,
+      totalDonations: true,
+      isEligible: true,
+      createdAt: true,
+      updatedAt: true,
       user: true,
     },
   });
@@ -147,7 +212,7 @@ export const deleteDonor = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   await prisma.donor.delete({
-    where: { id },
+    where: { id: id as string },
   });
 
   res.json({ status: "success", message: "Donor deleted successfully" });

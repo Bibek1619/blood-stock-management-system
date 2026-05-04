@@ -48,7 +48,7 @@ export default function DonorFormPage() {
 
   // Show map when both city and address are provided
   useEffect(() => {
-    if (form.city && form.address && form.city.length > 2 && form.address.length > 3) {
+    if ((form.city && form.city.length > 2) || (form.address && form.address.length > 3)) {
       setShowLocationMap(true);
     } else {
       setShowLocationMap(false);
@@ -140,9 +140,9 @@ export default function DonorFormPage() {
           const coords = await geocodeLocationWithFallback(fullAddress);
           
           if (coords) {
-            latitude = coords.lat;
-            longitude = coords.lng;
-            console.log(`✅ Geocoded address: ${fullAddress} → ${coords.lat}, ${coords.lng}`);
+            latitude = coords.latitude;
+            longitude = coords.longitude;
+            console.log(`✅ Geocoded address: ${fullAddress} → ${coords.latitude}, ${coords.longitude}`);
           } else {
             console.log(`⚠️ Could not geocode address: ${fullAddress}`);
           }
@@ -156,9 +156,9 @@ export default function DonorFormPage() {
         try {
           const coords = await geocodeLocationWithFallback(form.city);
           if (coords) {
-            latitude = coords.lat;
-            longitude = coords.lng;
-            console.log(`✅ Geocoded city: ${form.city} → ${coords.lat}, ${coords.lng}`);
+            latitude = coords.latitude;
+            longitude = coords.longitude;
+            console.log(`✅ Geocoded city: ${form.city} → ${coords.latitude}, ${coords.longitude}`);
           }
         } catch (geocodeError) {
           console.error('City geocoding failed:', geocodeError);

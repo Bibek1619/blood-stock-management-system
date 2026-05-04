@@ -74,7 +74,7 @@ export const getBloodPackById = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   const bloodPack = await prisma.bloodPack.findUnique({
-    where: { id },
+    where: { id: id as string },
     include: {
       donor: {
         include: {
@@ -135,7 +135,7 @@ export const updateBloodPack = async (req: Request, res: Response) => {
   const updateData = req.body;
 
   const bloodPack = await prisma.bloodPack.update({
-    where: { id },
+    where: { id: id as string },
     data: updateData,
     include: {
       donor: {
@@ -153,7 +153,7 @@ export const deleteBloodPack = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   await prisma.bloodPack.delete({
-    where: { id },
+    where: { id: id as string },
   });
 
   res.json({ status: "success", message: "Blood pack deleted successfully" });

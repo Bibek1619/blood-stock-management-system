@@ -4,12 +4,59 @@ import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MapPin, Loader2 } from 'lucide-react';
+import { getMajorCityCoordinates } from '@/lib/geocoding';
+
+// Local city database for offline suggestions
+const NEPAL_CITIES = [
+  'Kathmandu', 'Pokhara', 'Lalitpur', 'Bhaktapur', 'Biratnagar', 'Bharatpur', 
+  'Chitwan', 'Dharan', 'Butwal', 'Nepalgunj', 'Janakpur', 'Hetauda', 'Birgunj',
+  'Dhangadhi', 'Itahari', 'Gorkha', 'Baglung', 'Tansen', 'Dang', 'Tulsipur',
+  'Kalaiya', 'Siddharthanagar', 'Mahendranagar', 'Tikapur', 'Rajbiraj', 'Lahan',
+  'Siraha', 'Gaur', 'Malangwa', 'Triyuga', 'Damak', 'Mechinagar', 'Birtamod',
+  'Urlabari', 'Inaruwa', 'Khandbari', 'Bhojpur', 'Diktel', 'Okhaldhunga',
+  'Charikot', 'Jiri', 'Sindhuli', 'Kamalamai', 'Manthali', 'Dhulikhel',
+  'Banepa', 'Panauti', 'Madhyapur', 'Kirtipur', 'Tokha', 'Budhanilkantha',
+  'Tarakeshwar', 'Dakshinkali', 'Nagarjun', 'Kageshwari', 'Gokarneshwar',
+  'Changunarayan', 'Suryabinayak', 'Mahalaxmi', 'Godawari', 'Konjyosom', 'Bagmati'
+];
+
+// Function to get local city suggestions
+const getLocalCitySuggestions = (query: string, forceShow: boolean = false) => {
+  const normalizedQuery = query.toLowerCase().trim();
+  
+  if (!forceShow && normalizedQuery.length < 2) return [];
+  
+  const matches = NEPAL_CITIES.filter(city => 
+    city.toLowerCase().includes(normalizedQuery) ||
+    normalizedQuery.includes(city.toLowerCase())
+  ).slice(0, 5);
+  
+  // Convert to Nominatim-like format
+  return matches.map(city => {
+    const coords = getMajorCityCoordinates(city);
+    return {
+      display_name: `${city}, Nepal`,
+      lat: coords?.latitude?.toString() || '27.7172',
+      lon: coords?.longitude?.toString() || '85.3240',
+      address: {
+        city: city,
+        country: 'Nepal'
+      },
+      isLocal: true // Flag to identify local suggestions
+    };
+  });
+};
 
 interface LocationSuggestion {
   display_name: string;
   lat: string;
   lon: string;
-  place_id: number;
+  place_id?: number;
+  address?: {
+    city?: string;
+    country?: string;
+  };
+  isLocal?: boolean;
 }
 
 interface LocationAutocompleteProps {
@@ -64,7 +111,16 @@ export function LocationAutocomplete({
     setIsLoading(true);
 
     try {
-      // Combine query with additional context for better results
+      // First try local city matching for better performance
+      const localCities = getLocalCitySuggestions(query);
+      if (localCities.length > 0) {
+        setSuggestions(localCities);
+        setShowSuggestions(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Try Nominatim API for more detailed results
       let searchQuery = query;
       if (additionalContext && additionalContext.trim().length > 0) {
         searchQuery = `${query}, ${additionalContext}`;
@@ -85,9 +141,18 @@ export function LocationAutocomplete({
         const data = await response.json();
         setSuggestions(data);
         setShowSuggestions(true);
+      } else {
+        // Fallback to local suggestions if API fails
+        const fallbackCities = getLocalCitySuggestions(query, true);
+        setSuggestions(fallbackCities);
+        setShowSuggestions(true);
       }
     } catch (error) {
       console.error('Error fetching location suggestions:', error);
+      // Fallback to local city suggestions when API fails
+      const fallbackCities = getLocalCitySuggestions(query, true);
+      setSuggestions(fallbackCities);
+      setShowSuggestions(true);
     } finally {
       setIsLoading(false);
     }
@@ -185,7 +250,7 @@ export function LocationAutocomplete({
         <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {suggestions.map((suggestion, index) => (
             <button
-              key={suggestion.place_id}
+              key={suggestion.place_id || index}
               type="button"
               onClick={() => handleSelectSuggestion(suggestion)}
               className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 ${
@@ -195,9 +260,16 @@ export function LocationAutocomplete({
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900 truncate">
-                    {suggestion.display_name.split(',')[0]}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-slate-900 truncate">
+                      {suggestion.display_name.split(',')[0]}
+                    </p>
+                    {suggestion.isLocal && (
+                      <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
+                        Local
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-slate-500 truncate">
                     {suggestion.display_name}
                   </p>
@@ -218,7 +290,7 @@ export function LocationAutocomplete({
       )}
 
       <p className="text-xs text-slate-500">
-        Start typing to see location suggestions from OpenStreetMap
+        Start typing to see location suggestions from Nominatim API
       </p>
     </div>
   );

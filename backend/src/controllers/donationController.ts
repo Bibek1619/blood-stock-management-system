@@ -66,7 +66,7 @@ export const getDonationById = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   const donation = await prisma.donation.findUnique({
-    where: { id },
+    where: { id: id as string },
     include: {
       user: true,
     },
@@ -130,7 +130,7 @@ export const updateDonation = async (req: Request, res: Response) => {
   const updateData = req.body;
 
   const donation = await prisma.donation.update({
-    where: { id },
+    where: { id: id as string },
     data: updateData,
     include: {
       user: true,
@@ -144,7 +144,7 @@ export const deleteDonation = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   await prisma.donation.delete({
-    where: { id },
+    where: { id: id as string },
   });
 
   res.json({ status: "success", message: "Donation deleted successfully" });
@@ -481,6 +481,124 @@ export const searchDonors = async (req: Request, res: Response) => {
   });
 
   res.json({ status: "success", data: donors });
+};
+
+// Search organizations by name or email for bulk collections
+export const searchOrganizations = async (req: Request, res: Response) => {
+  const { query } = req.query;
+
+  if (!query || typeof query !== 'string') {
+    throw new AppError("Search query is required", 400);
+  }
+
+  // Find donations from organizations that match the search query
+  const orgDonations = await prisma.donation.findMany({
+    where: {
+      donationType: 'ORGANIZATION',
+      OR: [
+        {
+          user: {
+            name: {
+              contains: query,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          user: {
+            email: {
+              contains: query,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          contact: {
+            contains: query,
+          },
+        },
+      ],
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+        },
+      },
+    },
+    orderBy: { donationDate: 'desc' },
+    take: 20,
+  });
+
+  // Group by organization and aggregate data
+  const organizationMap = new Map<string, any>();
+
+  for (const donation of orgDonations) {
+    const orgKey = donation.user.phone; // Use phone as unique key
+    
+    if (!organizationMap.has(orgKey)) {
+      // Extract contact person name from notes (format: "Bulk collection from ORG - Contact: NAME")
+      let contactPersonName = '';
+      if (donation.notes) {
+        const match = donation.notes.match(/Contact:\s*(.+)/);
+        if (match) {
+          contactPersonName = match[1].trim();
+        }
+      }
+
+      // Get donor details separately if needed
+      let organizationCity = donation.location || '';
+      let organizationAddress = '';
+      
+      if (donation.donorId) {
+        const donor = await prisma.donor.findUnique({
+          where: { id: donation.donorId },
+          select: { city: true, address: true },
+        });
+        
+        if (donor) {
+          organizationCity = donor.city || donation.location || '';
+          organizationAddress = donor.address || '';
+        }
+      }
+
+      organizationMap.set(orgKey, {
+        organizationName: donation.user.name,
+        organizationEmail: donation.user.email,
+        organizationPhone: donation.user.phone,
+        organizationCity,
+        organizationAddress,
+        contactPersonName: contactPersonName,
+        lastCollectionDate: donation.donationDate,
+        totalCollections: 1,
+      });
+    } else {
+      // Update existing entry
+      const existing = organizationMap.get(orgKey);
+      existing.totalCollections += 1;
+      
+      // Keep the most recent collection date
+      if (new Date(donation.donationDate) > new Date(existing.lastCollectionDate)) {
+        existing.lastCollectionDate = donation.donationDate;
+        
+        // Update contact person name if available in more recent donation
+        if (donation.notes) {
+          const match = donation.notes.match(/Contact:\s*(.+)/);
+          if (match) {
+            existing.contactPersonName = match[1].trim();
+          }
+        }
+      }
+    }
+  }
+
+  // Convert map to array
+  const organizations = Array.from(organizationMap.values());
+
+  res.json({ status: "success", data: organizations });
 };
 
 // Bulk blood collection from organizations

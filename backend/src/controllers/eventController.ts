@@ -43,7 +43,7 @@ export const getEventById = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   const event = await prisma.event.findUnique({
-    where: { id },
+    where: { id: id as string },
     include: {
       participants: {
         include: {
@@ -86,7 +86,7 @@ export const updateEvent = async (req: Request, res: Response) => {
   const updateData = req.body;
 
   const event = await prisma.event.update({
-    where: { id },
+    where: { id: id as string },
     data: updateData,
   });
 
@@ -97,7 +97,7 @@ export const deleteEvent = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   await prisma.event.delete({
-    where: { id },
+    where: { id: id as string },
   });
 
   res.json({ status: "success", message: "Event deleted successfully" });
@@ -109,7 +109,7 @@ export const addParticipant = async (req: Request, res: Response) => {
 
   const existingRegistration = await prisma.eventParticipant.findUnique({
     where: {
-      eventId_userId: { eventId, userId },
+      eventId_userId: { eventId: eventId as string, userId: userId as string },
     },
   });
 
@@ -119,8 +119,8 @@ export const addParticipant = async (req: Request, res: Response) => {
 
   const participant = await prisma.eventParticipant.create({
     data: {
-      eventId,
-      userId,
+      eventId: eventId as string,
+      userId: userId as string,
     },
     include: {
       user: {
@@ -141,7 +141,7 @@ export const removeParticipant = async (req: Request, res: Response) => {
   const { participantId } = req.params;
 
   await prisma.eventParticipant.delete({
-    where: { id: participantId },
+    where: { id: participantId as string },
   });
 
   res.json({ status: "success", message: "Participant removed successfully" });
@@ -155,8 +155,8 @@ export const addVolunteer = async (req: Request, res: Response) => {
   if (userId) {
     const existingRegistration = await prisma.eventVolunteer.findFirst({
       where: {
-        eventId,
-        userId,
+        eventId: eventId as string,
+        userId: userId as string,
       },
     });
 
@@ -166,8 +166,8 @@ export const addVolunteer = async (req: Request, res: Response) => {
   } else if (email) {
     const existingByEmail = await prisma.eventVolunteer.findFirst({
       where: {
-        eventId,
-        email,
+        eventId: eventId as string,
+        email: email as string,
       },
     });
 
@@ -178,7 +178,7 @@ export const addVolunteer = async (req: Request, res: Response) => {
 
   const volunteer = await prisma.eventVolunteer.create({
     data: {
-      eventId,
+      eventId: eventId as string,
       userId: userId || null,
       name: name || null,
       email: email || null,
@@ -205,7 +205,7 @@ export const removeVolunteer = async (req: Request, res: Response) => {
   const { volunteerId } = req.params;
 
   await prisma.eventVolunteer.delete({
-    where: { id: volunteerId },
+    where: { id: volunteerId as string },
   });
 
   res.json({ status: "success", message: "Volunteer removed successfully" });

@@ -58,10 +58,22 @@ export interface DonorSearchResult {
   };
 }
 
+export interface OrganizationSearchResult {
+  organizationName: string;
+  organizationEmail: string;
+  organizationPhone: string;
+  organizationCity: string;
+  organizationAddress: string;
+  contactPersonName: string;
+  lastCollectionDate: string;
+  totalCollections: number;
+}
+
 // Query Keys
 export const bloodCollectionKeys = {
   all: ['bloodCollection'] as const,
   searchDonors: (query: string) => [...bloodCollectionKeys.all, 'search', query] as const,
+  searchOrganizations: (query: string) => [...bloodCollectionKeys.all, 'searchOrg', query] as const,
 };
 
 /**
@@ -73,6 +85,24 @@ export function useSearchDonors(query: string, enabled: boolean = false) {
     queryFn: async () => {
       const response = await axiosInstance.get<{ status: string; data: DonorSearchResult[] }>(
         API_PATHS.DONATION.SEARCH_DONORS,
+        { params: { query } }
+      );
+      return response.data.data;
+    },
+    enabled: enabled && query.length >= 2, // Only search if query is at least 2 characters
+    staleTime: 30000, // 30 seconds
+  });
+}
+
+/**
+ * Hook to search for organizations
+ */
+export function useSearchOrganizations(query: string, enabled: boolean = false) {
+  return useQuery({
+    queryKey: bloodCollectionKeys.searchOrganizations(query),
+    queryFn: async () => {
+      const response = await axiosInstance.get<{ status: string; data: OrganizationSearchResult[] }>(
+        API_PATHS.DONATION.SEARCH_ORGANIZATIONS,
         { params: { query } }
       );
       return response.data.data;

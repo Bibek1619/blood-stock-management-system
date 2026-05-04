@@ -43,6 +43,7 @@ export const API_PATHS = {
     COLLECT: "/api/donations/collect",
     BULK_COLLECT: "/api/donations/bulk-collect",
     SEARCH_DONORS: "/api/donations/search/donors",
+    SEARCH_ORGANIZATIONS: "/api/donations/search/organizations",
   },
 
   /**

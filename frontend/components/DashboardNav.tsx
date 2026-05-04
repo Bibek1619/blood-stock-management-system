@@ -2,14 +2,12 @@
 
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -49,8 +47,8 @@ import {
   Package,
   Activity,
 } from 'lucide-react';
-import { getUser, clearAuth, isAuthenticated } from '@/lib/auth';
-import type { User as UserType } from '@/lib/auth';
+import { clearAuth } from '@/lib/auth';
+import { useAuth } from '@/hooks/useAuth';
 
 // ── Nav config ────────────────────────────────────────────────────────────────
 const NAV_MAIN = [
@@ -73,27 +71,18 @@ const NAV_MAIN = [
 export const DashboardNav = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<UserType | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const { user, isMounted } = useAuth();
   const { state } = useSidebar();
-
-  useEffect(() => {
-    setMounted(true);
-    if (isAuthenticated()) {
-      const userData = getUser();
-      setUser(userData);
-    }
-  }, []);
 
   const handleLogout = () => {
     clearAuth();
-    setUser(null);
     router.push('/');
   };
 
-  const displayName = user?.name ?? 'Guest';
-  const displayEmail = user?.email ?? 'Not logged in';
-  const initials = user ? user.name.charAt(0).toUpperCase() : 'G';
+  // Prevent hydration mismatch by not rendering user-dependent content until mounted
+  const displayName = isMounted && user ? user.name : 'Guest';
+  const displayEmail = isMounted && user ? user.email : 'Not logged in';
+  const initials = isMounted && user ? user.name.charAt(0).toUpperCase() : 'G';
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -121,8 +110,6 @@ export const DashboardNav = () => {
         {/* ── Nav ───────────────────────────────────────────────────── */}
         <SidebarContent>
           <SidebarGroup>
-
-
             <SidebarGroupContent>
               <SidebarMenu className='space-y-3' >
                 {NAV_MAIN.map((item) =>
@@ -217,7 +204,7 @@ export const DashboardNav = () => {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              {user ? (
+              {isMounted && user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <SidebarMenuButton

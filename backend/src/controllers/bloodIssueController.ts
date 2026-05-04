@@ -28,7 +28,7 @@ export const getBloodIssueById = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   const bloodIssue = await prisma.bloodIssue.findUnique({
-    where: { id },
+    where: { id: id as string },
     include: {
       bloodPacksIssued: {
         include: {
@@ -116,7 +116,7 @@ export const updateBloodIssue = async (req: Request, res: Response) => {
   const updateData = req.body;
 
   const bloodIssue = await prisma.bloodIssue.update({
-    where: { id },
+    where: { id: id as string },
     data: updateData,
     include: {
       bloodPacksIssued: {
@@ -134,7 +134,7 @@ export const deleteBloodIssue = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   await prisma.bloodIssue.delete({
-    where: { id },
+    where: { id: id as string },
   });
 
   res.json({ status: "success", message: "Blood issue record deleted successfully" });
