@@ -7,7 +7,10 @@
 // TYPES & INTERFACES
 // ═══════════════════════════════════════════════════════════════════════════
 
+import { getCityCoordinates } from './geocoding';
+
 export type BloodGroup = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
+export { getCityCoordinates };
 export type PackStatus = "Available" | "Used" | "Expired";
 export type DonationType = "person" | "organization";
 export type EventStatus = "Upcoming" | "Running" | "Completed";
