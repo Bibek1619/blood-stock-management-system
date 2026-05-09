@@ -292,83 +292,98 @@ export default function ReportsPage() {
       </div>
 
       {/* Page Header */}
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="text-[26px] font-extrabold text-slate-900 m-0 tracking-tight">Reports & Analytics</h1>
-          <p className="text-[13px] text-slate-500 mt-[3px]">Comprehensive insights and performance metrics for blood bank operations</p>
-        </div>
-        
-        {/* Export Buttons */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const success = exportBloodIssuesToExcel(bloodIssues);
-              if (success) {
-                toast.success('Blood issues report exported successfully!');
-              } else {
-                toast.error('Failed to export report');
-              }
-            }}
-            className="gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Export Blood Issues
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const success = exportBloodPacksToExcel(bloodPacks);
-              if (success) {
-                toast.success('Blood packs report exported successfully!');
-              } else {
-                toast.error('Failed to export report');
-              }
-            }}
-            className="gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Export Blood Packs
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const success = exportDonorsToExcel(donors);
-              if (success) {
-                toast.success('Donors report exported successfully!');
-              } else {
-                toast.error('Failed to export report');
-              }
-            }}
-            className="gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Export Donors
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const success = exportDonationsToExcel(donations);
-              if (success) {
-                toast.success('Donations report exported successfully!');
-              } else {
-                toast.error('Failed to export report');
-              }
-            }}
-            className="gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Export Donations
-          </Button>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-[28px] font-extrabold text-slate-900 m-0 tracking-tight">Reports & Analytics</h1>
+        <p className="text-[14px] text-slate-500 mt-1">Comprehensive insights and performance metrics for blood bank operations</p>
       </div>
+
+      {/* Search Report Section - Compact */}
+      <Card className="mb-6 border-slate-200 shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                <Download size={13} className="text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-sm font-bold text-slate-900">Search & Download Reports</CardTitle>
+                <CardDescription className="text-xs text-slate-500">Export detailed reports in Excel format</CardDescription>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const success = exportBloodIssuesToExcel(bloodIssues);
+                if (success) {
+                  toast.success('Blood issues report exported successfully!');
+                } else {
+                  toast.error('Failed to export report');
+                }
+              }}
+              className="gap-1.5 text-xs h-8"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Blood Issues ({bloodIssues.length})
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const success = exportBloodPacksToExcel(bloodPacks);
+                if (success) {
+                  toast.success('Blood packs report exported successfully!');
+                } else {
+                  toast.error('Failed to export report');
+                }
+              }}
+              className="gap-1.5 text-xs h-8"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Blood Packs ({bloodPacks.length})
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const success = exportDonorsToExcel(donors);
+                if (success) {
+                  toast.success('Donors report exported successfully!');
+                } else {
+                  toast.error('Failed to export report');
+                }
+              }}
+              className="gap-1.5 text-xs h-8"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Donors ({donors.length})
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const success = exportDonationsToExcel(donations);
+                if (success) {
+                  toast.success('Donations report exported successfully!');
+                } else {
+                  toast.error('Failed to export report');
+                }
+              }}
+              className="gap-1.5 text-xs h-8"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Donations ({donations.length})
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Key Performance Indicators */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

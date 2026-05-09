@@ -12,7 +12,7 @@ export function exportToExcel<T extends Record<string, any>>(
   sheetName: string = 'Sheet1'
 ) {
   try {
-    // Create a new workbook
+ 
     const workbook = XLSX.utils.book_new();
 
     // Convert data to worksheet
