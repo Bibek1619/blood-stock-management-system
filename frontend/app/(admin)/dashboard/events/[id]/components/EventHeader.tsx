@@ -1,10 +1,8 @@
 'use client';
 import { useRouter } from "next/navigation";
-import {
-  CalendarDays, MapPin, Users, Trash2, Droplets, Clock, CheckCircle2,
-  PlayCircle, X,
-} from "lucide-react";
+import { CalendarDays, MapPin, Users, Trash2, Droplets } from "lucide-react";
 import type { EventStatus } from "@/lib/queries/events";
+import { EVENT_STATUS_CONFIG, ALL_STATUSES } from "@/lib/eventStatusConfig";
 
 interface EventHeaderProps {
   event: any;
@@ -13,43 +11,9 @@ interface EventHeaderProps {
   onDelete: () => void;
 }
 
-const STATUS_CONFIG: Record<EventStatus, {
-  label: string;
-  styles: string;
-  icon: React.ReactNode;
-  barColor: string;
-}> = {
-  UPCOMING: {
-    label: "Upcoming",
-    styles: "bg-blue-50 text-blue-700 border-blue-200",
-    icon: <Clock size={14} />,
-    barColor: "bg-blue-500",
-  },
-  RUNNING: {
-    label: "Running",
-    styles: "bg-green-50 text-green-700 border-green-200",
-    icon: <PlayCircle size={14} />,
-    barColor: "bg-green-500",
-  },
-  COMPLETED: {
-    label: "Completed",
-    styles: "bg-slate-50 text-slate-600 border-slate-200",
-    icon: <CheckCircle2 size={14} />,
-    barColor: "bg-slate-400",
-  },
-  CANCELLED: {
-    label: "Cancelled",
-    styles: "bg-red-50 text-red-600 border-red-200",
-    icon: <X size={14} />,
-    barColor: "bg-red-400",
-  },
-};
-
-const ALL_STATUSES: EventStatus[] = ["UPCOMING", "RUNNING", "COMPLETED", "CANCELLED"];
-
 export function EventHeader({ event, eventId, onStatusChange, onDelete }: EventHeaderProps) {
   const router = useRouter();
-  const cfg = STATUS_CONFIG[event.status];
+  const cfg = EVENT_STATUS_CONFIG[event.status as EventStatus];
   const eventDate = new Date(event.eventDate).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -64,7 +28,7 @@ export function EventHeader({ event, eventId, onStatusChange, onDelete }: EventH
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-2xl font-bold text-slate-900">{event.title}</h1>
-              <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold ${cfg.styles}`}>
+              <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold ${cfg.color}`}>
                 {cfg.icon} {cfg.label}
               </span>
             </div>
@@ -127,7 +91,7 @@ export function EventHeader({ event, eventId, onStatusChange, onDelete }: EventH
           <p className="text-xs font-semibold text-slate-700 mb-2">Update Status</p>
           <div className="flex flex-wrap gap-2">
             {ALL_STATUSES.map((status) => {
-              const statusCfg = STATUS_CONFIG[status];
+              const statusCfg = EVENT_STATUS_CONFIG[status];
               const isActive = event.status === status;
               return (
                 <button
@@ -136,7 +100,7 @@ export function EventHeader({ event, eventId, onStatusChange, onDelete }: EventH
                   disabled={isActive}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                     isActive
-                      ? `${statusCfg.styles} cursor-default`
+                      ? `${statusCfg.color} cursor-default`
                       : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-red-200"
                   }`}
                 >

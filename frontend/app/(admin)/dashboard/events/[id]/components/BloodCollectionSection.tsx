@@ -81,7 +81,7 @@ export function BloodCollectionSection({ event, eventId, eventDonations }: Blood
                 ).map(([bloodGroup, units]) => (
                   <div key={bloodGroup} className="flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg">
                     <span className="text-sm font-bold text-red-800">{bloodGroup}</span>
-                    <span className="text-xs text-slate-600">{units} units</span>
+                    <span className="text-xs text-slate-600">{String(units)} units</span>
                   </div>
                 ))}
               </div>

@@ -78,13 +78,13 @@ function DonationHistoryListInner({ userId }: DonationHistoryListProps) {
     return "bg-green-100 text-green-800 border-green-200";
   };
 
-  const getContactPerson = (notes: string) => {
+  const getContactPerson = (notes: string | undefined | null) => {
     if (!notes) return null;
     const match = notes.match(/Contact:\s*(.+)$/);
     return match ? match[1] : null;
   };
 
-  const getOrganizationName = (notes: string) => {
+  const getOrganizationName = (notes: string | undefined | null) => {
     if (!notes) return null;
     const match = notes.match(/Bulk collection from\s+(.+?)\s*-\s*Contact:/);
     return match ? match[1] : null;
@@ -107,7 +107,7 @@ function DonationHistoryListInner({ userId }: DonationHistoryListProps) {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex items-center gap-2">
-                  <p className="text-sm font-medium text-slate-900">Donation #{donations.length - index}</p>
+                  <p className="text-sm font-medium text-slate-900">Donation #{(donations?.length || 0) - index}</p>
                   <Badge variant="outline" className={`text-xs ${getCollectionTypeBadge(donation.location || "WALK_IN")}`}>
                     {getCollectionTypeIcon(donation.location || "WALK_IN")}
                     <span className="ml-1">{getCollectionTypeLabel(donation.location || "WALK_IN")}</span>

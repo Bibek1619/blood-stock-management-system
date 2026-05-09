@@ -54,7 +54,7 @@ export function EventCardsGrid({ filteredEvents, isLoading, error, onViewEvent }
                 <CardContent className="p-4">
                   <div className="mb-3 flex items-start justify-between gap-2">
                     <h3 className="flex-1 text-sm font-bold text-slate-900">{event.title}</h3>
-                    <span className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${cfg.styles}`}>
+                    <span className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${cfg.color}`}>
                       {cfg.icon} {cfg.label}
                     </span>
                   </div>
