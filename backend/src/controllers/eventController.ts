@@ -38,7 +38,6 @@ export const getAllEvents = async (req: Request, res: Response) => {
 
   res.json({ status: "success", data: events });
 };
-
 export const getEventById = async (req: Request, res: Response) => {
   const { id } = req.params;
 
