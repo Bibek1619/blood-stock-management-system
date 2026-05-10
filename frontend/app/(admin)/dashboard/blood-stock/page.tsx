@@ -2,15 +2,10 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, MoreHorizontal, Search, AlertTriangle, Droplets, TrendingDown, CheckCircle2, Clock, Home, Loader2, RefreshCw } from "lucide-react";
+import { Plus, Search, AlertTriangle, Droplets, Home, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Pagination } from "@/components/ui/pagination";
 import { toast } from "sonner";
 import {
   Breadcrumb,
@@ -22,6 +17,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { useBloodPacks, useBloodStockSummary, useUpdateBloodPackStatus } from "@/lib/queries/bloodStock";
 import { useQueryClient } from "@tanstack/react-query";
+import { SummaryStats, BloodInventoryByGroup, BloodPacksTable } from "./components";
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const LOW_STOCK_THRESHOLD = 5;
@@ -39,21 +35,12 @@ const bloodGroupMap: Record<string, string> = {
   'O_NEGATIVE': 'O-',
 };
 
-// Status configuration
-const PACK_STATUS_CONFIG: Record<string, { bg: string; text: string; border: string; dot: string }> = {
-  AVAILABLE: { bg: 'rgba(34, 197, 94, 0.08)', text: '#16a34a', border: 'rgba(34, 197, 94, 0.2)', dot: '#22c55e' },
-  USED: { bg: 'rgba(100, 116, 139, 0.08)', text: '#475569', border: 'rgba(100, 116, 139, 0.2)', dot: '#64748b' },
-  EXPIRED: { bg: 'rgba(239, 68, 68, 0.08)', text: '#dc2626', border: 'rgba(239, 68, 68, 0.2)', dot: '#ef4444' },
-  RESERVED: { bg: 'rgba(59, 130, 246, 0.08)', text: '#2563eb', border: 'rgba(59, 130, 246, 0.2)', dot: '#3b82f6' },
-};
-
 export default function BloodStockPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [filterGroup, setFilterGroup] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const pageLimit = 20;
@@ -139,21 +126,12 @@ export default function BloodStockPage() {
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
       await updateStatus.mutateAsync({ id, status });
-      setOpenMenuId(null);
       toast.success(`Marked as ${status.toLowerCase()}`);
     } catch (error: any) {
       toast.error('Failed to update status', {
         description: error.response?.data?.message || 'Please try again',
       });
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
   };
 
   if (isLoadingPacks || isLoadingSummary) {
@@ -217,59 +195,13 @@ export default function BloodStockPage() {
       </div>
 
       {/* Summary Stat Cards */}
-      <div className="grid grid-cols-4 gap-3 mb-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-semibold text-slate-500">Total Available</CardTitle>
-            <div className="w-8 h-8 rounded-lg bg-[rgba(127,29,29,0.08)] flex items-center justify-center">
-              <Droplets size={16} color="#7F1D1D" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-[26px] font-extrabold text-[#7F1D1D] leading-none">{stats.totalAvailable}</div>
-            <p className="text-[11px] text-slate-400 mt-1">Packs ready to use</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-semibold text-slate-500">Critical Stock</CardTitle>
-            <div className="w-8 h-8 rounded-lg bg-[rgba(194,65,12,0.07)] flex items-center justify-center">
-              <TrendingDown size={16} color="#c2410c" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-[26px] font-extrabold text-[#c2410c] leading-none">{stats.criticalStockGroups.length}</div>
-            <p className="text-[11px] text-slate-400 mt-1">Below {CRITICAL_STOCK_THRESHOLD} units</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-semibold text-slate-500">Used</CardTitle>
-            <div className="w-8 h-8 rounded-lg bg-[rgba(100,116,139,0.08)] flex items-center justify-center">
-              <CheckCircle2 size={16} color="#64748b" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-[26px] font-extrabold text-[#475569] leading-none">{stats.totalUsed}</div>
-            <p className="text-[11px] text-slate-400 mt-1">Packs consumed</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-semibold text-slate-500">Expired</CardTitle>
-            <div className="w-8 h-8 rounded-lg bg-[rgba(127,29,29,0.06)] flex items-center justify-center">
-              <Clock size={16} color="#991B1B" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-[26px] font-extrabold text-[#991B1B] leading-none">{stats.totalExpired}</div>
-            <p className="text-[11px] text-slate-400 mt-1">Disposed safely</p>
-          </CardContent>
-        </Card>
-      </div>
+      <SummaryStats
+        totalAvailable={stats.totalAvailable}
+        criticalStockCount={stats.criticalStockGroups.length}
+        totalUsed={stats.totalUsed}
+        totalExpired={stats.totalExpired}
+        criticalThreshold={CRITICAL_STOCK_THRESHOLD}
+      />
 
       {/* Low Stock Alert Banner */}
       {stats.criticalStockGroups.length > 0 && (
@@ -287,75 +219,14 @@ export default function BloodStockPage() {
       )}
 
       {/* Blood Inventory by Group */}
-      <Card className="mb-5">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-semibold text-gray-900">All Blood Groups Overview</p>
-            <div className="flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span className="text-gray-600">Safe Stock</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                <span className="text-gray-600">Low Stock</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <span className="text-gray-600">Critical</span>
-              </div>
-              {isLoadingSummary && (
-                <div className="flex items-center gap-1.5">
-                  <Loader2 className="w-3 h-3 animate-spin text-gray-400" />
-                  <span className="text-gray-500">Updating...</span>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
-            {BLOOD_GROUPS.map((bloodGroup) => {
-              const available = stats.stockByGroup[bloodGroup] || 0;
-              const isLowStock = available < LOW_STOCK_THRESHOLD;
-              const isCritical = available < CRITICAL_STOCK_THRESHOLD;
-              
-              return (
-                <div
-                  key={bloodGroup}
-                  className={`text-center p-4 rounded-lg border transition-all hover:shadow-md cursor-pointer ${
-                    isCritical 
-                      ? 'bg-red-50 border-red-200' 
-                      : isLowStock 
-                      ? 'bg-orange-50 border-orange-200' 
-                      : 'bg-green-50 border-green-200'
-                  }`}
-                  onClick={() => setFilterGroup(bloodGroup)}
-                  title={`Click to filter by ${bloodGroup} blood group`}
-                >
-                  <p className={`text-lg font-bold mb-2 ${
-                    isCritical 
-                      ? 'text-red-700' 
-                      : isLowStock 
-                      ? 'text-orange-700' 
-                      : 'text-green-700'
-                  }`}>
-                    {bloodGroup}
-                  </p>
-                  <p className={`text-2xl font-bold mb-1 ${
-                    isCritical 
-                      ? 'text-red-600' 
-                      : isLowStock 
-                      ? 'text-orange-600' 
-                      : 'text-green-600'
-                  }`}>
-                    {isLoadingSummary ? '...' : available}
-                  </p>
-                  <p className="text-xs text-gray-600">units</p>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      <BloodInventoryByGroup
+        bloodGroups={BLOOD_GROUPS}
+        stockByGroup={stats.stockByGroup}
+        lowStockThreshold={LOW_STOCK_THRESHOLD}
+        criticalStockThreshold={CRITICAL_STOCK_THRESHOLD}
+        isLoading={isLoadingSummary}
+        onGroupClick={setFilterGroup}
+      />
 
       {/* Filters */}
       <div className="flex items-center gap-2.5 mb-3">
@@ -409,121 +280,13 @@ export default function BloodStockPage() {
         )}
       </div>
 
-      {/* Table */}
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Pack Code</TableHead>
-              <TableHead>Group</TableHead>
-              <TableHead>Donor</TableHead>
-              <TableHead>Collection Type</TableHead>
-              <TableHead>Collected</TableHead>
-              <TableHead>Expires</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredPacks.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-slate-500">
-                  No blood packs found. Click "Add Pack" to record a donation.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredPacks.slice(0, 50).map((p) => {
-                const displayGroup = bloodGroupMap[p.bloodGroup] || p.bloodGroup;
-                const ss = PACK_STATUS_CONFIG[p.status] ?? PACK_STATUS_CONFIG.AVAILABLE;
-                
-                // Format collection type
-                const collectionTypeMap: Record<string, { label: string; color: string }> = {
-                  'EVENT': { label: 'Event', color: 'bg-purple-100 text-purple-700 border-purple-200' },
-                  'WEB_DONOR': { label: 'Web Donor', color: 'bg-blue-100 text-blue-700 border-blue-200' },
-                  'ORGANIZATION_DONOR': { label: 'Organization', color: 'bg-green-100 text-green-700 border-green-200' },
-                };
-                const collectionType = collectionTypeMap[p.storageLocation || ''] || { label: p.storageLocation || 'N/A', color: 'bg-gray-100 text-gray-700 border-gray-200' };
-                
-                return (
-                  <TableRow key={p.id}>
-                    <TableCell>
-                      <span className="font-mono text-xs text-slate-600">{p.packCode}</span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-[rgba(127,29,29,0.08)] text-[#7F1D1D] border-[rgba(127,29,29,0.2)]">
-                        {displayGroup}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs text-slate-600">
-                      {p.donor?.user?.name ?? "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={`text-xs ${collectionType.color}`}>
-                        {collectionType.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs">{formatDate(p.collectionDate)}</TableCell>
-                    <TableCell className="text-xs">{formatDate(p.expiryDate)}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant="outline"
-                        className="gap-1.5"
-                        style={{ background: ss.bg, color: ss.text, borderColor: ss.border }}
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: ss.dot }} />
-                        {p.status.charAt(0) + p.status.slice(1).toLowerCase()}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu open={openMenuId === p.id} onOpenChange={(open) => setOpenMenuId(open ? p.id : null)}>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal size={14} />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {p.status === "AVAILABLE" && (
-                            <>
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(p.id, "USED")}>
-                                Mark Used
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(p.id, "EXPIRED")}>
-                                Mark Expired
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(p.id, "RESERVED")}>
-                                Mark Reserved
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                          {p.status !== "AVAILABLE" && (
-                            <DropdownMenuItem onClick={() => handleUpdateStatus(p.id, "AVAILABLE")}>
-                              Mark Available
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-        {pagination && (
-          <Pagination
-            currentPage={pagination.page}
-            totalPages={pagination.totalPages}
-            total={pagination.total}
-            limit={pagination.limit}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
-        )}
-        {!pagination && (
-          <div className="px-3.5 py-2.5 border-t text-xs text-slate-400">
-            Showing {Math.min(filteredPacks.length, 50)} of {filteredPacks.length} packs
-          </div>
-        )}
-      </Card>
+      {/* Blood Packs Table */}
+      <BloodPacksTable
+        packs={filteredPacks}
+        pagination={pagination}
+        onStatusUpdate={handleUpdateStatus}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

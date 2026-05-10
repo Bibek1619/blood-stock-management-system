@@ -10,20 +10,11 @@ import PublicFooter from "@/components/PublicFooter";
 import { format } from "date-fns";
 import { useHasMounted } from "@/hooks/useHasMounted";
 import { useEvents } from "@/lib/queries/events";
+import { getStatusBadge } from "@/lib/eventStatusConfig";
 
 export default function PublicEventsPage() {
   const hasMounted = useHasMounted();
   const { data: events = [], isLoading, error } = useEvents();
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, { color: string; label: string }> = {
-      UPCOMING: { color: 'bg-blue-50 text-blue-700 border-blue-200', label: 'Upcoming' },
-      ONGOING: { color: 'bg-green-50 text-green-700 border-green-200', label: 'Ongoing' },
-      COMPLETED: { color: 'bg-gray-50 text-gray-700 border-gray-200', label: 'Completed' },
-      CANCELLED: { color: 'bg-red-50 text-red-700 border-red-200', label: 'Cancelled' },
-    };
-    return variants[status] || variants.UPCOMING;
-  };
 
   if (!hasMounted || isLoading) {
     return (
