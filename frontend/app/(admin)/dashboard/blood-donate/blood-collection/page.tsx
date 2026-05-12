@@ -808,7 +808,7 @@ export default function BloodCollectionPage() {
                                 </SelectItem>
                               ))
                             ) : (
-                              <SelectItem value="" disabled>
+                              <SelectItem value="no-events" disabled>
                                 No running events available
                               </SelectItem>
                             )}
