@@ -80,7 +80,7 @@ export const DashboardNav = () => {
   };
 
   const handleSwitchToPublicDashboard = () => {
-    router.push('/home');
+    router.push('/dashboard/public');
   };
 
   // Prevent hydration mismatch by not rendering user-dependent content until mounted
