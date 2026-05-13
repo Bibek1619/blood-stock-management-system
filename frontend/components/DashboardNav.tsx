@@ -42,7 +42,7 @@ import {
   ChevronDown,
   ChevronRight,
   LogOut,
-  User,
+  ArrowRightLeft,
   BarChart3,
   Package,
   Activity,
@@ -79,10 +79,14 @@ export const DashboardNav = () => {
     router.push('/');
   };
 
+  const handleSwitchToPublicDashboard = () => {
+    router.push('/dashboard/public');
+  };
+
   // Prevent hydration mismatch by not rendering user-dependent content until mounted
-  const displayName = isMounted && user ? user.name : 'Guest';
-  const displayEmail = isMounted && user ? user.email : 'Not logged in';
-  const initials = isMounted && user ? user.name.charAt(0).toUpperCase() : 'G';
+  const displayName = isMounted && user ? user.name : 'Admin';
+  const displayEmail = isMounted && user ? user.email : 'Admin Panel';
+  const initials = isMounted && user ? user.name.charAt(0).toUpperCase() : 'A';
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -222,9 +226,9 @@ export const DashboardNav = () => {
                     </SidebarMenuButton>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent side="top" align="end" className="w-56">
-                    <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
-                      <User className="mr-2 size-4" />
-                      View Profile
+                    <DropdownMenuItem onClick={handleSwitchToPublicDashboard}>
+                      <ArrowRightLeft className="mr-2 size-4" />
+                      Switch to public dashboard
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -237,19 +241,37 @@ export const DashboardNav = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <SidebarMenuButton
-                  size="lg"
-                  onClick={() => router.push('/login')}
-                  className="cursor-pointer hover:bg-sidebar-accent"
-                >
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-gray-300 text-gray-600 text-sm font-semibold">
-                    {initials}
-                  </div>
-                  <div className="flex flex-col gap-0.5 leading-none text-left min-w-0">
-                    <span className="font-medium text-sm truncate">{displayName}</span>
-                    <span className="text-xs text-muted-foreground truncate">Click to login</span>
-                  </div>
-                </SidebarMenuButton>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <SidebarMenuButton
+                      size="lg"
+                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    >
+                      <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
+                        {initials}
+                      </div>
+                      <div className="flex flex-col gap-0.5 leading-none text-left min-w-0">
+                        <span className="font-medium text-sm truncate">{displayName}</span>
+                        <span className="text-xs text-muted-foreground truncate">{displayEmail}</span>
+                      </div>
+                      <ChevronDown className="ml-auto size-4 shrink-0" />
+                    </SidebarMenuButton>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent side="top" align="end" className="w-56">
+                    <DropdownMenuItem onClick={handleSwitchToPublicDashboard}>
+                      <ArrowRightLeft className="mr-2 size-4" />
+                      Switch to public dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <LogOut className="mr-2 size-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </SidebarMenuItem>
           </SidebarMenu>
