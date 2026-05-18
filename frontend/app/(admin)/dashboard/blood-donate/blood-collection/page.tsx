@@ -291,7 +291,8 @@ export default function BloodCollectionPage() {
           
           switch (status) {
             case 400:
-              errorMessage = 'Invalid data provided';
+              // Show the exact server message (e.g., 60‑day restriction)
+              errorMessage = data?.message || 'Invalid data provided';
               errorDescription = data?.message || 'Please check your input and try again';
               break;
             case 401:
@@ -735,13 +736,13 @@ export default function BloodCollectionPage() {
                         id="units"
                         type="number"
                         min="1"
-                        value={formData.units}
-                        onChange={(e) =>
-                          setFormData({ ...formData, units: e.target.value })
-                        }
+                        max="1"
+                        value="1"
+                        readOnly
                         required
+                        className="bg-gray-100 cursor-not-allowed"
                       />
-                      <p className="text-xs text-slate-500">1 unit = 450ml</p>
+                      <p className="text-xs text-slate-500">1 unit = 450ml (fixed for individual donors)</p>
                     </div>
 
                     <div className="space-y-2">
