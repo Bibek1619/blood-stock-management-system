@@ -95,7 +95,8 @@ export const createDonation = async (req: Request, res: Response) => {
     data: {
       userId,
       bloodGroup,
-      units: units || 1,
+      // Enforce single unit for PERSON donors
+      units: donationType === 'PERSON' ? 1 : (units || 1),
       location,
       donationType: donationType || "PERSON",
       status: status || "COMPLETED",
@@ -107,11 +108,22 @@ export const createDonation = async (req: Request, res: Response) => {
     },
   });
 
-  // Update donor's last donation date and total donations
-  const donor = await prisma.donor.findUnique({
-    where: { userId },
-  });
+  // Validate units for PERSON donors (cannot exceed 1)
+  if (donationType === 'PERSON' && units && parseInt(units) > 1) {
+    throw new AppError("Individual donors can donate only one unit per donation", 400);
+  }
 
+  // Enforce 60‑day interval for individual donors (PERSON only)
+  const donor = await prisma.donor.findUnique({ where: { userId } });
+  if (donationType === 'PERSON' && donor && donor.lastDonationDate) {
+    const diffMs = new Date().getTime() - new Date(donor.lastDonationDate).getTime();
+    const days = diffMs / (1000 * 60 * 60 * 24);
+    if (days < 60) {
+      throw new AppError("You can donate only once every 60 days", 400);
+    }
+  }
+
+  // Update donor's last donation date and total donations
   if (donor) {
     await prisma.donor.update({
       where: { id: donor.id },
@@ -152,7 +164,7 @@ export const deleteDonation = async (req: Request, res: Response) => {
 
 // Blood Collection - Creates donation record and blood pack
 export const recordBloodCollection = async (req: Request, res: Response) => {
-  const {
+  let {
     donorId,
     donorName,
     donorPhone,
@@ -173,6 +185,12 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
     notes,
     medicalNotes,
   } = req.body;
+
+  // Enforce single unit for PERSON donations
+  if (units && parseInt(units) > 1) {
+    // Since this function only handles PERSON donations, restrict to 1 unit
+    units = 1;
+  }
 
   // Validate required fields
   if (!donorName || !donorPhone || !bloodGroup || !collectionDate) {
@@ -198,24 +216,20 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
     let donor = null;
     let userId = null;
 
-    // If donorId provided, get existing donor
+    // If donorId provided, get existing donor (individual donor)
     if (donorId) {
       donor = await tx.donor.findUnique({
         where: { id: donorId },
         include: { user: true },
       });
 
-      if (donor) {
-        userId = donor.userId;
-        
-        // Update donor's donation count and last donation date
-        await tx.donor.update({
-          where: { id: donorId },
-          data: {
-            lastDonationDate: new Date(collectionDate),
-            totalDonations: { increment: parseInt(units) || 1 },
-          },
-        });
+      // Enforce 60‑day interval only for individual PERSON donors
+      if (donor && donor.donorType === 'PERSON' && donor.lastDonationDate) {
+        const diffMs = new Date(collectionDate).getTime() - new Date(donor.lastDonationDate).getTime();
+        const days = diffMs / (1000 * 60 * 60 * 24);
+        if (days < 60) {
+          throw new AppError("You can donate only once every 60 days", 400);
+        }
       }
     }
 
