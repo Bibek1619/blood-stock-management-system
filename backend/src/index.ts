@@ -15,6 +15,8 @@ import bloodIssueRoutes from './routes/bloodIssueRoutes';
 import eventRoutes from './routes/eventRoutes';
 import certificateRoutes from './routes/certificateRoutes';
 import accountClaimRoutes from './routes/accountClaimRoutes';
+import donorRequestRoutes from './routes/donorRequestRoutes';
+import analyticsRoutes from './routes/analyticsRoutes';
 
 const app: Application = express();
 const PORT = process.env.PORT || 3001;
@@ -54,6 +56,8 @@ app.use('/api/blood-issues', bloodIssueRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/account-claim', accountClaimRoutes);
+app.use('/api/donor-requests', donorRequestRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 //
 // ✅ 5. 404 Handler

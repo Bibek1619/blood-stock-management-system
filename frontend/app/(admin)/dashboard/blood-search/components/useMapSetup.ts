@@ -11,6 +11,7 @@ interface UseMapSetupProps {
   locationQuery: string;
   clickedPos: { lat: number; lng: number } | null;
   radius: number;
+  eligibilityFilter: 'all' | 'eligible' | 'not-eligible';
   onClickedPosChange: (pos: { lat: number; lng: number } | null) => void;
   onDonorClick: (donor: any) => void;
 }
@@ -25,6 +26,7 @@ export function useMapSetup({
   locationQuery,
   clickedPos,
   radius,
+  eligibilityFilter,
   onClickedPosChange,
   onDonorClick,
 }: UseMapSetupProps) {
@@ -111,6 +113,10 @@ export function useMapSetup({
           const dbFormat = selectedGroup.replace('+', '_POSITIVE').replace('-', '_NEGATIVE');
           if (d.bloodGroup !== dbFormat) return;
         }
+        
+        // Filter by eligibility
+        if (eligibilityFilter === 'eligible' && !d.isEligible) return;
+        if (eligibilityFilter === 'not-eligible' && d.isEligible) return;
         
         const fullAddress = (d.address || d.location || d.city || '').toLowerCase();
         if (locationQuery && !fullAddress.includes(locationQuery.toLowerCase())) return;
@@ -203,6 +209,10 @@ export function useMapSetup({
         if (d.bloodGroup !== dbFormat) return;
       }
       
+      // Filter by eligibility
+      if (eligibilityFilter === 'eligible' && !d.isEligible) return;
+      if (eligibilityFilter === 'not-eligible' && d.isEligible) return;
+      
       const fullAddress = (d.address || d.location || d.city || '').toLowerCase();
       if (locationQuery && !fullAddress.includes(locationQuery.toLowerCase())) return;
       
@@ -291,7 +301,7 @@ export function useMapSetup({
       }
       markersRef.current.push(marker);
     });
-  }, [clickedPos, radius, selectedGroup, locationQuery, donors, onDonorClick]);
+  }, [clickedPos, radius, selectedGroup, locationQuery, eligibilityFilter, donors, onDonorClick]);
 
   useEffect(() => {
     updateMapOverlays();

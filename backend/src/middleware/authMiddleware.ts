@@ -151,3 +151,28 @@ export const authorize = (...roles: string[]) => {
     next();
   };
 };
+
+// ================= ALIASES =================
+// Alias for protect middleware
+export const authenticateToken = protect;
+
+// Middleware to require admin role
+export const requireAdmin = (req: Request, res: Response, next: NextFunction): void => {
+  if (!req.user) {
+    res.status(401).json({
+      success: false,
+      message: 'Unauthorized',
+    });
+    return;
+  }
+
+  if (req.user.role !== 'ADMIN' && req.user.role !== 'STAFF') {
+    res.status(403).json({
+      success: false,
+      message: 'Forbidden - Admin access required',
+    });
+    return;
+  }
+
+  next();
+};

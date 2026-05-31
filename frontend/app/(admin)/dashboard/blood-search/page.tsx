@@ -51,6 +51,7 @@ export default function BloodSearchPage() {
   
   // Local state
   const [mapReady, setMapReady] = useState(false);
+  const [eligibilityFilter, setEligibilityFilter] = useState<'all' | 'eligible' | 'not-eligible'>('all');
 
   const { toast } = useToast();
 
@@ -136,6 +137,10 @@ export default function BloodSearchPage() {
       if (d.bloodGroup !== dbFormat) return false;
     }
     
+    // Filter by eligibility
+    if (eligibilityFilter === 'eligible' && !d.isEligible) return false;
+    if (eligibilityFilter === 'not-eligible' && d.isEligible) return false;
+    
     // Filter by location query
     const fullAddress = (d.address || d.location || d.city || '').toLowerCase();
     if (locationQuery && !fullAddress.includes(locationQuery.toLowerCase())) return false;
@@ -172,6 +177,7 @@ export default function BloodSearchPage() {
     locationQuery,
     clickedPos,
     radius,
+    eligibilityFilter,
     onClickedPosChange: setClickedPos,
     onDonorClick: setSheetDonor,
   });
@@ -242,9 +248,11 @@ export default function BloodSearchPage() {
           radius={radius}
           clickedPos={clickedPos}
           bloodGroups={BLOOD_GROUPS}
+          eligibilityFilter={eligibilityFilter}
           onGroupChange={setSelectedGroup}
           onLocationChange={setLocationQuery}
           onRadiusChange={setRadius}
+          onEligibilityChange={setEligibilityFilter}
           onClearPin={clearPin}
         />
 

@@ -5,6 +5,7 @@ import * as donorController from "../controllers/donorController";
 const router = Router();
 
 router.get("/", asyncHandler(donorController.getAllDonors));
+router.get("/user/:userId", asyncHandler(donorController.getDonorByUserId)); // Get donor by userId
 router.get("/:id", asyncHandler(donorController.getDonorById));
 router.post("/", asyncHandler(donorController.createDonor));
 router.put("/:id", asyncHandler(donorController.updateDonor));

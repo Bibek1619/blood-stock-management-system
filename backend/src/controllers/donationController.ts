@@ -296,6 +296,7 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
             medicalNotes: medicalNotes,
             totalDonations: parseInt(units) || 1,
             lastDonationDate: new Date(collectionDate),
+            isEligible: false, // Set to not eligible after donation
           },
         });
       } else {
@@ -303,6 +304,7 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
         const updateData: any = {
           lastDonationDate: new Date(collectionDate),
           totalDonations: { increment: parseInt(units) || 1 },
+          isEligible: false, // Set to not eligible after donation
         };
 
         if (city) updateData.city = city;

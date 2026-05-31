@@ -114,3 +114,26 @@ export const CertificateType = {
 } as const
 
 export type CertificateType = (typeof CertificateType)[keyof typeof CertificateType]
+
+
+export const DonorVerificationStatus = {
+  PENDING: 'PENDING',
+  VERIFIED: 'VERIFIED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type DonorVerificationStatus = (typeof DonorVerificationStatus)[keyof typeof DonorVerificationStatus]
+
+
+export const NotificationType = {
+  EVENT_ALERT: 'EVENT_ALERT',
+  BLOOD_REQUEST: 'BLOOD_REQUEST',
+  VERIFICATION_APPROVED: 'VERIFICATION_APPROVED',
+  VERIFICATION_REJECTED: 'VERIFICATION_REJECTED',
+  VERIFICATION_UNVERIFIED: 'VERIFICATION_UNVERIFIED',
+  CERTIFICATE_ISSUED: 'CERTIFICATE_ISSUED',
+  DONATION_REMINDER: 'DONATION_REMINDER',
+  GENERAL: 'GENERAL'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

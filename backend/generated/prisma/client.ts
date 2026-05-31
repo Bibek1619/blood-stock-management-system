@@ -12,8 +12,6 @@
 
 import * as process from 'node:process'
 import * as path from 'node:path'
-import { fileURLToPath } from 'node:url'
-globalThis['__dirname'] = path.dirname(fileURLToPath(import.meta.url))
 
 import * as runtime from "@prisma/client/runtime/client"
 import * as $Enums from "./enums"
@@ -96,3 +94,43 @@ export type EventVolunteer = Prisma.EventVolunteerModel
  * 
  */
 export type Certificate = Prisma.CertificateModel
+/**
+ * Model About
+ * 
+ */
+export type About = Prisma.AboutModel
+/**
+ * Model Gallery
+ * 
+ */
+export type Gallery = Prisma.GalleryModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
+ * Model AnalyticsDailySummary
+ * 
+ */
+export type AnalyticsDailySummary = Prisma.AnalyticsDailySummaryModel
+/**
+ * Model AnalyticsDonorActivity
+ * 
+ */
+export type AnalyticsDonorActivity = Prisma.AnalyticsDonorActivityModel
+/**
+ * Model AnalyticsGeographic
+ * 
+ */
+export type AnalyticsGeographic = Prisma.AnalyticsGeographicModel
+/**
+ * Model AnalyticsPrediction
+ * 
+ */
+export type AnalyticsPrediction = Prisma.AnalyticsPredictionModel
+/**
+ * Model AnalyticsCampaign
+ * 
+ */
+export type AnalyticsCampaign = Prisma.AnalyticsCampaignModel

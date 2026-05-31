@@ -48,6 +48,19 @@ export function EventCreateDialog({ open, onOpenChange, form, onFormChange, onCr
               />
             </div>
             <div>
+              <Label htmlFor="event-time">Time</Label>
+              <Input
+                id="event-time"
+                type="time"
+                value={form.eventTime || ""}
+                onChange={(event) => onFormChange({ ...form, eventTime: event.target.value })}
+                placeholder="09:00"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
               <Label htmlFor="event-status">Status</Label>
               <Select
                 value={form.status}
@@ -65,19 +78,6 @@ export function EventCreateDialog({ open, onOpenChange, form, onFormChange, onCr
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label htmlFor="event-location">Location <span className="text-red-600">*</span></Label>
-              <Input
-                id="event-location"
-                type="text"
-                placeholder="Venue / Address"
-                value={form.location}
-                onChange={(event) => onFormChange({ ...form, location: event.target.value })}
-              />
-            </div>
             <div>
               <Label htmlFor="event-capacity">Capacity</Label>
               <Input
@@ -88,6 +88,17 @@ export function EventCreateDialog({ open, onOpenChange, form, onFormChange, onCr
                 onChange={(event) => onFormChange({ ...form, capacity: event.target.value ? parseInt(event.target.value) : undefined })}
               />
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="event-location">Location <span className="text-red-600">*</span></Label>
+            <Input
+              id="event-location"
+              type="text"
+              placeholder="Venue / Address"
+              value={form.location}
+              onChange={(event) => onFormChange({ ...form, location: event.target.value })}
+            />
           </div>
 
           <div>

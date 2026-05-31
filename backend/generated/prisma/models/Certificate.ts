@@ -26,76 +26,76 @@ export type AggregateCertificate = {
 
 export type CertificateMinAggregateOutputType = {
   id: string | null
-  certificateNumber: string | null
-  type: $Enums.CertificateType | null
   userId: string | null
-  recipientName: string | null
-  eventTitle: string | null
-  volunteerId: string | null
   issueDate: Date | null
+  certificateNumber: string | null
   createdAt: Date | null
+  eventTitle: string | null
+  recipientName: string | null
+  type: $Enums.CertificateType | null
+  volunteerId: string | null
 }
 
 export type CertificateMaxAggregateOutputType = {
   id: string | null
-  certificateNumber: string | null
-  type: $Enums.CertificateType | null
   userId: string | null
-  recipientName: string | null
-  eventTitle: string | null
-  volunteerId: string | null
   issueDate: Date | null
+  certificateNumber: string | null
   createdAt: Date | null
+  eventTitle: string | null
+  recipientName: string | null
+  type: $Enums.CertificateType | null
+  volunteerId: string | null
 }
 
 export type CertificateCountAggregateOutputType = {
   id: number
-  certificateNumber: number
-  type: number
   userId: number
-  recipientName: number
-  eventTitle: number
-  volunteerId: number
   issueDate: number
+  certificateNumber: number
   createdAt: number
+  eventTitle: number
+  recipientName: number
+  type: number
+  volunteerId: number
   _all: number
 }
 
 
 export type CertificateMinAggregateInputType = {
   id?: true
-  certificateNumber?: true
-  type?: true
   userId?: true
-  recipientName?: true
-  eventTitle?: true
-  volunteerId?: true
   issueDate?: true
+  certificateNumber?: true
   createdAt?: true
+  eventTitle?: true
+  recipientName?: true
+  type?: true
+  volunteerId?: true
 }
 
 export type CertificateMaxAggregateInputType = {
   id?: true
-  certificateNumber?: true
-  type?: true
   userId?: true
-  recipientName?: true
-  eventTitle?: true
-  volunteerId?: true
   issueDate?: true
+  certificateNumber?: true
   createdAt?: true
+  eventTitle?: true
+  recipientName?: true
+  type?: true
+  volunteerId?: true
 }
 
 export type CertificateCountAggregateInputType = {
   id?: true
-  certificateNumber?: true
-  type?: true
   userId?: true
-  recipientName?: true
-  eventTitle?: true
-  volunteerId?: true
   issueDate?: true
+  certificateNumber?: true
   createdAt?: true
+  eventTitle?: true
+  recipientName?: true
+  type?: true
+  volunteerId?: true
   _all?: true
 }
 
@@ -173,14 +173,14 @@ export type CertificateGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 
 export type CertificateGroupByOutputType = {
   id: string
-  certificateNumber: string
-  type: $Enums.CertificateType
   userId: string
-  recipientName: string
-  eventTitle: string | null
-  volunteerId: string | null
   issueDate: Date
+  certificateNumber: string
   createdAt: Date
+  eventTitle: string | null
+  recipientName: string
+  type: $Enums.CertificateType
+  volunteerId: string | null
   _count: CertificateCountAggregateOutputType | null
   _min: CertificateMinAggregateOutputType | null
   _max: CertificateMaxAggregateOutputType | null
@@ -206,27 +206,27 @@ export type CertificateWhereInput = {
   OR?: Prisma.CertificateWhereInput[]
   NOT?: Prisma.CertificateWhereInput | Prisma.CertificateWhereInput[]
   id?: Prisma.StringFilter<"Certificate"> | string
-  certificateNumber?: Prisma.StringFilter<"Certificate"> | string
-  type?: Prisma.EnumCertificateTypeFilter<"Certificate"> | $Enums.CertificateType
   userId?: Prisma.StringFilter<"Certificate"> | string
-  recipientName?: Prisma.StringFilter<"Certificate"> | string
-  eventTitle?: Prisma.StringNullableFilter<"Certificate"> | string | null
-  volunteerId?: Prisma.StringNullableFilter<"Certificate"> | string | null
   issueDate?: Prisma.DateTimeFilter<"Certificate"> | Date | string
+  certificateNumber?: Prisma.StringFilter<"Certificate"> | string
   createdAt?: Prisma.DateTimeFilter<"Certificate"> | Date | string
+  eventTitle?: Prisma.StringNullableFilter<"Certificate"> | string | null
+  recipientName?: Prisma.StringFilter<"Certificate"> | string
+  type?: Prisma.EnumCertificateTypeFilter<"Certificate"> | $Enums.CertificateType
+  volunteerId?: Prisma.StringNullableFilter<"Certificate"> | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
 export type CertificateOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  certificateNumber?: Prisma.SortOrder
-  type?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  recipientName?: Prisma.SortOrder
-  eventTitle?: Prisma.SortOrderInput | Prisma.SortOrder
-  volunteerId?: Prisma.SortOrderInput | Prisma.SortOrder
   issueDate?: Prisma.SortOrder
+  certificateNumber?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  eventTitle?: Prisma.SortOrderInput | Prisma.SortOrder
+  recipientName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
+  volunteerId?: Prisma.SortOrderInput | Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
 }
 
@@ -236,26 +236,26 @@ export type CertificateWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.CertificateWhereInput | Prisma.CertificateWhereInput[]
   OR?: Prisma.CertificateWhereInput[]
   NOT?: Prisma.CertificateWhereInput | Prisma.CertificateWhereInput[]
-  type?: Prisma.EnumCertificateTypeFilter<"Certificate"> | $Enums.CertificateType
   userId?: Prisma.StringFilter<"Certificate"> | string
-  recipientName?: Prisma.StringFilter<"Certificate"> | string
-  eventTitle?: Prisma.StringNullableFilter<"Certificate"> | string | null
-  volunteerId?: Prisma.StringNullableFilter<"Certificate"> | string | null
   issueDate?: Prisma.DateTimeFilter<"Certificate"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Certificate"> | Date | string
+  eventTitle?: Prisma.StringNullableFilter<"Certificate"> | string | null
+  recipientName?: Prisma.StringFilter<"Certificate"> | string
+  type?: Prisma.EnumCertificateTypeFilter<"Certificate"> | $Enums.CertificateType
+  volunteerId?: Prisma.StringNullableFilter<"Certificate"> | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id" | "certificateNumber">
 
 export type CertificateOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  certificateNumber?: Prisma.SortOrder
-  type?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  recipientName?: Prisma.SortOrder
-  eventTitle?: Prisma.SortOrderInput | Prisma.SortOrder
-  volunteerId?: Prisma.SortOrderInput | Prisma.SortOrder
   issueDate?: Prisma.SortOrder
+  certificateNumber?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  eventTitle?: Prisma.SortOrderInput | Prisma.SortOrder
+  recipientName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
+  volunteerId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.CertificateCountOrderByAggregateInput
   _max?: Prisma.CertificateMaxOrderByAggregateInput
   _min?: Prisma.CertificateMinOrderByAggregateInput
@@ -266,97 +266,97 @@ export type CertificateScalarWhereWithAggregatesInput = {
   OR?: Prisma.CertificateScalarWhereWithAggregatesInput[]
   NOT?: Prisma.CertificateScalarWhereWithAggregatesInput | Prisma.CertificateScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Certificate"> | string
-  certificateNumber?: Prisma.StringWithAggregatesFilter<"Certificate"> | string
-  type?: Prisma.EnumCertificateTypeWithAggregatesFilter<"Certificate"> | $Enums.CertificateType
   userId?: Prisma.StringWithAggregatesFilter<"Certificate"> | string
-  recipientName?: Prisma.StringWithAggregatesFilter<"Certificate"> | string
-  eventTitle?: Prisma.StringNullableWithAggregatesFilter<"Certificate"> | string | null
-  volunteerId?: Prisma.StringNullableWithAggregatesFilter<"Certificate"> | string | null
   issueDate?: Prisma.DateTimeWithAggregatesFilter<"Certificate"> | Date | string
+  certificateNumber?: Prisma.StringWithAggregatesFilter<"Certificate"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Certificate"> | Date | string
+  eventTitle?: Prisma.StringNullableWithAggregatesFilter<"Certificate"> | string | null
+  recipientName?: Prisma.StringWithAggregatesFilter<"Certificate"> | string
+  type?: Prisma.EnumCertificateTypeWithAggregatesFilter<"Certificate"> | $Enums.CertificateType
+  volunteerId?: Prisma.StringNullableWithAggregatesFilter<"Certificate"> | string | null
 }
 
 export type CertificateCreateInput = {
   id?: string
-  certificateNumber: string
-  type?: $Enums.CertificateType
-  recipientName: string
-  eventTitle?: string | null
-  volunteerId?: string | null
   issueDate?: Date | string
+  certificateNumber: string
   createdAt?: Date | string
+  eventTitle?: string | null
+  recipientName: string
+  type?: $Enums.CertificateType
+  volunteerId?: string | null
   user: Prisma.UserCreateNestedOneWithoutCertificatesInput
 }
 
 export type CertificateUncheckedCreateInput = {
   id?: string
-  certificateNumber: string
-  type?: $Enums.CertificateType
   userId: string
-  recipientName: string
-  eventTitle?: string | null
-  volunteerId?: string | null
   issueDate?: Date | string
+  certificateNumber: string
   createdAt?: Date | string
+  eventTitle?: string | null
+  recipientName: string
+  type?: $Enums.CertificateType
+  volunteerId?: string | null
 }
 
 export type CertificateUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
-  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
-  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
+  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutCertificatesNestedInput
 }
 
 export type CertificateUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
-  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
+  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CertificateCreateManyInput = {
   id?: string
-  certificateNumber: string
-  type?: $Enums.CertificateType
   userId: string
-  recipientName: string
-  eventTitle?: string | null
-  volunteerId?: string | null
   issueDate?: Date | string
+  certificateNumber: string
   createdAt?: Date | string
+  eventTitle?: string | null
+  recipientName: string
+  type?: $Enums.CertificateType
+  volunteerId?: string | null
 }
 
 export type CertificateUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
-  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
-  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
+  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CertificateUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
-  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
+  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CertificateListRelationFilter = {
@@ -371,38 +371,38 @@ export type CertificateOrderByRelationAggregateInput = {
 
 export type CertificateCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  certificateNumber?: Prisma.SortOrder
-  type?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  recipientName?: Prisma.SortOrder
-  eventTitle?: Prisma.SortOrder
-  volunteerId?: Prisma.SortOrder
   issueDate?: Prisma.SortOrder
+  certificateNumber?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  eventTitle?: Prisma.SortOrder
+  recipientName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
+  volunteerId?: Prisma.SortOrder
 }
 
 export type CertificateMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  certificateNumber?: Prisma.SortOrder
-  type?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  recipientName?: Prisma.SortOrder
-  eventTitle?: Prisma.SortOrder
-  volunteerId?: Prisma.SortOrder
   issueDate?: Prisma.SortOrder
+  certificateNumber?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  eventTitle?: Prisma.SortOrder
+  recipientName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
+  volunteerId?: Prisma.SortOrder
 }
 
 export type CertificateMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  certificateNumber?: Prisma.SortOrder
-  type?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  recipientName?: Prisma.SortOrder
-  eventTitle?: Prisma.SortOrder
-  volunteerId?: Prisma.SortOrder
   issueDate?: Prisma.SortOrder
+  certificateNumber?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  eventTitle?: Prisma.SortOrder
+  recipientName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
+  volunteerId?: Prisma.SortOrder
 }
 
 export type CertificateCreateNestedManyWithoutUserInput = {
@@ -453,24 +453,24 @@ export type EnumCertificateTypeFieldUpdateOperationsInput = {
 
 export type CertificateCreateWithoutUserInput = {
   id?: string
-  certificateNumber: string
-  type?: $Enums.CertificateType
-  recipientName: string
-  eventTitle?: string | null
-  volunteerId?: string | null
   issueDate?: Date | string
+  certificateNumber: string
   createdAt?: Date | string
+  eventTitle?: string | null
+  recipientName: string
+  type?: $Enums.CertificateType
+  volunteerId?: string | null
 }
 
 export type CertificateUncheckedCreateWithoutUserInput = {
   id?: string
-  certificateNumber: string
-  type?: $Enums.CertificateType
-  recipientName: string
-  eventTitle?: string | null
-  volunteerId?: string | null
   issueDate?: Date | string
+  certificateNumber: string
   createdAt?: Date | string
+  eventTitle?: string | null
+  recipientName: string
+  type?: $Enums.CertificateType
+  volunteerId?: string | null
 }
 
 export type CertificateCreateOrConnectWithoutUserInput = {
@@ -504,114 +504,114 @@ export type CertificateScalarWhereInput = {
   OR?: Prisma.CertificateScalarWhereInput[]
   NOT?: Prisma.CertificateScalarWhereInput | Prisma.CertificateScalarWhereInput[]
   id?: Prisma.StringFilter<"Certificate"> | string
-  certificateNumber?: Prisma.StringFilter<"Certificate"> | string
-  type?: Prisma.EnumCertificateTypeFilter<"Certificate"> | $Enums.CertificateType
   userId?: Prisma.StringFilter<"Certificate"> | string
-  recipientName?: Prisma.StringFilter<"Certificate"> | string
-  eventTitle?: Prisma.StringNullableFilter<"Certificate"> | string | null
-  volunteerId?: Prisma.StringNullableFilter<"Certificate"> | string | null
   issueDate?: Prisma.DateTimeFilter<"Certificate"> | Date | string
+  certificateNumber?: Prisma.StringFilter<"Certificate"> | string
   createdAt?: Prisma.DateTimeFilter<"Certificate"> | Date | string
+  eventTitle?: Prisma.StringNullableFilter<"Certificate"> | string | null
+  recipientName?: Prisma.StringFilter<"Certificate"> | string
+  type?: Prisma.EnumCertificateTypeFilter<"Certificate"> | $Enums.CertificateType
+  volunteerId?: Prisma.StringNullableFilter<"Certificate"> | string | null
 }
 
 export type CertificateCreateManyUserInput = {
   id?: string
-  certificateNumber: string
-  type?: $Enums.CertificateType
-  recipientName: string
-  eventTitle?: string | null
-  volunteerId?: string | null
   issueDate?: Date | string
+  certificateNumber: string
   createdAt?: Date | string
+  eventTitle?: string | null
+  recipientName: string
+  type?: $Enums.CertificateType
+  volunteerId?: string | null
 }
 
 export type CertificateUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
-  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
-  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
+  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CertificateUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
-  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
-  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
+  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CertificateUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
-  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
-  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificateNumber?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCertificateTypeFieldUpdateOperationsInput | $Enums.CertificateType
+  volunteerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
 
 export type CertificateSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  certificateNumber?: boolean
-  type?: boolean
   userId?: boolean
-  recipientName?: boolean
-  eventTitle?: boolean
-  volunteerId?: boolean
   issueDate?: boolean
+  certificateNumber?: boolean
   createdAt?: boolean
+  eventTitle?: boolean
+  recipientName?: boolean
+  type?: boolean
+  volunteerId?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["certificate"]>
 
 export type CertificateSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  certificateNumber?: boolean
-  type?: boolean
   userId?: boolean
-  recipientName?: boolean
-  eventTitle?: boolean
-  volunteerId?: boolean
   issueDate?: boolean
+  certificateNumber?: boolean
   createdAt?: boolean
+  eventTitle?: boolean
+  recipientName?: boolean
+  type?: boolean
+  volunteerId?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["certificate"]>
 
 export type CertificateSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  certificateNumber?: boolean
-  type?: boolean
   userId?: boolean
-  recipientName?: boolean
-  eventTitle?: boolean
-  volunteerId?: boolean
   issueDate?: boolean
+  certificateNumber?: boolean
   createdAt?: boolean
+  eventTitle?: boolean
+  recipientName?: boolean
+  type?: boolean
+  volunteerId?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["certificate"]>
 
 export type CertificateSelectScalar = {
   id?: boolean
-  certificateNumber?: boolean
-  type?: boolean
   userId?: boolean
-  recipientName?: boolean
-  eventTitle?: boolean
-  volunteerId?: boolean
   issueDate?: boolean
+  certificateNumber?: boolean
   createdAt?: boolean
+  eventTitle?: boolean
+  recipientName?: boolean
+  type?: boolean
+  volunteerId?: boolean
 }
 
-export type CertificateOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "certificateNumber" | "type" | "userId" | "recipientName" | "eventTitle" | "volunteerId" | "issueDate" | "createdAt", ExtArgs["result"]["certificate"]>
+export type CertificateOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "issueDate" | "certificateNumber" | "createdAt" | "eventTitle" | "recipientName" | "type" | "volunteerId", ExtArgs["result"]["certificate"]>
 export type CertificateInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -629,14 +629,14 @@ export type $CertificatePayload<ExtArgs extends runtime.Types.Extensions.Interna
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    certificateNumber: string
-    type: $Enums.CertificateType
     userId: string
-    recipientName: string
-    eventTitle: string | null
-    volunteerId: string | null
     issueDate: Date
+    certificateNumber: string
     createdAt: Date
+    eventTitle: string | null
+    recipientName: string
+    type: $Enums.CertificateType
+    volunteerId: string | null
   }, ExtArgs["result"]["certificate"]>
   composites: {}
 }
@@ -1062,14 +1062,14 @@ export interface Prisma__CertificateClient<T, Null = never, ExtArgs extends runt
  */
 export interface CertificateFieldRefs {
   readonly id: Prisma.FieldRef<"Certificate", 'String'>
-  readonly certificateNumber: Prisma.FieldRef<"Certificate", 'String'>
-  readonly type: Prisma.FieldRef<"Certificate", 'CertificateType'>
   readonly userId: Prisma.FieldRef<"Certificate", 'String'>
-  readonly recipientName: Prisma.FieldRef<"Certificate", 'String'>
-  readonly eventTitle: Prisma.FieldRef<"Certificate", 'String'>
-  readonly volunteerId: Prisma.FieldRef<"Certificate", 'String'>
   readonly issueDate: Prisma.FieldRef<"Certificate", 'DateTime'>
+  readonly certificateNumber: Prisma.FieldRef<"Certificate", 'String'>
   readonly createdAt: Prisma.FieldRef<"Certificate", 'DateTime'>
+  readonly eventTitle: Prisma.FieldRef<"Certificate", 'String'>
+  readonly recipientName: Prisma.FieldRef<"Certificate", 'String'>
+  readonly type: Prisma.FieldRef<"Certificate", 'CertificateType'>
+  readonly volunteerId: Prisma.FieldRef<"Certificate", 'String'>
 }
     
 

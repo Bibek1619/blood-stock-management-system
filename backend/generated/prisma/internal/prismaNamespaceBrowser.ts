@@ -61,7 +61,15 @@ export const ModelName = {
   Event: 'Event',
   EventParticipant: 'EventParticipant',
   EventVolunteer: 'EventVolunteer',
-  Certificate: 'Certificate'
+  Certificate: 'Certificate',
+  About: 'About',
+  Gallery: 'Gallery',
+  Notification: 'Notification',
+  AnalyticsDailySummary: 'AnalyticsDailySummary',
+  AnalyticsDonorActivity: 'AnalyticsDonorActivity',
+  AnalyticsGeographic: 'AnalyticsGeographic',
+  AnalyticsPrediction: 'AnalyticsPrediction',
+  AnalyticsCampaign: 'AnalyticsCampaign'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -87,9 +95,13 @@ export const UserScalarFieldEnum = {
   name: 'name',
   phone: 'phone',
   role: 'role',
-  isVerified: 'isVerified',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  isVerified: 'isVerified',
+  emailVerified: 'emailVerified',
+  otp: 'otp',
+  otpExpiry: 'otpExpiry',
+  profilePicture: 'profilePicture'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -98,21 +110,28 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 export const DonorScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  bloodGroup: 'bloodGroup',
-  donorType: 'donorType',
-  location: 'location',
-  city: 'city',
-  address: 'address',
   dateOfBirth: 'dateOfBirth',
-  latitude: 'latitude',
-  longitude: 'longitude',
-  lastDonationDate: 'lastDonationDate',
+  address: 'address',
+  city: 'city',
   totalDonations: 'totalDonations',
   isEligible: 'isEligible',
-  weight: 'weight',
-  medicalNotes: 'medicalNotes',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  bloodGroup: 'bloodGroup',
+  lastDonationDate: 'lastDonationDate',
+  latitude: 'latitude',
+  location: 'location',
+  longitude: 'longitude',
+  medicalNotes: 'medicalNotes',
+  weight: 'weight',
+  donorType: 'donorType',
+  rejectionReason: 'rejectionReason',
+  verificationStatus: 'verificationStatus',
+  verifiedAt: 'verifiedAt',
+  verifiedBy: 'verifiedBy',
+  reverificationMessage: 'reverificationMessage',
+  reverificationRequested: 'reverificationRequested',
+  reverificationRequestedAt: 'reverificationRequestedAt'
 } as const
 
 export type DonorScalarFieldEnum = (typeof DonorScalarFieldEnum)[keyof typeof DonorScalarFieldEnum]
@@ -123,13 +142,13 @@ export const BloodPackScalarFieldEnum = {
   packCode: 'packCode',
   bloodGroup: 'bloodGroup',
   donorId: 'donorId',
-  donationId: 'donationId',
   collectionDate: 'collectionDate',
   expiryDate: 'expiryDate',
   status: 'status',
   storageLocation: 'storageLocation',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  donationId: 'donationId'
 } as const
 
 export type BloodPackScalarFieldEnum = (typeof BloodPackScalarFieldEnum)[keyof typeof BloodPackScalarFieldEnum]
@@ -151,19 +170,19 @@ export type BloodStockSummaryScalarFieldEnum = (typeof BloodStockSummaryScalarFi
 export const DonationScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  donorId: 'donorId',
-  eventId: 'eventId',
-  bloodGroup: 'bloodGroup',
-  units: 'units',
   donationDate: 'donationDate',
   location: 'location',
-  donationType: 'donationType',
   status: 'status',
   notes: 'notes',
-  contact: 'contact',
-  storageLocation: 'storageLocation',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  bloodGroup: 'bloodGroup',
+  contact: 'contact',
+  donationType: 'donationType',
+  donorId: 'donorId',
+  units: 'units',
+  eventId: 'eventId',
+  storageLocation: 'storageLocation'
 } as const
 
 export type DonationScalarFieldEnum = (typeof DonationScalarFieldEnum)[keyof typeof DonationScalarFieldEnum]
@@ -205,10 +224,15 @@ export const EventScalarFieldEnum = {
   description: 'description',
   location: 'location',
   eventDate: 'eventDate',
-  status: 'status',
+  eventTime: 'eventTime',
   capacity: 'capacity',
+  status: 'status',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  banner: 'banner',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  poster: 'poster'
 } as const
 
 export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
@@ -245,17 +269,147 @@ export type EventVolunteerScalarFieldEnum = (typeof EventVolunteerScalarFieldEnu
 
 export const CertificateScalarFieldEnum = {
   id: 'id',
-  certificateNumber: 'certificateNumber',
-  type: 'type',
   userId: 'userId',
-  recipientName: 'recipientName',
-  eventTitle: 'eventTitle',
-  volunteerId: 'volunteerId',
   issueDate: 'issueDate',
-  createdAt: 'createdAt'
+  certificateNumber: 'certificateNumber',
+  createdAt: 'createdAt',
+  eventTitle: 'eventTitle',
+  recipientName: 'recipientName',
+  type: 'type',
+  volunteerId: 'volunteerId'
 } as const
 
 export type CertificateScalarFieldEnum = (typeof CertificateScalarFieldEnum)[keyof typeof CertificateScalarFieldEnum]
+
+
+export const AboutScalarFieldEnum = {
+  id: 'id',
+  heroTitle: 'heroTitle',
+  heroSubtitle: 'heroSubtitle',
+  missionTitle: 'missionTitle',
+  missionContent: 'missionContent',
+  visionTitle: 'visionTitle',
+  visionContent: 'visionContent',
+  values: 'values',
+  storyTitle: 'storyTitle',
+  storyContent: 'storyContent',
+  stats: 'stats',
+  contactAddress: 'contactAddress',
+  contactPhone: 'contactPhone',
+  contactEmail: 'contactEmail',
+  contactEmergency: 'contactEmergency',
+  whatWeDo: 'whatWeDo',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AboutScalarFieldEnum = (typeof AboutScalarFieldEnum)[keyof typeof AboutScalarFieldEnum]
+
+
+export const GalleryScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  imageUrl: 'imageUrl',
+  imageKey: 'imageKey',
+  order: 'order',
+  isPublished: 'isPublished',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GalleryScalarFieldEnum = (typeof GalleryScalarFieldEnum)[keyof typeof GalleryScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  title: 'title',
+  message: 'message',
+  link: 'link',
+  isRead: 'isRead',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const AnalyticsDailySummaryScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  bloodGroup: 'bloodGroup',
+  donationsCount: 'donationsCount',
+  issuesCount: 'issuesCount',
+  expiredCount: 'expiredCount',
+  newDonorsCount: 'newDonorsCount',
+  activeDonorsCount: 'activeDonorsCount',
+  stockLevel: 'stockLevel',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AnalyticsDailySummaryScalarFieldEnum = (typeof AnalyticsDailySummaryScalarFieldEnum)[keyof typeof AnalyticsDailySummaryScalarFieldEnum]
+
+
+export const AnalyticsDonorActivityScalarFieldEnum = {
+  id: 'id',
+  donorId: 'donorId',
+  activityStatus: 'activityStatus',
+  lastDonationDate: 'lastDonationDate',
+  daysSinceLastDonation: 'daysSinceLastDonation',
+  totalDonations: 'totalDonations',
+  averageDaysBetweenDonations: 'averageDaysBetweenDonations',
+  calculatedAt: 'calculatedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AnalyticsDonorActivityScalarFieldEnum = (typeof AnalyticsDonorActivityScalarFieldEnum)[keyof typeof AnalyticsDonorActivityScalarFieldEnum]
+
+
+export const AnalyticsGeographicScalarFieldEnum = {
+  id: 'id',
+  city: 'city',
+  bloodGroup: 'bloodGroup',
+  donorCount: 'donorCount',
+  activeDonorCount: 'activeDonorCount',
+  totalDonations: 'totalDonations',
+  lastUpdated: 'lastUpdated'
+} as const
+
+export type AnalyticsGeographicScalarFieldEnum = (typeof AnalyticsGeographicScalarFieldEnum)[keyof typeof AnalyticsGeographicScalarFieldEnum]
+
+
+export const AnalyticsPredictionScalarFieldEnum = {
+  id: 'id',
+  predictionDate: 'predictionDate',
+  bloodGroup: 'bloodGroup',
+  predictedDemand: 'predictedDemand',
+  confidence: 'confidence',
+  basedOnDays: 'basedOnDays',
+  createdAt: 'createdAt'
+} as const
+
+export type AnalyticsPredictionScalarFieldEnum = (typeof AnalyticsPredictionScalarFieldEnum)[keyof typeof AnalyticsPredictionScalarFieldEnum]
+
+
+export const AnalyticsCampaignScalarFieldEnum = {
+  id: 'id',
+  campaignName: 'campaignName',
+  campaignType: 'campaignType',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  targetDonors: 'targetDonors',
+  actualDonors: 'actualDonors',
+  targetUnits: 'targetUnits',
+  actualUnits: 'actualUnits',
+  cost: 'cost',
+  eventId: 'eventId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AnalyticsCampaignScalarFieldEnum = (typeof AnalyticsCampaignScalarFieldEnum)[keyof typeof AnalyticsCampaignScalarFieldEnum]
 
 
 export const SortOrder = {

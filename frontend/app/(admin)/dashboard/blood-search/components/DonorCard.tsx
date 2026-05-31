@@ -17,6 +17,8 @@ export function DonorCard({ donor, clickedPos, onDonorClick, onCall, onNotify }:
     ? new Date(donor.lastDonationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : 'Never';
   
+  const isEligible = donor.isEligible !== false; // Default to true if not specified
+  
   // Get coordinates for distance calculation
   let coords = donor.latitude && donor.longitude
     ? { lat: donor.latitude, lng: donor.longitude }
@@ -36,26 +38,46 @@ export function DonorCard({ donor, clickedPos, onDonorClick, onCall, onNotify }:
   return (
     <div
       onClick={() => onDonorClick(donor)}
-      className="bg-white border border-slate-200 hover:border-red-300 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md"
+      className={`bg-white border rounded-xl p-4 cursor-pointer transition-all hover:shadow-md ${
+        isEligible 
+          ? 'border-slate-200 hover:border-red-300' 
+          : 'border-slate-300 bg-slate-50 opacity-75'
+      }`}
     >
       {/* Header with name and blood group */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="w-12 h-12 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-sm font-bold text-red-800 flex-shrink-0">
+          <div className={`w-12 h-12 rounded-full border flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+            isEligible 
+              ? 'bg-red-50 border-red-200 text-red-800' 
+              : 'bg-slate-100 border-slate-300 text-slate-600'
+          }`}>
             {getInitials(name)}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-slate-900 truncate" title={name}>{name}</p>
-            <div className="flex items-center gap-1 mt-1">
+            <div className="flex items-center gap-1 mt-1 flex-wrap">
               <span className={`px-2 py-0.5 border rounded text-[10px] font-medium ${locationBadge.color} flex-shrink-0`} title={hasPreciseCoords ? 'Exact location from interactive map' : 'Approximate location based on city'}>
                 {locationBadge.text}
+              </span>
+              <span className="text-xs text-slate-500">•</span>
+              <span className={`px-2 py-0.5 border rounded text-[10px] font-medium flex-shrink-0 ${
+                isEligible 
+                  ? 'bg-green-50 text-green-700 border-green-200' 
+                  : 'bg-red-50 text-red-700 border-red-200'
+              }`}>
+                {isEligible ? 'Eligible' : 'Not Eligible'}
               </span>
               <span className="text-xs text-slate-500">•</span>
               <span className="text-xs text-slate-500">{donor.totalDonations}× donated</span>
             </div>
           </div>
         </div>
-        <span className="px-3 py-1.5 bg-red-50 text-red-800 border border-red-200 rounded-lg text-sm font-bold flex-shrink-0 ml-2">
+        <span className={`px-3 py-1.5 border rounded-lg text-sm font-bold flex-shrink-0 ml-2 ${
+          isEligible 
+            ? 'bg-red-50 text-red-800 border-red-200' 
+            : 'bg-slate-100 text-slate-600 border-slate-300'
+        }`}>
           {bloodGroupDisplay}
         </span>
       </div>

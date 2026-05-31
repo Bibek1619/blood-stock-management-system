@@ -46,6 +46,7 @@ import {
   BarChart3,
   Package,
   Activity,
+  TrendingUp,
 } from 'lucide-react';
 import { clearAuth } from '@/lib/auth';
 import { useAuth } from '@/hooks/useAuth';
@@ -65,6 +66,7 @@ const NAV_MAIN = [
   { icon: Search, label: 'Blood Search', href: '/dashboard/blood-search' },
   { icon: Calendar, label: 'Events', href: '/dashboard/events' },
   { icon: Award, label: 'Certificates', href: '/dashboard/certificates' },
+  { icon: TrendingUp, label: 'Analytics', href: '/dashboard/analytics' },
   { icon: BarChart3, label: 'Reports', href: '/dashboard/reports' },
 ];
 

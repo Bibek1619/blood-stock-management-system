@@ -4,7 +4,7 @@ import { AppError } from "../middleware/errorHandler";
 import { geocodeLocation } from "../utils/geocoding";
 
 export const getAllDonors = async (req: Request, res: Response) => {
-  const { bloodGroup, location, isEligible, page = '1', limit = '20' } = req.query;
+  const { bloodGroup, location, isEligible, page = '1', limit = '20', verificationStatus } = req.query;
 
   // Parse pagination parameters
   const pageNum = parseInt(page as string);
@@ -12,10 +12,12 @@ export const getAllDonors = async (req: Request, res: Response) => {
   const skip = (pageNum - 1) * limitNum;
 
   // Build where clause
-  const where = {
+  const where: any = {
     ...(bloodGroup && { bloodGroup: bloodGroup as any }),
     ...(location && { location: { contains: location as string, mode: "insensitive" as const } }),
     ...(isEligible !== undefined && { isEligible: isEligible === "true" }),
+    // Only show VERIFIED donors by default (exclude PENDING and REJECTED)
+    verificationStatus: (verificationStatus as string) || 'VERIFIED',
   };
 
   // Get total count for pagination
@@ -39,6 +41,7 @@ export const getAllDonors = async (req: Request, res: Response) => {
       lastDonationDate: true,
       totalDonations: true,
       isEligible: true,
+      verificationStatus: true,
       createdAt: true,
       updatedAt: true,
       user: {
@@ -88,10 +91,48 @@ export const getDonorById = async (req: Request, res: Response) => {
       lastDonationDate: true,
       totalDonations: true,
       isEligible: true,
+      verificationStatus: true,
+      rejectionReason: true,
       createdAt: true,
       updatedAt: true,
       user: true,
       bloodPacks: true,
+    },
+  });
+
+  if (!donor) {
+    throw new AppError("Donor not found", 404);
+  }
+
+  res.json({ status: "success", data: donor });
+};
+
+export const getDonorByUserId = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+
+  const donor = await prisma.donor.findUnique({
+    where: { userId: userId as string },
+    select: {
+      id: true,
+      userId: true,
+      bloodGroup: true,
+      donorType: true,
+      location: true,
+      city: true,
+      address: true,
+      dateOfBirth: true,
+      weight: true,
+      latitude: true,
+      longitude: true,
+      lastDonationDate: true,
+      totalDonations: true,
+      isEligible: true,
+      verificationStatus: true,
+      rejectionReason: true,
+      verifiedAt: true,
+      createdAt: true,
+      updatedAt: true,
+      user: true,
     },
   });
 
@@ -142,6 +183,8 @@ export const createDonor = async (req: Request, res: Response) => {
       weight,
       latitude: finalLatitude,
       longitude: finalLongitude,
+      verificationStatus: 'PENDING', // Set to PENDING for admin approval
+      medicalNotes: req.body.medicalNotes || null,
     },
     select: {
       id: true,
@@ -158,21 +201,19 @@ export const createDonor = async (req: Request, res: Response) => {
       lastDonationDate: true,
       totalDonations: true,
       isEligible: true,
+      verificationStatus: true,
       createdAt: true,
       updatedAt: true,
       user: true,
     },
   });
 
-  // Mark user as verified after completing donor profile
-  await prisma.user.update({
-    where: { id: userId },
-    data: { isVerified: true },
-  });
+  // DO NOT mark user as verified - wait for admin approval
+  // User will be notified when admin approves the donor profile
 
   res.status(201).json({ 
     status: "success", 
-    message: "Donor profile completed successfully",
+    message: "Donor profile submitted for approval. You will be notified once approved.",
     data: donor 
   });
 };

@@ -6,9 +6,11 @@ interface SearchFiltersProps {
   radius: number;
   clickedPos: { lat: number; lng: number } | null;
   bloodGroups: string[];
+  eligibilityFilter: 'all' | 'eligible' | 'not-eligible';
   onGroupChange: (group: string) => void;
   onLocationChange: (location: string) => void;
   onRadiusChange: (radius: number) => void;
+  onEligibilityChange: (filter: 'all' | 'eligible' | 'not-eligible') => void;
   onClearPin: () => void;
 }
 
@@ -18,9 +20,11 @@ export function SearchFilters({
   radius,
   clickedPos,
   bloodGroups,
+  eligibilityFilter,
   onGroupChange,
   onLocationChange,
   onRadiusChange,
+  onEligibilityChange,
   onClearPin,
 }: SearchFiltersProps) {
   return (
@@ -32,7 +36,7 @@ export function SearchFilters({
         <p className="text-sm font-bold text-slate-900">Search Filters</p>
       </div>
 
-      <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1.5">Blood Group</label>
           <select
@@ -50,6 +54,19 @@ export function SearchFilters({
                 </option>
               );
             })}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-1.5">Eligibility</label>
+          <select
+            value={eligibilityFilter}
+            onChange={(e) => onEligibilityChange(e.target.value as 'all' | 'eligible' | 'not-eligible')}
+            className="w-full h-9 px-3 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
+          >
+            <option value="all">All Donors</option>
+            <option value="eligible">Eligible to Donate</option>
+            <option value="not-eligible">Not Eligible</option>
           </select>
         </div>
 

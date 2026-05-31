@@ -31,9 +31,13 @@ export type UserMinAggregateOutputType = {
   name: string | null
   phone: string | null
   role: $Enums.Role | null
-  isVerified: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  isVerified: boolean | null
+  emailVerified: boolean | null
+  otp: string | null
+  otpExpiry: Date | null
+  profilePicture: string | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -43,9 +47,13 @@ export type UserMaxAggregateOutputType = {
   name: string | null
   phone: string | null
   role: $Enums.Role | null
-  isVerified: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  isVerified: boolean | null
+  emailVerified: boolean | null
+  otp: string | null
+  otpExpiry: Date | null
+  profilePicture: string | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -55,9 +63,13 @@ export type UserCountAggregateOutputType = {
   name: number
   phone: number
   role: number
-  isVerified: number
   createdAt: number
   updatedAt: number
+  isVerified: number
+  emailVerified: number
+  otp: number
+  otpExpiry: number
+  profilePicture: number
   _all: number
 }
 
@@ -69,9 +81,13 @@ export type UserMinAggregateInputType = {
   name?: true
   phone?: true
   role?: true
-  isVerified?: true
   createdAt?: true
   updatedAt?: true
+  isVerified?: true
+  emailVerified?: true
+  otp?: true
+  otpExpiry?: true
+  profilePicture?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -81,9 +97,13 @@ export type UserMaxAggregateInputType = {
   name?: true
   phone?: true
   role?: true
-  isVerified?: true
   createdAt?: true
   updatedAt?: true
+  isVerified?: true
+  emailVerified?: true
+  otp?: true
+  otpExpiry?: true
+  profilePicture?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -93,9 +113,13 @@ export type UserCountAggregateInputType = {
   name?: true
   phone?: true
   role?: true
-  isVerified?: true
   createdAt?: true
   updatedAt?: true
+  isVerified?: true
+  emailVerified?: true
+  otp?: true
+  otpExpiry?: true
+  profilePicture?: true
   _all?: true
 }
 
@@ -178,9 +202,13 @@ export type UserGroupByOutputType = {
   name: string
   phone: string
   role: $Enums.Role
-  isVerified: boolean
   createdAt: Date
   updatedAt: Date
+  isVerified: boolean
+  emailVerified: boolean
+  otp: string | null
+  otpExpiry: Date | null
+  profilePicture: string | null
   _count: UserCountAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
@@ -211,15 +239,20 @@ export type UserWhereInput = {
   name?: Prisma.StringFilter<"User"> | string
   phone?: Prisma.StringFilter<"User"> | string
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
-  isVerified?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  donor?: Prisma.XOR<Prisma.DonorNullableScalarRelationFilter, Prisma.DonorWhereInput> | null
-  donations?: Prisma.DonationListRelationFilter
+  isVerified?: Prisma.BoolFilter<"User"> | boolean
+  emailVerified?: Prisma.BoolFilter<"User"> | boolean
+  otp?: Prisma.StringNullableFilter<"User"> | string | null
+  otpExpiry?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  profilePicture?: Prisma.StringNullableFilter<"User"> | string | null
+  bloodIssues?: Prisma.BloodIssueListRelationFilter
   certificates?: Prisma.CertificateListRelationFilter
+  donations?: Prisma.DonationListRelationFilter
+  donor?: Prisma.XOR<Prisma.DonorNullableScalarRelationFilter, Prisma.DonorWhereInput> | null
   eventParticipations?: Prisma.EventParticipantListRelationFilter
   eventVolunteers?: Prisma.EventVolunteerListRelationFilter
-  bloodIssues?: Prisma.BloodIssueListRelationFilter
+  Notification?: Prisma.NotificationListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -229,15 +262,20 @@ export type UserOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   role?: Prisma.SortOrder
-  isVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  donor?: Prisma.DonorOrderByWithRelationInput
-  donations?: Prisma.DonationOrderByRelationAggregateInput
+  isVerified?: Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
+  otp?: Prisma.SortOrderInput | Prisma.SortOrder
+  otpExpiry?: Prisma.SortOrderInput | Prisma.SortOrder
+  profilePicture?: Prisma.SortOrderInput | Prisma.SortOrder
+  bloodIssues?: Prisma.BloodIssueOrderByRelationAggregateInput
   certificates?: Prisma.CertificateOrderByRelationAggregateInput
+  donations?: Prisma.DonationOrderByRelationAggregateInput
+  donor?: Prisma.DonorOrderByWithRelationInput
   eventParticipations?: Prisma.EventParticipantOrderByRelationAggregateInput
   eventVolunteers?: Prisma.EventVolunteerOrderByRelationAggregateInput
-  bloodIssues?: Prisma.BloodIssueOrderByRelationAggregateInput
+  Notification?: Prisma.NotificationOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -250,15 +288,20 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"User"> | string
   phone?: Prisma.StringFilter<"User"> | string
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
-  isVerified?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  donor?: Prisma.XOR<Prisma.DonorNullableScalarRelationFilter, Prisma.DonorWhereInput> | null
-  donations?: Prisma.DonationListRelationFilter
+  isVerified?: Prisma.BoolFilter<"User"> | boolean
+  emailVerified?: Prisma.BoolFilter<"User"> | boolean
+  otp?: Prisma.StringNullableFilter<"User"> | string | null
+  otpExpiry?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  profilePicture?: Prisma.StringNullableFilter<"User"> | string | null
+  bloodIssues?: Prisma.BloodIssueListRelationFilter
   certificates?: Prisma.CertificateListRelationFilter
+  donations?: Prisma.DonationListRelationFilter
+  donor?: Prisma.XOR<Prisma.DonorNullableScalarRelationFilter, Prisma.DonorWhereInput> | null
   eventParticipations?: Prisma.EventParticipantListRelationFilter
   eventVolunteers?: Prisma.EventVolunteerListRelationFilter
-  bloodIssues?: Prisma.BloodIssueListRelationFilter
+  Notification?: Prisma.NotificationListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -268,9 +311,13 @@ export type UserOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   role?: Prisma.SortOrder
-  isVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isVerified?: Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
+  otp?: Prisma.SortOrderInput | Prisma.SortOrder
+  otpExpiry?: Prisma.SortOrderInput | Prisma.SortOrder
+  profilePicture?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
@@ -286,9 +333,13 @@ export type UserScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"User"> | string
   phone?: Prisma.StringWithAggregatesFilter<"User"> | string
   role?: Prisma.EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
-  isVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
+  isVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  emailVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  otp?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  otpExpiry?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  profilePicture?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
 }
 
 export type UserCreateInput = {
@@ -298,15 +349,20 @@ export type UserCreateInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donor?: Prisma.DonorCreateNestedOneWithoutUserInput
-  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
+  bloodIssues?: Prisma.BloodIssueCreateNestedManyWithoutIssuedBy_userInput
   certificates?: Prisma.CertificateCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorCreateNestedOneWithoutUserInput
   eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutUserInput
   eventVolunteers?: Prisma.EventVolunteerCreateNestedManyWithoutUserInput
-  bloodIssues?: Prisma.BloodIssueCreateNestedManyWithoutIssuedBy_userInput
+  Notification?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -316,15 +372,20 @@ export type UserUncheckedCreateInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donor?: Prisma.DonorUncheckedCreateNestedOneWithoutUserInput
-  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
+  bloodIssues?: Prisma.BloodIssueUncheckedCreateNestedManyWithoutIssuedBy_userInput
   certificates?: Prisma.CertificateUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorUncheckedCreateNestedOneWithoutUserInput
   eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutUserInput
   eventVolunteers?: Prisma.EventVolunteerUncheckedCreateNestedManyWithoutUserInput
-  bloodIssues?: Prisma.BloodIssueUncheckedCreateNestedManyWithoutIssuedBy_userInput
+  Notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -334,15 +395,20 @@ export type UserUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donor?: Prisma.DonorUpdateOneWithoutUserNestedInput
-  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bloodIssues?: Prisma.BloodIssueUpdateManyWithoutIssuedBy_userNestedInput
   certificates?: Prisma.CertificateUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUpdateOneWithoutUserNestedInput
   eventParticipations?: Prisma.EventParticipantUpdateManyWithoutUserNestedInput
   eventVolunteers?: Prisma.EventVolunteerUpdateManyWithoutUserNestedInput
-  bloodIssues?: Prisma.BloodIssueUpdateManyWithoutIssuedBy_userNestedInput
+  Notification?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -352,15 +418,20 @@ export type UserUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donor?: Prisma.DonorUncheckedUpdateOneWithoutUserNestedInput
-  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bloodIssues?: Prisma.BloodIssueUncheckedUpdateManyWithoutIssuedBy_userNestedInput
   certificates?: Prisma.CertificateUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUncheckedUpdateOneWithoutUserNestedInput
   eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutUserNestedInput
   eventVolunteers?: Prisma.EventVolunteerUncheckedUpdateManyWithoutUserNestedInput
-  bloodIssues?: Prisma.BloodIssueUncheckedUpdateManyWithoutIssuedBy_userNestedInput
+  Notification?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -370,9 +441,13 @@ export type UserCreateManyInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
 }
 
 export type UserUpdateManyMutationInput = {
@@ -382,9 +457,13 @@ export type UserUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -394,9 +473,13 @@ export type UserUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -406,9 +489,13 @@ export type UserCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   role?: Prisma.SortOrder
-  isVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isVerified?: Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
+  otp?: Prisma.SortOrder
+  otpExpiry?: Prisma.SortOrder
+  profilePicture?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -418,9 +505,13 @@ export type UserMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   role?: Prisma.SortOrder
-  isVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isVerified?: Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
+  otp?: Prisma.SortOrder
+  otpExpiry?: Prisma.SortOrder
+  profilePicture?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -430,9 +521,13 @@ export type UserMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   role?: Prisma.SortOrder
-  isVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isVerified?: Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
+  otp?: Prisma.SortOrder
+  otpExpiry?: Prisma.SortOrder
+  profilePicture?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -453,12 +548,20 @@ export type EnumRoleFieldUpdateOperationsInput = {
   set?: $Enums.Role
 }
 
+export type DateTimeFieldUpdateOperationsInput = {
+  set?: Date | string
+}
+
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
 }
 
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type UserCreateNestedOneWithoutDonorInput = {
@@ -549,6 +652,20 @@ export type UserUpdateOneRequiredWithoutCertificatesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCertificatesInput, Prisma.UserUpdateWithoutCertificatesInput>, Prisma.UserUncheckedUpdateWithoutCertificatesInput>
 }
 
+export type UserCreateNestedOneWithoutNotificationInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationInput, Prisma.UserUncheckedCreateWithoutNotificationInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutNotificationNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationInput, Prisma.UserUncheckedCreateWithoutNotificationInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationInput
+  upsert?: Prisma.UserUpsertWithoutNotificationInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNotificationInput, Prisma.UserUpdateWithoutNotificationInput>, Prisma.UserUncheckedUpdateWithoutNotificationInput>
+}
+
 export type UserCreateWithoutDonorInput = {
   id?: string
   email: string
@@ -556,14 +673,19 @@ export type UserCreateWithoutDonorInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
+  bloodIssues?: Prisma.BloodIssueCreateNestedManyWithoutIssuedBy_userInput
   certificates?: Prisma.CertificateCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
   eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutUserInput
   eventVolunteers?: Prisma.EventVolunteerCreateNestedManyWithoutUserInput
-  bloodIssues?: Prisma.BloodIssueCreateNestedManyWithoutIssuedBy_userInput
+  Notification?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutDonorInput = {
@@ -573,14 +695,19 @@ export type UserUncheckedCreateWithoutDonorInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
+  bloodIssues?: Prisma.BloodIssueUncheckedCreateNestedManyWithoutIssuedBy_userInput
   certificates?: Prisma.CertificateUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
   eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutUserInput
   eventVolunteers?: Prisma.EventVolunteerUncheckedCreateNestedManyWithoutUserInput
-  bloodIssues?: Prisma.BloodIssueUncheckedCreateNestedManyWithoutIssuedBy_userInput
+  Notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutDonorInput = {
@@ -606,14 +733,19 @@ export type UserUpdateWithoutDonorInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bloodIssues?: Prisma.BloodIssueUpdateManyWithoutIssuedBy_userNestedInput
   certificates?: Prisma.CertificateUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
   eventParticipations?: Prisma.EventParticipantUpdateManyWithoutUserNestedInput
   eventVolunteers?: Prisma.EventVolunteerUpdateManyWithoutUserNestedInput
-  bloodIssues?: Prisma.BloodIssueUpdateManyWithoutIssuedBy_userNestedInput
+  Notification?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDonorInput = {
@@ -623,14 +755,19 @@ export type UserUncheckedUpdateWithoutDonorInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bloodIssues?: Prisma.BloodIssueUncheckedUpdateManyWithoutIssuedBy_userNestedInput
   certificates?: Prisma.CertificateUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
   eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutUserNestedInput
   eventVolunteers?: Prisma.EventVolunteerUncheckedUpdateManyWithoutUserNestedInput
-  bloodIssues?: Prisma.BloodIssueUncheckedUpdateManyWithoutIssuedBy_userNestedInput
+  Notification?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutDonationsInput = {
@@ -640,14 +777,19 @@ export type UserCreateWithoutDonationsInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donor?: Prisma.DonorCreateNestedOneWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
+  bloodIssues?: Prisma.BloodIssueCreateNestedManyWithoutIssuedBy_userInput
   certificates?: Prisma.CertificateCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorCreateNestedOneWithoutUserInput
   eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutUserInput
   eventVolunteers?: Prisma.EventVolunteerCreateNestedManyWithoutUserInput
-  bloodIssues?: Prisma.BloodIssueCreateNestedManyWithoutIssuedBy_userInput
+  Notification?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutDonationsInput = {
@@ -657,14 +799,19 @@ export type UserUncheckedCreateWithoutDonationsInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donor?: Prisma.DonorUncheckedCreateNestedOneWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
+  bloodIssues?: Prisma.BloodIssueUncheckedCreateNestedManyWithoutIssuedBy_userInput
   certificates?: Prisma.CertificateUncheckedCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorUncheckedCreateNestedOneWithoutUserInput
   eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutUserInput
   eventVolunteers?: Prisma.EventVolunteerUncheckedCreateNestedManyWithoutUserInput
-  bloodIssues?: Prisma.BloodIssueUncheckedCreateNestedManyWithoutIssuedBy_userInput
+  Notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutDonationsInput = {
@@ -690,14 +837,19 @@ export type UserUpdateWithoutDonationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donor?: Prisma.DonorUpdateOneWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bloodIssues?: Prisma.BloodIssueUpdateManyWithoutIssuedBy_userNestedInput
   certificates?: Prisma.CertificateUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUpdateOneWithoutUserNestedInput
   eventParticipations?: Prisma.EventParticipantUpdateManyWithoutUserNestedInput
   eventVolunteers?: Prisma.EventVolunteerUpdateManyWithoutUserNestedInput
-  bloodIssues?: Prisma.BloodIssueUpdateManyWithoutIssuedBy_userNestedInput
+  Notification?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDonationsInput = {
@@ -707,14 +859,19 @@ export type UserUncheckedUpdateWithoutDonationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donor?: Prisma.DonorUncheckedUpdateOneWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bloodIssues?: Prisma.BloodIssueUncheckedUpdateManyWithoutIssuedBy_userNestedInput
   certificates?: Prisma.CertificateUncheckedUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUncheckedUpdateOneWithoutUserNestedInput
   eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutUserNestedInput
   eventVolunteers?: Prisma.EventVolunteerUncheckedUpdateManyWithoutUserNestedInput
-  bloodIssues?: Prisma.BloodIssueUncheckedUpdateManyWithoutIssuedBy_userNestedInput
+  Notification?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutBloodIssuesInput = {
@@ -724,14 +881,19 @@ export type UserCreateWithoutBloodIssuesInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donor?: Prisma.DonorCreateNestedOneWithoutUserInput
-  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
   certificates?: Prisma.CertificateCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorCreateNestedOneWithoutUserInput
   eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutUserInput
   eventVolunteers?: Prisma.EventVolunteerCreateNestedManyWithoutUserInput
+  Notification?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutBloodIssuesInput = {
@@ -741,14 +903,19 @@ export type UserUncheckedCreateWithoutBloodIssuesInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donor?: Prisma.DonorUncheckedCreateNestedOneWithoutUserInput
-  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
   certificates?: Prisma.CertificateUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorUncheckedCreateNestedOneWithoutUserInput
   eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutUserInput
   eventVolunteers?: Prisma.EventVolunteerUncheckedCreateNestedManyWithoutUserInput
+  Notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutBloodIssuesInput = {
@@ -774,14 +941,19 @@ export type UserUpdateWithoutBloodIssuesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donor?: Prisma.DonorUpdateOneWithoutUserNestedInput
-  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   certificates?: Prisma.CertificateUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUpdateOneWithoutUserNestedInput
   eventParticipations?: Prisma.EventParticipantUpdateManyWithoutUserNestedInput
   eventVolunteers?: Prisma.EventVolunteerUpdateManyWithoutUserNestedInput
+  Notification?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBloodIssuesInput = {
@@ -791,14 +963,19 @@ export type UserUncheckedUpdateWithoutBloodIssuesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donor?: Prisma.DonorUncheckedUpdateOneWithoutUserNestedInput
-  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   certificates?: Prisma.CertificateUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUncheckedUpdateOneWithoutUserNestedInput
   eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutUserNestedInput
   eventVolunteers?: Prisma.EventVolunteerUncheckedUpdateManyWithoutUserNestedInput
+  Notification?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutEventParticipationsInput = {
@@ -808,14 +985,19 @@ export type UserCreateWithoutEventParticipationsInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donor?: Prisma.DonorCreateNestedOneWithoutUserInput
-  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
-  certificates?: Prisma.CertificateCreateNestedManyWithoutUserInput
-  eventVolunteers?: Prisma.EventVolunteerCreateNestedManyWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
   bloodIssues?: Prisma.BloodIssueCreateNestedManyWithoutIssuedBy_userInput
+  certificates?: Prisma.CertificateCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorCreateNestedOneWithoutUserInput
+  eventVolunteers?: Prisma.EventVolunteerCreateNestedManyWithoutUserInput
+  Notification?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEventParticipationsInput = {
@@ -825,14 +1007,19 @@ export type UserUncheckedCreateWithoutEventParticipationsInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donor?: Prisma.DonorUncheckedCreateNestedOneWithoutUserInput
-  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
-  certificates?: Prisma.CertificateUncheckedCreateNestedManyWithoutUserInput
-  eventVolunteers?: Prisma.EventVolunteerUncheckedCreateNestedManyWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
   bloodIssues?: Prisma.BloodIssueUncheckedCreateNestedManyWithoutIssuedBy_userInput
+  certificates?: Prisma.CertificateUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorUncheckedCreateNestedOneWithoutUserInput
+  eventVolunteers?: Prisma.EventVolunteerUncheckedCreateNestedManyWithoutUserInput
+  Notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEventParticipationsInput = {
@@ -858,14 +1045,19 @@ export type UserUpdateWithoutEventParticipationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donor?: Prisma.DonorUpdateOneWithoutUserNestedInput
-  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
-  certificates?: Prisma.CertificateUpdateManyWithoutUserNestedInput
-  eventVolunteers?: Prisma.EventVolunteerUpdateManyWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bloodIssues?: Prisma.BloodIssueUpdateManyWithoutIssuedBy_userNestedInput
+  certificates?: Prisma.CertificateUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUpdateOneWithoutUserNestedInput
+  eventVolunteers?: Prisma.EventVolunteerUpdateManyWithoutUserNestedInput
+  Notification?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEventParticipationsInput = {
@@ -875,14 +1067,19 @@ export type UserUncheckedUpdateWithoutEventParticipationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donor?: Prisma.DonorUncheckedUpdateOneWithoutUserNestedInput
-  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
-  certificates?: Prisma.CertificateUncheckedUpdateManyWithoutUserNestedInput
-  eventVolunteers?: Prisma.EventVolunteerUncheckedUpdateManyWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bloodIssues?: Prisma.BloodIssueUncheckedUpdateManyWithoutIssuedBy_userNestedInput
+  certificates?: Prisma.CertificateUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUncheckedUpdateOneWithoutUserNestedInput
+  eventVolunteers?: Prisma.EventVolunteerUncheckedUpdateManyWithoutUserNestedInput
+  Notification?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutEventVolunteersInput = {
@@ -892,14 +1089,19 @@ export type UserCreateWithoutEventVolunteersInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donor?: Prisma.DonorCreateNestedOneWithoutUserInput
-  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
-  certificates?: Prisma.CertificateCreateNestedManyWithoutUserInput
-  eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
   bloodIssues?: Prisma.BloodIssueCreateNestedManyWithoutIssuedBy_userInput
+  certificates?: Prisma.CertificateCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorCreateNestedOneWithoutUserInput
+  eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutUserInput
+  Notification?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEventVolunteersInput = {
@@ -909,14 +1111,19 @@ export type UserUncheckedCreateWithoutEventVolunteersInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donor?: Prisma.DonorUncheckedCreateNestedOneWithoutUserInput
-  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
-  certificates?: Prisma.CertificateUncheckedCreateNestedManyWithoutUserInput
-  eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
   bloodIssues?: Prisma.BloodIssueUncheckedCreateNestedManyWithoutIssuedBy_userInput
+  certificates?: Prisma.CertificateUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorUncheckedCreateNestedOneWithoutUserInput
+  eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutUserInput
+  Notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEventVolunteersInput = {
@@ -942,14 +1149,19 @@ export type UserUpdateWithoutEventVolunteersInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donor?: Prisma.DonorUpdateOneWithoutUserNestedInput
-  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
-  certificates?: Prisma.CertificateUpdateManyWithoutUserNestedInput
-  eventParticipations?: Prisma.EventParticipantUpdateManyWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bloodIssues?: Prisma.BloodIssueUpdateManyWithoutIssuedBy_userNestedInput
+  certificates?: Prisma.CertificateUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUpdateOneWithoutUserNestedInput
+  eventParticipations?: Prisma.EventParticipantUpdateManyWithoutUserNestedInput
+  Notification?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEventVolunteersInput = {
@@ -959,14 +1171,19 @@ export type UserUncheckedUpdateWithoutEventVolunteersInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donor?: Prisma.DonorUncheckedUpdateOneWithoutUserNestedInput
-  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
-  certificates?: Prisma.CertificateUncheckedUpdateManyWithoutUserNestedInput
-  eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bloodIssues?: Prisma.BloodIssueUncheckedUpdateManyWithoutIssuedBy_userNestedInput
+  certificates?: Prisma.CertificateUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUncheckedUpdateOneWithoutUserNestedInput
+  eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutUserNestedInput
+  Notification?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCertificatesInput = {
@@ -976,14 +1193,19 @@ export type UserCreateWithoutCertificatesInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donor?: Prisma.DonorCreateNestedOneWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
+  bloodIssues?: Prisma.BloodIssueCreateNestedManyWithoutIssuedBy_userInput
   donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorCreateNestedOneWithoutUserInput
   eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutUserInput
   eventVolunteers?: Prisma.EventVolunteerCreateNestedManyWithoutUserInput
-  bloodIssues?: Prisma.BloodIssueCreateNestedManyWithoutIssuedBy_userInput
+  Notification?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCertificatesInput = {
@@ -993,14 +1215,19 @@ export type UserUncheckedCreateWithoutCertificatesInput = {
   name: string
   phone: string
   role?: $Enums.Role
-  isVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  donor?: Prisma.DonorUncheckedCreateNestedOneWithoutUserInput
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
+  bloodIssues?: Prisma.BloodIssueUncheckedCreateNestedManyWithoutIssuedBy_userInput
   donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorUncheckedCreateNestedOneWithoutUserInput
   eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutUserInput
   eventVolunteers?: Prisma.EventVolunteerUncheckedCreateNestedManyWithoutUserInput
-  bloodIssues?: Prisma.BloodIssueUncheckedCreateNestedManyWithoutIssuedBy_userInput
+  Notification?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCertificatesInput = {
@@ -1026,14 +1253,19 @@ export type UserUpdateWithoutCertificatesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donor?: Prisma.DonorUpdateOneWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bloodIssues?: Prisma.BloodIssueUpdateManyWithoutIssuedBy_userNestedInput
   donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUpdateOneWithoutUserNestedInput
   eventParticipations?: Prisma.EventParticipantUpdateManyWithoutUserNestedInput
   eventVolunteers?: Prisma.EventVolunteerUpdateManyWithoutUserNestedInput
-  bloodIssues?: Prisma.BloodIssueUpdateManyWithoutIssuedBy_userNestedInput
+  Notification?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCertificatesInput = {
@@ -1043,14 +1275,123 @@ export type UserUncheckedUpdateWithoutCertificatesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
-  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  donor?: Prisma.DonorUncheckedUpdateOneWithoutUserNestedInput
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bloodIssues?: Prisma.BloodIssueUncheckedUpdateManyWithoutIssuedBy_userNestedInput
   donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUncheckedUpdateOneWithoutUserNestedInput
   eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutUserNestedInput
   eventVolunteers?: Prisma.EventVolunteerUncheckedUpdateManyWithoutUserNestedInput
+  Notification?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutNotificationInput = {
+  id?: string
+  email: string
+  password: string
+  name: string
+  phone: string
+  role?: $Enums.Role
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
+  bloodIssues?: Prisma.BloodIssueCreateNestedManyWithoutIssuedBy_userInput
+  certificates?: Prisma.CertificateCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorCreateNestedOneWithoutUserInput
+  eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutUserInput
+  eventVolunteers?: Prisma.EventVolunteerCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutNotificationInput = {
+  id?: string
+  email: string
+  password: string
+  name: string
+  phone: string
+  role?: $Enums.Role
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: string | null
+  otpExpiry?: Date | string | null
+  profilePicture?: string | null
+  bloodIssues?: Prisma.BloodIssueUncheckedCreateNestedManyWithoutIssuedBy_userInput
+  certificates?: Prisma.CertificateUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donor?: Prisma.DonorUncheckedCreateNestedOneWithoutUserInput
+  eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutUserInput
+  eventVolunteers?: Prisma.EventVolunteerUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutNotificationInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationInput, Prisma.UserUncheckedCreateWithoutNotificationInput>
+}
+
+export type UserUpsertWithoutNotificationInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutNotificationInput, Prisma.UserUncheckedUpdateWithoutNotificationInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationInput, Prisma.UserUncheckedCreateWithoutNotificationInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutNotificationInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutNotificationInput, Prisma.UserUncheckedUpdateWithoutNotificationInput>
+}
+
+export type UserUpdateWithoutNotificationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bloodIssues?: Prisma.BloodIssueUpdateManyWithoutIssuedBy_userNestedInput
+  certificates?: Prisma.CertificateUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUpdateOneWithoutUserNestedInput
+  eventParticipations?: Prisma.EventParticipantUpdateManyWithoutUserNestedInput
+  eventVolunteers?: Prisma.EventVolunteerUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutNotificationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePicture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bloodIssues?: Prisma.BloodIssueUncheckedUpdateManyWithoutIssuedBy_userNestedInput
+  certificates?: Prisma.CertificateUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donor?: Prisma.DonorUncheckedUpdateOneWithoutUserNestedInput
+  eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutUserNestedInput
+  eventVolunteers?: Prisma.EventVolunteerUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1059,19 +1400,21 @@ export type UserUncheckedUpdateWithoutCertificatesInput = {
  */
 
 export type UserCountOutputType = {
-  donations: number
+  bloodIssues: number
   certificates: number
+  donations: number
   eventParticipations: number
   eventVolunteers: number
-  bloodIssues: number
+  Notification: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  donations?: boolean | UserCountOutputTypeCountDonationsArgs
+  bloodIssues?: boolean | UserCountOutputTypeCountBloodIssuesArgs
   certificates?: boolean | UserCountOutputTypeCountCertificatesArgs
+  donations?: boolean | UserCountOutputTypeCountDonationsArgs
   eventParticipations?: boolean | UserCountOutputTypeCountEventParticipationsArgs
   eventVolunteers?: boolean | UserCountOutputTypeCountEventVolunteersArgs
-  bloodIssues?: boolean | UserCountOutputTypeCountBloodIssuesArgs
+  Notification?: boolean | UserCountOutputTypeCountNotificationArgs
 }
 
 /**
@@ -1087,8 +1430,8 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountDonationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.DonationWhereInput
+export type UserCountOutputTypeCountBloodIssuesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BloodIssueWhereInput
 }
 
 /**
@@ -1096,6 +1439,13 @@ export type UserCountOutputTypeCountDonationsArgs<ExtArgs extends runtime.Types.
  */
 export type UserCountOutputTypeCountCertificatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.CertificateWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDonationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DonationWhereInput
 }
 
 /**
@@ -1115,8 +1465,8 @@ export type UserCountOutputTypeCountEventVolunteersArgs<ExtArgs extends runtime.
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountBloodIssuesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.BloodIssueWhereInput
+export type UserCountOutputTypeCountNotificationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.NotificationWhereInput
 }
 
 
@@ -1127,15 +1477,20 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   name?: boolean
   phone?: boolean
   role?: boolean
-  isVerified?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  donor?: boolean | Prisma.User$donorArgs<ExtArgs>
-  donations?: boolean | Prisma.User$donationsArgs<ExtArgs>
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: boolean
+  otpExpiry?: boolean
+  profilePicture?: boolean
+  bloodIssues?: boolean | Prisma.User$bloodIssuesArgs<ExtArgs>
   certificates?: boolean | Prisma.User$certificatesArgs<ExtArgs>
+  donations?: boolean | Prisma.User$donationsArgs<ExtArgs>
+  donor?: boolean | Prisma.User$donorArgs<ExtArgs>
   eventParticipations?: boolean | Prisma.User$eventParticipationsArgs<ExtArgs>
   eventVolunteers?: boolean | Prisma.User$eventVolunteersArgs<ExtArgs>
-  bloodIssues?: boolean | Prisma.User$bloodIssuesArgs<ExtArgs>
+  Notification?: boolean | Prisma.User$NotificationArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1146,9 +1501,13 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   name?: boolean
   phone?: boolean
   role?: boolean
-  isVerified?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: boolean
+  otpExpiry?: boolean
+  profilePicture?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1158,9 +1517,13 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   name?: boolean
   phone?: boolean
   role?: boolean
-  isVerified?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: boolean
+  otpExpiry?: boolean
+  profilePicture?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -1170,19 +1533,24 @@ export type UserSelectScalar = {
   name?: boolean
   phone?: boolean
   role?: boolean
-  isVerified?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  isVerified?: boolean
+  emailVerified?: boolean
+  otp?: boolean
+  otpExpiry?: boolean
+  profilePicture?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "password" | "name" | "phone" | "role" | "isVerified" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "password" | "name" | "phone" | "role" | "createdAt" | "updatedAt" | "isVerified" | "emailVerified" | "otp" | "otpExpiry" | "profilePicture", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  donor?: boolean | Prisma.User$donorArgs<ExtArgs>
-  donations?: boolean | Prisma.User$donationsArgs<ExtArgs>
+  bloodIssues?: boolean | Prisma.User$bloodIssuesArgs<ExtArgs>
   certificates?: boolean | Prisma.User$certificatesArgs<ExtArgs>
+  donations?: boolean | Prisma.User$donationsArgs<ExtArgs>
+  donor?: boolean | Prisma.User$donorArgs<ExtArgs>
   eventParticipations?: boolean | Prisma.User$eventParticipationsArgs<ExtArgs>
   eventVolunteers?: boolean | Prisma.User$eventVolunteersArgs<ExtArgs>
-  bloodIssues?: boolean | Prisma.User$bloodIssuesArgs<ExtArgs>
+  Notification?: boolean | Prisma.User$NotificationArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1191,12 +1559,13 @@ export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
-    donor: Prisma.$DonorPayload<ExtArgs> | null
-    donations: Prisma.$DonationPayload<ExtArgs>[]
+    bloodIssues: Prisma.$BloodIssuePayload<ExtArgs>[]
     certificates: Prisma.$CertificatePayload<ExtArgs>[]
+    donations: Prisma.$DonationPayload<ExtArgs>[]
+    donor: Prisma.$DonorPayload<ExtArgs> | null
     eventParticipations: Prisma.$EventParticipantPayload<ExtArgs>[]
     eventVolunteers: Prisma.$EventVolunteerPayload<ExtArgs>[]
-    bloodIssues: Prisma.$BloodIssuePayload<ExtArgs>[]
+    Notification: Prisma.$NotificationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1205,9 +1574,13 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     name: string
     phone: string
     role: $Enums.Role
-    isVerified: boolean
     createdAt: Date
     updatedAt: Date
+    isVerified: boolean
+    emailVerified: boolean
+    otp: string | null
+    otpExpiry: Date | null
+    profilePicture: string | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -1602,12 +1975,13 @@ readonly fields: UserFieldRefs;
  */
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  donor<T extends Prisma.User$donorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$donorArgs<ExtArgs>>): Prisma.Prisma__DonorClient<runtime.Types.Result.GetResult<Prisma.$DonorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  donations<T extends Prisma.User$donationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$donationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DonationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  bloodIssues<T extends Prisma.User$bloodIssuesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$bloodIssuesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BloodIssuePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   certificates<T extends Prisma.User$certificatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$certificatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CertificatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  donations<T extends Prisma.User$donationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$donationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DonationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  donor<T extends Prisma.User$donorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$donorArgs<ExtArgs>>): Prisma.Prisma__DonorClient<runtime.Types.Result.GetResult<Prisma.$DonorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   eventParticipations<T extends Prisma.User$eventParticipationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$eventParticipationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventParticipantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   eventVolunteers<T extends Prisma.User$eventVolunteersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$eventVolunteersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventVolunteerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  bloodIssues<T extends Prisma.User$bloodIssuesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$bloodIssuesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BloodIssuePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  Notification<T extends Prisma.User$NotificationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$NotificationArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1643,9 +2017,13 @@ export interface UserFieldRefs {
   readonly name: Prisma.FieldRef<"User", 'String'>
   readonly phone: Prisma.FieldRef<"User", 'String'>
   readonly role: Prisma.FieldRef<"User", 'Role'>
-  readonly isVerified: Prisma.FieldRef<"User", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly isVerified: Prisma.FieldRef<"User", 'Boolean'>
+  readonly emailVerified: Prisma.FieldRef<"User", 'Boolean'>
+  readonly otp: Prisma.FieldRef<"User", 'String'>
+  readonly otpExpiry: Prisma.FieldRef<"User", 'DateTime'>
+  readonly profilePicture: Prisma.FieldRef<"User", 'String'>
 }
     
 
@@ -2039,22 +2417,51 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
- * User.donor
+ * User.bloodIssues
  */
-export type User$donorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type User$bloodIssuesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Donor
+   * Select specific fields to fetch from the BloodIssue
    */
-  select?: Prisma.DonorSelect<ExtArgs> | null
+  select?: Prisma.BloodIssueSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Donor
+   * Omit specific fields from the BloodIssue
    */
-  omit?: Prisma.DonorOmit<ExtArgs> | null
+  omit?: Prisma.BloodIssueOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.DonorInclude<ExtArgs> | null
-  where?: Prisma.DonorWhereInput
+  include?: Prisma.BloodIssueInclude<ExtArgs> | null
+  where?: Prisma.BloodIssueWhereInput
+  orderBy?: Prisma.BloodIssueOrderByWithRelationInput | Prisma.BloodIssueOrderByWithRelationInput[]
+  cursor?: Prisma.BloodIssueWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BloodIssueScalarFieldEnum | Prisma.BloodIssueScalarFieldEnum[]
+}
+
+/**
+ * User.certificates
+ */
+export type User$certificatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Certificate
+   */
+  select?: Prisma.CertificateSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Certificate
+   */
+  omit?: Prisma.CertificateOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CertificateInclude<ExtArgs> | null
+  where?: Prisma.CertificateWhereInput
+  orderBy?: Prisma.CertificateOrderByWithRelationInput | Prisma.CertificateOrderByWithRelationInput[]
+  cursor?: Prisma.CertificateWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CertificateScalarFieldEnum | Prisma.CertificateScalarFieldEnum[]
 }
 
 /**
@@ -2082,27 +2489,22 @@ export type User$donationsArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
- * User.certificates
+ * User.donor
  */
-export type User$certificatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type User$donorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Certificate
+   * Select specific fields to fetch from the Donor
    */
-  select?: Prisma.CertificateSelect<ExtArgs> | null
+  select?: Prisma.DonorSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Certificate
+   * Omit specific fields from the Donor
    */
-  omit?: Prisma.CertificateOmit<ExtArgs> | null
+  omit?: Prisma.DonorOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.CertificateInclude<ExtArgs> | null
-  where?: Prisma.CertificateWhereInput
-  orderBy?: Prisma.CertificateOrderByWithRelationInput | Prisma.CertificateOrderByWithRelationInput[]
-  cursor?: Prisma.CertificateWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.CertificateScalarFieldEnum | Prisma.CertificateScalarFieldEnum[]
+  include?: Prisma.DonorInclude<ExtArgs> | null
+  where?: Prisma.DonorWhereInput
 }
 
 /**
@@ -2154,27 +2556,27 @@ export type User$eventVolunteersArgs<ExtArgs extends runtime.Types.Extensions.In
 }
 
 /**
- * User.bloodIssues
+ * User.Notification
  */
-export type User$bloodIssuesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type User$NotificationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the BloodIssue
+   * Select specific fields to fetch from the Notification
    */
-  select?: Prisma.BloodIssueSelect<ExtArgs> | null
+  select?: Prisma.NotificationSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the BloodIssue
+   * Omit specific fields from the Notification
    */
-  omit?: Prisma.BloodIssueOmit<ExtArgs> | null
+  omit?: Prisma.NotificationOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.BloodIssueInclude<ExtArgs> | null
-  where?: Prisma.BloodIssueWhereInput
-  orderBy?: Prisma.BloodIssueOrderByWithRelationInput | Prisma.BloodIssueOrderByWithRelationInput[]
-  cursor?: Prisma.BloodIssueWhereUniqueInput
+  include?: Prisma.NotificationInclude<ExtArgs> | null
+  where?: Prisma.NotificationWhereInput
+  orderBy?: Prisma.NotificationOrderByWithRelationInput | Prisma.NotificationOrderByWithRelationInput[]
+  cursor?: Prisma.NotificationWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.BloodIssueScalarFieldEnum | Prisma.BloodIssueScalarFieldEnum[]
+  distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
 }
 
 /**
