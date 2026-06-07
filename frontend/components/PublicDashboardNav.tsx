@@ -27,6 +27,7 @@ import {
   Home,
   Image as ImageIcon,
   Activity,
+  Droplets,
   ChevronDown,
   LogOut,
   ArrowRightLeft,
@@ -38,6 +39,7 @@ import { useAuth } from '@/hooks/useAuth';
 const NAV_MAIN = [
   { icon: Home, label: 'Home', href: '/dashboard/public' },
   { icon: Activity, label: 'Donor Request', href: '/dashboard/public/donor-request' },
+  { icon: Droplets, label: 'Blood Request', href: '/dashboard/public/blood-request' },
   { icon: ImageIcon, label: 'Images', href: '/dashboard/public/images' },
 ];
 
