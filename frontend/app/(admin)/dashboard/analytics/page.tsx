@@ -61,6 +61,15 @@ export default function AnalyticsDashboard() {
   const retentionRate = retention?.retentionRate || 0;
   const retentionTrend = retentionRate >= 50 ? "up" : retentionRate >= 30 ? "stable" : "down";
 
+  const analyticsTabs = [
+    { value: "retention", label: "Retention", icon: Users },
+    { value: "geographic", label: "Geographic", icon: MapPin },
+    { value: "usage", label: "Usage", icon: BarChart3 },
+    { value: "seasonal", label: "Seasonal", icon: Calendar },
+    { value: "predictions", label: "Predictions", icon: TrendingUp },
+    { value: "campaigns", label: "Campaigns", icon: Target },
+  ] as const;
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -200,85 +209,43 @@ export default function AnalyticsDashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="retention" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 h-auto p-1 bg-muted/50">
-              <TabsTrigger 
-                value="retention" 
-                className="data-[state=active]:bg-white data-[state=active]:shadow-sm py-3"
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  <span className="text-xs font-medium">Retention</span>
-                </div>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="geographic"
-                className="data-[state=active]:bg-white data-[state=active]:shadow-sm py-3"
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  <span className="text-xs font-medium">Geographic</span>
-                </div>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="usage"
-                className="data-[state=active]:bg-white data-[state=active]:shadow-sm py-3"
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <BarChart3 className="h-4 w-4" />
-                  <span className="text-xs font-medium">Usage</span>
-                </div>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="seasonal"
-                className="data-[state=active]:bg-white data-[state=active]:shadow-sm py-3"
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  <span className="text-xs font-medium">Seasonal</span>
-                </div>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="predictions"
-                className="data-[state=active]:bg-white data-[state=active]:shadow-sm py-3"
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="text-xs font-medium">Predictions</span>
-                </div>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="campaigns"
-                className="data-[state=active]:bg-white data-[state=active]:shadow-sm py-3"
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <Target className="h-4 w-4" />
-                  <span className="text-xs font-medium">Campaigns</span>
-                </div>
-              </TabsTrigger>
+          <Tabs defaultValue="retention" className="space-y-5">
+            <TabsList className="grid w-full grid-cols-2 gap-2 rounded-2xl border border-border/60 bg-muted/40 p-2 shadow-sm sm:grid-cols-3 xl:grid-cols-6">
+              {analyticsTabs.map(({ value, label, icon: Icon }) => (
+                <TabsTrigger
+                  key={value}
+                  value={value}
+                  className="h-11 rounded-xl border border-transparent px-3 py-2 text-xs font-medium text-muted-foreground transition-all data-[state=active]:border-red-200 data-[state=active]:bg-background data-[state=active]:text-red-700 data-[state=active]:shadow-sm"
+                >
+                  <div className="flex items-center gap-2 whitespace-nowrap">
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{label}</span>
+                  </div>
+                </TabsTrigger>
+              ))}
             </TabsList>
 
-            <TabsContent value="retention" className="space-y-4 mt-6">
+            <TabsContent value="retention" className="mt-5 space-y-4">
               <DonorRetentionTab />
             </TabsContent>
 
-            <TabsContent value="geographic" className="space-y-4 mt-6">
+            <TabsContent value="geographic" className="mt-5 space-y-4">
               <GeographicHeatMapTab />
             </TabsContent>
 
-            <TabsContent value="usage" className="space-y-4 mt-6">
+            <TabsContent value="usage" className="mt-5 space-y-4">
               <UsageTrendsTab />
             </TabsContent>
 
-            <TabsContent value="seasonal" className="space-y-4 mt-6">
+            <TabsContent value="seasonal" className="mt-5 space-y-4">
               <SeasonalPatternsTab />
             </TabsContent>
 
-            <TabsContent value="predictions" className="space-y-4 mt-6">
+            <TabsContent value="predictions" className="mt-5 space-y-4">
               <PredictionsTab />
             </TabsContent>
 
-            <TabsContent value="campaigns" className="space-y-4 mt-6">
+            <TabsContent value="campaigns" className="mt-5 space-y-4">
               <CampaignsTab />
             </TabsContent>
           </Tabs>
