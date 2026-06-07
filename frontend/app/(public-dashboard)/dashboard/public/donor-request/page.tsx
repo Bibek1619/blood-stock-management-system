@@ -51,6 +51,7 @@ import {
   useRejectDonorRequest,
   type DonorRequest,
 } from '@/lib/queries/donorRequests';
+import { useDonors, type Donor } from '@/lib/queries/donors';
 
 export default function DonorRequestsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -58,10 +59,14 @@ export default function DonorRequestsPage() {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [showAcceptedDonorsDialog, setShowAcceptedDonorsDialog] = useState(false);
 
   const { data: donorRequests = [], isLoading, error, isError } = usePendingDonorRequests();
+  const { data: donorList = [], isLoading: isAcceptedDonorsLoading } = useDonors();
   const approveMutation = useApproveDonorRequest();
   const rejectMutation = useRejectDonorRequest();
+  const donors = Array.isArray(donorList) ? (donorList as Donor[]) : [];
+  const acceptedDonors = donors.filter((donor) => donor.user?.isVerified);
 
   // Debug logging
   console.log('Donor Requests Data:', donorRequests);
@@ -168,6 +173,14 @@ export default function DonorRequestsPage() {
               </p>
             </div>
           </div>
+
+          <Button
+            variant="outline"
+            className="gap-2 border-[#7F1D1D]/20 text-[#7F1D1D] hover:bg-[#7F1D1D]/5"
+            onClick={() => setShowAcceptedDonorsDialog(true)}
+          >
+            View All Donors
+          </Button>
         </div>
 
         {/* Search and Stats */}
@@ -446,6 +459,75 @@ export default function DonorRequestsPage() {
                     Approve
                   </>
                 )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showAcceptedDonorsDialog} onOpenChange={setShowAcceptedDonorsDialog}>
+          <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Accepted Donor List</DialogTitle>
+              <DialogDescription>
+                View all verified donors without leaving this page.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-[#7F1D1D]">
+                      {acceptedDonors.length}
+                    </p>
+                    <p className="text-sm text-slate-600">Accepted Donors</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {isAcceptedDonorsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-[#7F1D1D]" />
+              </div>
+            ) : acceptedDonors.length === 0 ? (
+              <div className="text-center py-12">
+                <UserCheck className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-600">No accepted donors found</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-slate-200">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Donor Name</TableHead>
+                      <TableHead>Phone Number</TableHead>
+                      <TableHead>Blood Group</TableHead>
+                      <TableHead>Location</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {acceptedDonors.map((donor) => (
+                      <TableRow key={donor.id}>
+                        <TableCell className="font-medium">{donor.user?.name || 'Unknown'}</TableCell>
+                        <TableCell>{donor.user?.phone || 'N/A'}</TableCell>
+                        <TableCell>
+                          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded">
+                            <Droplets size={12} />
+                            {formatBloodGroup(donor.bloodGroup)}
+                          </span>
+                        </TableCell>
+                        <TableCell>{donor.city || donor.location || 'N/A'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowAcceptedDonorsDialog(false)}>
+                Close
               </Button>
             </DialogFooter>
           </DialogContent>
