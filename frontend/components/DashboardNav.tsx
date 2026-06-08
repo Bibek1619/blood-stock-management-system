@@ -47,6 +47,7 @@ import {
   Package,
   Activity,
   TrendingUp,
+  Settings,
 } from 'lucide-react';
 import { clearAuth } from '@/lib/auth';
 import { useAuth } from '@/hooks/useAuth';
@@ -68,6 +69,7 @@ const NAV_MAIN = [
   { icon: Award, label: 'Certificates', href: '/dashboard/certificates' },
   { icon: TrendingUp, label: 'Analytics', href: '/dashboard/analytics' },
   { icon: BarChart3, label: 'Reports', href: '/dashboard/reports' },
+  { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
 ];
 
 export const DashboardNav = () => {
