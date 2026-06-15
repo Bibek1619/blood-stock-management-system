@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,6 @@ import {
   Users,
   Database,
   Palette,
-  Globe,
   Key,
   Lock,
   Save,
@@ -35,67 +33,129 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-          <Settings className="h-8 w-8 text-red-600" />
-          System Settings
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Manage your blood bank management system configuration and preferences
-        </p>
-      </div>
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+            <Settings className="h-8 w-8 text-red-600" />
+            System Settings
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Manage your blood bank management system configuration and preferences
+          </p>
+        </div>
 
-      {/* Settings Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-8 h-auto p-1">
-          <TabsTrigger value="general" className="flex flex-col gap-1 py-3">
-            <Building2 className="h-4 w-4" />
-            <span className="text-xs">General</span>
-          </TabsTrigger>
-          <TabsTrigger value="security" className="flex flex-col gap-1 py-3">
-            <Shield className="h-4 w-4" />
-            <span className="text-xs">Security</span>
-          </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex flex-col gap-1 py-3">
-            <Palette className="h-4 w-4" />
-            <span className="text-xs">Appearance</span>
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex flex-col gap-1 py-3">
-            <Bell className="h-4 w-4" />
-            <span className="text-xs">Notifications</span>
-          </TabsTrigger>
-          <TabsTrigger value="email" className="flex flex-col gap-1 py-3">
-            <Mail className="h-4 w-4" />
-            <span className="text-xs">Email</span>
-          </TabsTrigger>
-          <TabsTrigger value="users" className="flex flex-col gap-1 py-3">
-            <Users className="h-4 w-4" />
-            <span className="text-xs">Users</span>
-          </TabsTrigger>
-          <TabsTrigger value="backup" className="flex flex-col gap-1 py-3">
-            <Database className="h-4 w-4" />
-            <span className="text-xs">Backup</span>
-          </TabsTrigger>
-          <TabsTrigger value="api" className="flex flex-col gap-1 py-3">
-            <Key className="h-4 w-4" />
-            <span className="text-xs">API</span>
-          </TabsTrigger>
-        </TabsList>
+        {/* Horizontal Navigation Tabs */}
+        <Card>
+          <CardContent className="p-2">
+            <nav className="flex flex-wrap gap-1">
+              <button
+                onClick={() => setActiveTab("general")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === "general"
+                    ? "bg-red-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <Building2 className="h-4 w-4" />
+                <span>General</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("security")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === "security"
+                    ? "bg-red-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <Shield className="h-4 w-4" />
+                <span>Security</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("appearance")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === "appearance"
+                    ? "bg-red-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <Palette className="h-4 w-4" />
+                <span>Appearance</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("notifications")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === "notifications"
+                    ? "bg-red-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <Bell className="h-4 w-4" />
+                <span>Notifications</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("email")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === "email"
+                    ? "bg-red-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <Mail className="h-4 w-4" />
+                <span>Email</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("users")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === "users"
+                    ? "bg-red-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <Users className="h-4 w-4" />
+                <span>Users</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("backup")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === "backup"
+                    ? "bg-red-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <Database className="h-4 w-4" />
+                <span>Backup</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("api")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === "api"
+                    ? "bg-red-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <Key className="h-4 w-4" />
+                <span>API</span>
+              </button>
+            </nav>
+          </CardContent>
+        </Card>
 
-        {/* General Settings */}
-        <TabsContent value="general" className="space-y-6">
-          <Card className="border-t-4 border-t-red-600">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Organization Information
-              </CardTitle>
-              <CardDescription>
-                Update your blood bank's basic information and branding
-              </CardDescription>
-            </CardHeader>
+        {/* Full Width Content Area */}
+        <div className="space-y-6">
+            {/* General Settings */}
+            {activeTab === "general" && (
+            <Card className="border-t-4 border-t-red-600">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Organization Information
+                </CardTitle>
+                <CardDescription>
+                  Update your blood bank's basic information and branding
+                </CardDescription>
+              </CardHeader>
             <CardContent className="space-y-6">
               {/* Logo Upload */}
               <div className="space-y-2">
@@ -197,12 +257,12 @@ export default function SettingsPage() {
                 <Save className="h-4 w-4 mr-2" />
                 Save Changes
               </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+            )}
 
-        {/* Security Settings */}
-        <TabsContent value="security" className="space-y-6">
+            {/* Security Settings */}
+            {activeTab === "security" && (
           <Card className="border-t-4 border-t-orange-600">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -307,12 +367,12 @@ export default function SettingsPage() {
                   ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+            )}
 
-        {/* Appearance Settings */}
-        <TabsContent value="appearance" className="space-y-6">
+            {/* Appearance Settings */}
+            {activeTab === "appearance" && (
           <Card className="border-t-4 border-t-purple-600">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -392,12 +452,12 @@ export default function SettingsPage() {
                 <Save className="h-4 w-4 mr-2" />
                 Save Changes
               </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+            )}
 
-        {/* Notification Settings */}
-        <TabsContent value="notifications" className="space-y-6">
+            {/* Notification Settings */}
+            {activeTab === "notifications" && (
           <Card className="border-t-4 border-t-blue-600">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -450,12 +510,12 @@ export default function SettingsPage() {
                 <Save className="h-4 w-4 mr-2" />
                 Save Preferences
               </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+            )}
 
-        {/* Email Configuration */}
-        <TabsContent value="email" className="space-y-6">
+            {/* Email Configuration */}
+            {activeTab === "email" && (
           <Card className="border-t-4 border-t-green-600">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -512,12 +572,12 @@ export default function SettingsPage() {
                   Save Configuration
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+            )}
 
-        {/* User Management */}
-        <TabsContent value="users" className="space-y-6">
+            {/* User Management */}
+            {activeTab === "users" && (
           <Card className="border-t-4 border-t-indigo-600">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -586,12 +646,12 @@ export default function SettingsPage() {
                 <Save className="h-4 w-4 mr-2" />
                 Save Settings
               </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+            )}
 
-        {/* Backup & Data */}
-        <TabsContent value="backup" className="space-y-6">
+            {/* Backup & Data */}
+            {activeTab === "backup" && (
           <Card className="border-t-4 border-t-cyan-600">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -685,12 +745,12 @@ export default function SettingsPage() {
                 <Save className="h-4 w-4 mr-2" />
                 Save Backup Settings
               </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+            )}
 
-        {/* API Settings */}
-        <TabsContent value="api" className="space-y-6">
+            {/* API Settings */}
+            {activeTab === "api" && (
           <Card className="border-t-4 border-t-pink-600">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -799,8 +859,9 @@ export default function SettingsPage() {
               </Button>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+            )}
+          </div>
+      </div>
     </div>
   );
 }
