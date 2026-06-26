@@ -55,7 +55,7 @@ export default function BloodDonatePage() {
       <div className="w-full p-6 md:p-8 bg-background min-h-[calc(100vh-3.5rem)] flex items-center justify-center">
         <div className="flex flex-col items-center">
           <Loader2 className="w-10 h-10 text-red-800 animate-spin mb-4" />
-          <p className="text-sm font-semibold text-slate-600">Loading blood donations...</p>
+          <p className="text-sm font-semibold text-slate-600">Loading blood issues...</p>
         </div>
       </div>
     );
@@ -68,7 +68,7 @@ export default function BloodDonatePage() {
           <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-4">
             <AlertCircle size={24} className="text-red-600" />
           </div>
-          <p className="text-sm font-semibold text-red-600 mb-1">Failed to load blood donations</p>
+          <p className="text-sm font-semibold text-red-600 mb-1">Failed to load blood issues</p>
           <p className="text-xs text-slate-500">Please refresh the page to try again</p>
         </div>
       </div>
@@ -88,7 +88,7 @@ export default function BloodDonatePage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Blood Donations</BreadcrumbPage>
+              <BreadcrumbPage>Blood Issue</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -98,18 +98,18 @@ export default function BloodDonatePage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-[10px] bg-[rgba(127,29,29,0.08)] border border-[rgba(127,29,29,0.2)] flex items-center justify-center">
-            <Heart size={18} color="#7F1D1D" />
+            <Droplets size={18} color="#7F1D1D" />
           </div>
           <div>
-            <h1 className="text-[22px] font-extrabold text-slate-900 m-0 tracking-tight">Blood Donations</h1>
-            <p className="text-[13px] text-slate-500 mt-[2px]">Track and manage blood donation records</p>
+            <h1 className="text-[22px] font-extrabold text-slate-900 m-0 tracking-tight">Blood Issue</h1>
+            <p className="text-[13px] text-slate-500 mt-[2px]">Track and manage blood distribution records</p>
           </div>
         </div>
         <Button 
           className="bg-[#7F1D1D] hover:bg-[#991B1B]"
           onClick={() => router.push('/dashboard/blood-donate/donate-form')}
         >
-          <Plus size={14} className="mr-1.5" /> Record Donation
+          <Plus size={14} className="mr-1.5" /> Issue Blood
         </Button>
       </div>
 
@@ -117,20 +117,20 @@ export default function BloodDonatePage() {
       <div className="grid grid-cols-4 gap-3 mb-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-semibold text-slate-500">Total Units Donated</CardTitle>
+            <CardTitle className="text-xs font-semibold text-slate-500">Total Units Issued</CardTitle>
             <div className="w-8 h-8 rounded-lg bg-[rgba(127,29,29,0.08)] flex items-center justify-center">
               <Droplets size={16} color="#7F1D1D" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-[26px] font-extrabold text-[#7F1D1D] leading-none">{totalUnits}</div>
-            <p className="text-[11px] text-slate-400 mt-1">Blood units collected</p>
+            <p className="text-[11px] text-slate-400 mt-1">Blood units distributed</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-semibold text-slate-500">Individual Donors</CardTitle>
+            <CardTitle className="text-xs font-semibold text-slate-500">Individual Recipients</CardTitle>
             <div className="w-8 h-8 rounded-lg bg-[rgba(59,130,246,0.08)] flex items-center justify-center">
               <User size={16} color="#3b82f6" />
             </div>
@@ -255,7 +255,7 @@ export default function BloodDonatePage() {
         )}
       </div>
 
-      {/* ── All Donations Table ── */}
+      {/* ── All Issues Table ── */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">All Blood Issue Records</CardTitle>
