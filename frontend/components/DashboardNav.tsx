@@ -60,7 +60,7 @@ const NAV_MAIN = [
     label: 'Blood Management',
     submenu: [
       { label: 'Blood Stock', href: '/dashboard/blood-stock', icon: Package },
-      { label: 'Blood Donate', href: '/dashboard/blood-donate', icon: Activity },
+      { label: 'Blood Issue', href: '/dashboard/blood-donate', icon: Droplet },
     ],
   },
   { icon: Users, label: 'Donors', href: '/dashboard/donors' },
