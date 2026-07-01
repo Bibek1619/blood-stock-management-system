@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -18,15 +19,104 @@ import {
   Save,
   Upload,
   AlertCircle,
+  X,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getSettings, updateSettings, uploadLogo, deleteLogo, SystemSettings } from "@/lib/queries/settings";
+import Image from "next/image";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("general");
+  const [formData, setFormData] = useState<SystemSettings>({});
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
-  const handleSave = (section: string) => {
-    toast.success(`${section} settings saved successfully!`);
+  // Fetch settings
+  const { data: settings, isLoading } = useQuery({
+    queryKey: ['settings'],
+    queryFn: getSettings,
+  });
+
+  // Update form data when settings are loaded
+  useEffect(() => {
+    if (settings) {
+      setFormData(settings);
+      if (settings.organizationLogo) {
+        setLogoPreview(`http://localhost:3001${settings.organizationLogo}`);
+      }
+    }
+  }, [settings]);
+
+  // Update settings mutation
+  const updateMutation = useMutation({
+    mutationFn: updateSettings,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      toast.success('Settings saved successfully!');
+    },
+    onError: () => {
+      toast.error('Failed to save settings');
+    },
+  });
+
+  // Upload logo mutation
+  const uploadMutation = useMutation({
+    mutationFn: uploadLogo,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      setLogoPreview(`http://localhost:3001${data.logoUrl}`);
+      toast.success('Logo uploaded successfully!');
+    },
+    onError: () => {
+      toast.error('Failed to upload logo');
+    },
+  });
+
+  // Delete logo mutation
+  const deleteMutation = useMutation({
+    mutationFn: deleteLogo,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      setLogoPreview(null);
+      toast.success('Logo deleted successfully!');
+    },
+    onError: () => {
+      toast.error('Failed to delete logo');
+    },
+  });
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be less than 5MB');
+        return;
+      }
+
+      uploadMutation.mutate(file);
+    }
   };
+
+  const handleSaveGeneral = () => {
+    updateMutation.mutate(formData);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-red-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -113,16 +203,55 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Organization Logo</Label>
                 <div className="flex items-center gap-4">
-                  <div className="h-24 w-24 rounded-lg border-2 border-dashed border-muted flex items-center justify-center bg-muted/50">
-                    <Upload className="h-8 w-8 text-muted-foreground" />
+                  <div className="h-24 w-24 rounded-lg border-2 border-dashed border-muted flex items-center justify-center bg-muted/50 overflow-hidden relative">
+                    {logoPreview ? (
+                      <>
+                        <Image 
+                          src={logoPreview} 
+                          alt="Organization Logo" 
+                          fill
+                          className="object-contain p-2"
+                        />
+                        <button
+                          onClick={() => deleteMutation.mutate()}
+                          disabled={deleteMutation.isPending}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </>
+                    ) : (
+                      <Upload className="h-8 w-8 text-muted-foreground" />
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Button variant="outline" size="sm">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Logo
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadMutation.isPending}
+                    >
+                      {uploadMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload Logo
+                        </>
+                      )}
                     </Button>
                     <p className="text-xs text-muted-foreground">
-                      Recommended: 512x512px, PNG or SVG
+                      Recommended: 512x512px, PNG or SVG (Max 5MB)
                     </p>
                   </div>
                 </div>
@@ -134,7 +263,8 @@ export default function SettingsPage() {
                 <Input
                   id="org-name"
                   placeholder="Blood Donation Management System"
-                  defaultValue="Blood Donation Management System"
+                  value={formData.organizationName || ''}
+                  onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
                 />
               </div>
 
@@ -144,7 +274,8 @@ export default function SettingsPage() {
                 <Input
                   id="dashboard-title"
                   placeholder="Admin Dashboard"
-                  defaultValue="Blood Bank Management"
+                  value={formData.dashboardTitle || ''}
+                  onChange={(e) => setFormData({ ...formData, dashboardTitle: e.target.value })}
                 />
                 <p className="text-xs text-muted-foreground">
                   This appears in the browser tab and dashboard header
@@ -157,18 +288,8 @@ export default function SettingsPage() {
                 <Input
                   id="short-name"
                   placeholder="BBMS"
-                  defaultValue="BBMS"
-                />
-              </div>
-
-              {/* Description */}
-              <div className="grid gap-2">
-                <Label htmlFor="org-description">Organization Description</Label>
-                <Textarea
-                  id="org-description"
-                  placeholder="Brief description of your organization..."
-                  rows={4}
-                  defaultValue="Leading blood bank management system providing comprehensive solutions for donation management, inventory tracking, and donor engagement."
+                  value={formData.shortName || ''}
+                  onChange={(e) => setFormData({ ...formData, shortName: e.target.value })}
                 />
               </div>
 
@@ -180,7 +301,8 @@ export default function SettingsPage() {
                     id="org-email"
                     type="email"
                     placeholder="contact@bloodbank.org"
-                    defaultValue="contact@bloodbank.org"
+                    value={formData.contactEmail || ''}
+                    onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-2">
@@ -189,28 +311,30 @@ export default function SettingsPage() {
                     id="org-phone"
                     type="tel"
                     placeholder="+1 (555) 000-0000"
-                    defaultValue="+1 (555) 000-0000"
+                    value={formData.contactPhone || ''}
+                    onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
                   />
                 </div>
               </div>
 
-              {/* Address */}
-              <div className="grid gap-2">
-                <Label htmlFor="org-address">Address</Label>
-                <Textarea
-                  id="org-address"
-                  placeholder="Enter full address..."
-                  rows={2}
-                  defaultValue="123 Medical District, Healthcare City, HC 12345"
-                />
-              </div>
-
-              <Button onClick={() => handleSave("General")}>
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
+              <Button 
+                onClick={handleSaveGeneral}
+                disabled={updateMutation.isPending}
+              >
+                {updateMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
               </Button>
-              </CardContent>
-            </Card>
+            </CardContent>
+          </Card>
             )}
 
             {/* Security Settings */}
@@ -245,7 +369,7 @@ export default function SettingsPage() {
                     <Label htmlFor="confirm-password">Confirm New Password</Label>
                     <Input id="confirm-password" type="password" placeholder="••••••••" />
                   </div>
-                  <Button onClick={() => handleSave("Password")} className="w-fit">
+                  <Button onClick={() => toast.success("Password updated successfully!")} className="w-fit">
                     Update Password
                   </Button>
                 </div>
@@ -400,7 +524,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <Button onClick={() => handleSave("Appearance")}>
+              <Button onClick={() => toast.success("Appearance settings saved successfully!")}>
                 <Save className="h-4 w-4 mr-2" />
                 Save Changes
               </Button>
@@ -458,7 +582,7 @@ export default function SettingsPage() {
                 ))}
               </div>
 
-              <Button onClick={() => handleSave("Notifications")}>
+              <Button onClick={() => toast.success("Notification preferences saved successfully!")}>
                 <Save className="h-4 w-4 mr-2" />
                 Save Preferences
               </Button>

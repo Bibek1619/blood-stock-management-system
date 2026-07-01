@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import {
   Sidebar,
   SidebarContent,
@@ -51,6 +52,8 @@ import {
 } from 'lucide-react';
 import { clearAuth } from '@/lib/auth';
 import { useAuth } from '@/hooks/useAuth';
+import { getSettings } from '@/lib/queries/settings';
+import Image from 'next/image';
 
 // ── Nav config ────────────────────────────────────────────────────────────────
 const NAV_MAIN = [
@@ -78,6 +81,12 @@ export const DashboardNav = () => {
   const { user, isMounted } = useAuth();
   const { state } = useSidebar();
 
+  // Fetch settings for logo
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: getSettings,
+  });
+
   const handleLogout = () => {
     clearAuth();
     router.push('/');
@@ -92,6 +101,10 @@ export const DashboardNav = () => {
   const displayEmail = isMounted && user ? user.email : 'Admin Panel';
   const initials = isMounted && user ? user.name.charAt(0).toUpperCase() : 'A';
 
+  const organizationName = settings?.organizationName || 'Blood Donation';
+  const organizationSubtitle = settings?.dashboardTitle || 'Management System';
+  const logoUrl = settings?.organizationLogo ? `http://localhost:3001${settings.organizationLogo}` : null;
+
   return (
     <TooltipProvider delayDuration={0}>
       <Sidebar collapsible="icon">
@@ -102,12 +115,22 @@ export const DashboardNav = () => {
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild >
                 <Link href="/dashboard">
-                  <div className="flex aspect-square size-10 items-center justify-center rounded-lg bg-red-900 text-primary-foreground">
-                    <Heart className="size-4" />
+                  <div className="flex aspect-square size-10 items-center justify-center rounded-lg bg-red-900 text-primary-foreground overflow-hidden">
+                    {logoUrl ? (
+                      <Image 
+                        src={logoUrl} 
+                        alt="Logo" 
+                        width={40} 
+                        height={40}
+                        className="object-cover"
+                      />
+                    ) : (
+                      <Heart className="size-4" />
+                    )}
                   </div>
                   <div className="flex flex-col gap-0.5 leading-none">
-                    <span className="font-semibold">Blood Donation</span>
-                    <span className="text-xs text-muted-foreground">Management System</span>
+                    <span className="font-semibold">{organizationName}</span>
+                    <span className="text-xs text-muted-foreground">{organizationSubtitle}</span>
                   </div>
                 </Link>
               </SidebarMenuButton>
