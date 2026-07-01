@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { getSettings, updateSettings, uploadLogo, deleteLogo, SystemSettings } from "@/lib/queries/settings";
-import Image from "next/image";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("general");
@@ -206,11 +205,10 @@ export default function SettingsPage() {
                   <div className="h-24 w-24 rounded-lg border-2 border-dashed border-muted flex items-center justify-center bg-muted/50 overflow-hidden relative">
                     {logoPreview ? (
                       <>
-                        <Image 
+                        <img 
                           src={logoPreview} 
                           alt="Organization Logo" 
-                          fill
-                          className="object-contain p-2"
+                          className="w-full h-full object-contain p-2"
                         />
                         <button
                           onClick={() => deleteMutation.mutate()}
