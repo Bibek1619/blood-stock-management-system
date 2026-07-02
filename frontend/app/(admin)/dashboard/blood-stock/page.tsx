@@ -45,9 +45,23 @@ export default function BloodStockPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const pageLimit = 20;
 
-  // Fetch data using TanStack Query with pagination
-  const { data: packsData, isLoading: isLoadingPacks } = useBloodPacks({}, currentPage, pageLimit);
-  const { data: stockSummary = [], isLoading: isLoadingSummary } = useBloodStockSummary();
+  // Fetch data using TanStack Query with pagination and auto-refresh
+  const { data: packsData, isLoading: isLoadingPacks, dataUpdatedAt } = useBloodPacks(
+    {}, 
+    currentPage, 
+    pageLimit,
+    {
+      refetchInterval: 30000, // Auto-refresh every 30 seconds
+      refetchOnWindowFocus: true, // Refresh when user returns to tab
+      refetchOnReconnect: true, // Refresh when connection restored
+    }
+  );
+  
+  const { data: stockSummary = [], isLoading: isLoadingSummary } = useBloodStockSummary({
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+  });
   const updateStatus = useUpdateBloodPackStatus();
 
   // Extract blood packs and pagination info

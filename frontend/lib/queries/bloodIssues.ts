@@ -54,7 +54,10 @@ interface CreateBloodIssueData {
 }
 
 // Fetch all blood issues
-export function useBloodIssues(filters?: any) {
+export function useBloodIssues(
+  filters?: any,
+  options?: { refetchInterval?: number; refetchOnWindowFocus?: boolean; refetchOnReconnect?: boolean }
+) {
   return useQuery({
     queryKey: bloodIssueKeys.list(filters),
     queryFn: async () => {
@@ -64,6 +67,7 @@ export function useBloodIssues(filters?: any) {
       );
       return response.data.data;
     },
+    ...options, // Spread options for refetch intervals
   });
 }
 

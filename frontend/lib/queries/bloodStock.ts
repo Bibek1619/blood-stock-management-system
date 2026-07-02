@@ -43,7 +43,12 @@ export const bloodStockKeys = {
 /**
  * Hook to fetch all blood packs with optional filters and pagination
  */
-export function useBloodPacks(filters?: { bloodGroup?: string; status?: string }, page?: number, limit?: number) {
+export function useBloodPacks(
+  filters?: { bloodGroup?: string; status?: string }, 
+  page?: number, 
+  limit?: number,
+  options?: { refetchInterval?: number; refetchOnWindowFocus?: boolean; refetchOnReconnect?: boolean }
+) {
   const shouldPaginate = page !== undefined || limit !== undefined;
   const actualPage = page || 1;
   const actualLimit = limit || 20;
@@ -72,13 +77,16 @@ export function useBloodPacks(filters?: { bloodGroup?: string; status?: string }
       return response.data.data;
     },
     staleTime: 30000, // 30 seconds
+    ...options, // Spread options for refetch intervals
   });
 }
 
 /**
  * Hook to fetch blood stock summary (grouped by blood group)
  */
-export function useBloodStockSummary() {
+export function useBloodStockSummary(
+  options?: { refetchInterval?: number; refetchOnWindowFocus?: boolean; refetchOnReconnect?: boolean }
+) {
   return useQuery({
     queryKey: bloodStockKeys.summary(),
     queryFn: async () => {
@@ -88,6 +96,7 @@ export function useBloodStockSummary() {
       return response.data.data;
     },
     staleTime: 30000, // 30 seconds
+    ...options, // Spread options for refetch intervals
   });
 }
 

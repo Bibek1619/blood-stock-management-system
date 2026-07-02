@@ -21,8 +21,8 @@ export function EventCreateDialog({ open, onOpenChange, form, onFormChange, onCr
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create Event</DialogTitle>
+        <DialogHeader style={{ cursor: "pointer" }}>
+          <DialogTitle className="cursor-pointer">Create Event</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
