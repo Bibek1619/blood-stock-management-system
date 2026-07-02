@@ -42,9 +42,18 @@ const CustomBarTooltip = ({ active, payload, label }: any) => {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  // Fetch all data using TanStack Query (without pagination to get arrays directly)
-  const { data: bloodStockSummary = [], isLoading: stockLoading } = useBloodStockSummary();
-  const { data: bloodPacksData, isLoading: packsLoading } = useBloodPacks();
+  // Fetch all data using TanStack Query with auto-refresh
+  const { data: bloodStockSummary = [], isLoading: stockLoading, dataUpdatedAt: stockUpdatedAt } = useBloodStockSummary({
+    refetchInterval: 60000, // Auto-refresh every 60 seconds (dashboard is less critical)
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+  });
+  
+  const { data: bloodPacksData, isLoading: packsLoading } = useBloodPacks(undefined, undefined, undefined, {
+    refetchInterval: 60000,
+    refetchOnWindowFocus: true,
+  });
+  
   const { data: donorsData, isLoading: donorsLoading } = useDonors();
   const { data: events = [], isLoading: eventsLoading } = useEvents();
   const { data: donationsData, isLoading: donationsLoading } = useDonations();

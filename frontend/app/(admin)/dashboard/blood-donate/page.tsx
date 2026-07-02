@@ -30,8 +30,12 @@ export default function BloodDonatePage() {
   const [filterBloodGroup, setFilterBloodGroup] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch blood issues using TanStack Query
-  const { data: bloodIssues = [], isLoading, error } = useBloodIssues();
+  // Fetch blood issues using TanStack Query with auto-refresh
+  const { data: bloodIssues = [], isLoading, error, dataUpdatedAt } = useBloodIssues({
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
+    refetchOnWindowFocus: true, // Refresh when user returns to tab
+    refetchOnReconnect: true, // Refresh when connection restored
+  });
 
   // Calculate stats
   const totalUnits = bloodIssues.reduce((sum, issue) => sum + issue.unitsIssued, 0);
