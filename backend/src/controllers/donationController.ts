@@ -352,40 +352,37 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
       },
     });
 
-    // Generate blood pack code (BP-YYYY-NNN)
+    // Generate blood code for the collection
     const year = new Date(collectionDate).getFullYear();
-    const lastPack = await tx.bloodPack.findFirst({
+    const lastCollection = await tx.bloodCollection.findFirst({
       where: {
-        packCode: {
-          startsWith: `BP-${year}-`,
+        bloodCode: {
+          startsWith: `BC-${year}-`,
         },
       },
-      orderBy: { packCode: 'desc' },
+      orderBy: { bloodCode: 'desc' },
     });
 
-    let packNumber = 1;
-    if (lastPack) {
-      const lastNumber = parseInt(lastPack.packCode.split('-')[2]);
-      packNumber = lastNumber + 1;
+    let collectionNumber = 1;
+    if (lastCollection) {
+      const lastNumber = parseInt(lastCollection.bloodCode.split('-')[2]);
+      collectionNumber = lastNumber + 1;
     }
 
-    const packCode = `BP-${year}-${packNumber.toString().padStart(3, '0')}`;
+    const bloodCode = `BC-${year}-${collectionNumber.toString().padStart(3, '0')}`;
 
-    // Calculate expiry date (collection date + 35 days)
-    const expiryDate = new Date(collectionDate);
-    expiryDate.setDate(expiryDate.getDate() + 35);
-
-    // Create blood pack
-    const bloodPack = await tx.bloodPack.create({
+    // Create blood collection record for workflow (PENDING status)
+    // Blood will only go to stock after testing and approval
+    const bloodCollection = await tx.bloodCollection.create({
       data: {
-        packCode,
-        bloodGroup: dbBloodGroup as any,
+        bloodCode,
         donorId: donor?.id,
-        donationId: donation.id, // Link to the donation
+        donorName,
+        bloodGroup: dbBloodGroup as any,
+        quantityMl: 450, // Standard donation unit
         collectionDate: new Date(collectionDate),
-        expiryDate,
-        status: 'AVAILABLE',
-        storageLocation: storageLocation || 'Main Storage',
+        status: 'PENDING', // Always starts as PENDING for testing
+        remarks: notes || undefined,
       },
     });
 
@@ -394,29 +391,9 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
       where: { bloodGroup: dbBloodGroup as any },
     });
 
-    if (stockSummary) {
-      await tx.bloodStockSummary.update({
-        where: { bloodGroup: dbBloodGroup as any },
-        data: {
-          available: { increment: parseInt(units) || 1 },
-          total: { increment: parseInt(units) || 1 },
-          lastUpdated: new Date(),
-        },
-      });
-    } else {
-      await tx.bloodStockSummary.create({
-        data: {
-          bloodGroup: dbBloodGroup as any,
-          available: parseInt(units) || 1,
-          total: parseInt(units) || 1,
-          used: 0,
-          expired: 0,
-          lastUpdated: new Date(),
-        },
-      });
-    }
+    // Don't update stock summary yet - will be updated when blood is approved and moved to stock
 
-    return { donation, bloodPack, donor };
+    return { donation, bloodCollection, donor };
   });
 
   // Send thank you notification
@@ -440,8 +417,11 @@ export const recordBloodCollection = async (req: Request, res: Response) => {
 
   res.status(201).json({
     status: "success",
-    message: "Blood collection recorded successfully",
-    data: result,
+    message: "Blood collection recorded successfully. Blood is pending testing.",
+    data: {
+      ...result,
+      bloodCode: result.bloodCollection.bloodCode,
+    },
   });
 };
 

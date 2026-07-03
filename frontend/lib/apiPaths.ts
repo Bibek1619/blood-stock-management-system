@@ -108,4 +108,34 @@ export const API_PATHS = {
     UPDATE: (id: string) => `/api/users/${id}`,
     DELETE: (id: string) => `/api/users/${id}`,
   },
+
+  /**
+   * Blood Workflow Endpoints
+   */
+  BLOOD_WORKFLOW: {
+    // Blood Collection
+    GET_COLLECTIONS: "/api/blood-workflow/collections",
+    GET_PENDING_COLLECTIONS: "/api/blood-workflow/collections/pending",
+    GET_APPROVED_COLLECTIONS: "/api/blood-workflow/collections/approved",
+    GET_REJECTED_COLLECTIONS: "/api/blood-workflow/collections/rejected",
+    GET_COLLECTION_BY_ID: (id: string) => `/api/blood-workflow/collections/${id}`,
+    CREATE_COLLECTION: "/api/blood-workflow/collections",
+    UPDATE_COLLECTION_STATUS: (id: string) => `/api/blood-workflow/collections/${id}/status`,
+    DELETE_COLLECTION: (id: string) => `/api/blood-workflow/collections/${id}`,
+    
+    // Blood Test
+    GET_ALL_TESTS: "/api/blood-workflow/tests",
+    GET_TEST_BY_COLLECTION: (collectionId: string) => `/api/blood-workflow/tests/${collectionId}`,
+    CREATE_OR_UPDATE_TEST: (collectionId: string) => `/api/blood-workflow/tests/${collectionId}`,
+    
+    // Blood Stock Workflow
+    MOVE_TO_STOCK: "/api/blood-workflow/stock/move",
+    GET_STOCK: "/api/blood-workflow/stock",
+    GET_STOCK_SUMMARY: "/api/blood-workflow/stock/summary",
+    
+    // Blood Issue
+    CREATE_ISSUE: "/api/blood-workflow/issues",
+    GET_ALL_ISSUES: "/api/blood-workflow/issues",
+    GET_ISSUE_BY_ID: (id: string) => `/api/blood-workflow/issues/${id}`,
+  },
 };

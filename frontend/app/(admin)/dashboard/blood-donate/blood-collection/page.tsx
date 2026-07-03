@@ -264,11 +264,11 @@ export default function BloodCollectionPage() {
 
       console.log('✅ Blood collection recorded successfully:', result);
       toast.success('Blood donation recorded successfully!', {
-        description: `Blood pack ${result.data.bloodPack.packCode} created`,
+        description: `Blood code ${result.data.bloodCode} - Pending testing`,
       });
 
-      // Redirect back to blood stock
-      router.push('/dashboard/blood-stock');
+      // Redirect to collected blood page to see the new collection
+      router.push('/dashboard/blood-management/collected-blood');
     } catch (error: any) {
       console.error('❌ Blood collection submission failed:', error);
       

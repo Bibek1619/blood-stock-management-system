@@ -36,15 +36,25 @@ const collectionTypeMap: Record<string, { label: string; color: string }> = {
 
 interface BloodPack {
   id: string;
-  packCode: string;
+  packCode?: string;
+  bloodCode?: string; // For workflow blood stock
   bloodGroup: string;
-  collectionDate: string;
+  collectionDate?: string;
+  storedDate?: string; // For workflow blood stock
   expiryDate: string;
   status: string;
   storageLocation?: string | null;
   donor?: {
     user?: {
       name?: string;
+    };
+  } | null;
+  bloodCollection?: {
+    donorName?: string;
+    donor?: {
+      user?: {
+        name?: string;
+      };
     };
   } | null;
 }
@@ -110,10 +120,15 @@ export function BloodPacksTable({ packs, pagination, onStatusUpdate, onPageChang
                 color: 'bg-gray-100 text-gray-700 border-gray-200' 
               };
               
+              // Support both old pack structure and new workflow stock structure
+              const code = p.packCode || p.bloodCode || 'N/A';
+              const donorName = p.donor?.user?.name || p.bloodCollection?.donorName || p.bloodCollection?.donor?.user?.name || '—';
+              const collectionDate = p.collectionDate || p.storedDate || p.expiryDate;
+              
               return (
                 <TableRow key={p.id}>
                   <TableCell>
-                    <span className="font-mono text-xs text-slate-600">{p.packCode}</span>
+                    <span className="font-mono text-xs text-slate-600">{code}</span>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="bg-[rgba(127,29,29,0.08)] text-[#7F1D1D] border-[rgba(127,29,29,0.2)]">
@@ -121,14 +136,14 @@ export function BloodPacksTable({ packs, pagination, onStatusUpdate, onPageChang
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs text-slate-600">
-                    {p.donor?.user?.name ?? "—"}
+                    {donorName}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className={`text-xs ${collectionType.color}`}>
                       {collectionType.label}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-xs">{formatDate(p.collectionDate)}</TableCell>
+                  <TableCell className="text-xs">{formatDate(collectionDate)}</TableCell>
                   <TableCell className="text-xs">{formatDate(p.expiryDate)}</TableCell>
                   <TableCell>
                     <Badge 

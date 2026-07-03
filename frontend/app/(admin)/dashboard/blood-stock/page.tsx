@@ -15,7 +15,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { useBloodPacks, useBloodStockSummary, useUpdateBloodPackStatus } from "@/lib/queries/bloodStock";
+import { useBloodStockWorkflow, useBloodStockWorkflowSummary } from "@/lib/queries/bloodWorkflow";
 import { useQueryClient } from "@tanstack/react-query";
 import { SummaryStats, BloodInventoryByGroup, BloodPacksTable } from "./components";
 
@@ -41,50 +41,25 @@ export default function BloodStockPage() {
   const [filterGroup, setFilterGroup] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const pageLimit = 20;
 
-  // Fetch data using TanStack Query with pagination and auto-refresh
-  const { data: packsData, isLoading: isLoadingPacks, dataUpdatedAt } = useBloodPacks(
-    {}, 
-    currentPage, 
-    pageLimit,
-    {
-      refetchInterval: 30000, // Auto-refresh every 30 seconds
-      refetchOnWindowFocus: true, // Refresh when user returns to tab
-      refetchOnReconnect: true, // Refresh when connection restored
-    }
-  );
-  
-  const { data: stockSummary = [], isLoading: isLoadingSummary } = useBloodStockSummary({
-    refetchInterval: 30000, // Auto-refresh every 30 seconds
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
-  });
-  const updateStatus = useUpdateBloodPackStatus();
-
-  // Extract blood packs and pagination info
-  const bloodPacks = Array.isArray(packsData) ? packsData : (packsData?.data || []);
-  const pagination = !Array.isArray(packsData) ? packsData?.pagination : undefined;
+  // Fetch workflow blood stock data
+  const { data: stockData = [], isLoading: isLoadingStock } = useBloodStockWorkflow({});
+  const { data: stockSummary = [], isLoading: isLoadingSummary } = useBloodStockWorkflowSummary();
 
   // Calculate statistics
   const stats = useMemo(() => {
-    // Use API stock summary for accurate totals across all data (not just current page)
-    const totalAvailable = stockSummary.reduce((sum, stock) => sum + stock.available, 0);
-    const totalUsed = stockSummary.reduce((sum, stock) => sum + stock.used, 0);
-    const totalExpired = stockSummary.reduce((sum, stock) => sum + stock.expired, 0);
+    const totalAvailable = stockSummary.reduce((sum: number, stock: any) => sum + stock.available, 0);
+    const totalUsed = stockSummary.reduce((sum: number, stock: any) => sum + stock.used, 0);
+    const totalExpired = stockSummary.reduce((sum: number, stock: any) => sum + stock.expired, 0);
 
-    // Use dynamic stock summary from API instead of calculating from filtered packs
     const stockByGroup: Record<string, number> = {};
     
-    // Convert API stock summary to display format
-    stockSummary.forEach((stock) => {
+    stockSummary.forEach((stock: any) => {
       const displayGroup = bloodGroupMap[stock.bloodGroup] || stock.bloodGroup;
       stockByGroup[displayGroup] = stock.available;
     });
 
-    // Ensure all blood groups are represented (even with 0 count)
     BLOOD_GROUPS.forEach((group) => {
       if (!(group in stockByGroup)) {
         stockByGroup[group] = 0;
@@ -107,27 +82,26 @@ export default function BloodStockPage() {
       criticalStockGroups,
       stockByGroup,
     };
-  }, [bloodPacks, stockSummary]);
+  }, [stockData, stockSummary]);
 
-  // Filter blood packs
-  const filteredPacks = useMemo(() => {
-    return bloodPacks.filter((p) => {
-      const displayGroup = bloodGroupMap[p.bloodGroup] || p.bloodGroup;
+  // Filter blood stock
+  const filteredStock = useMemo(() => {
+    return stockData.filter((s: any) => {
+      const displayGroup = bloodGroupMap[s.bloodGroup] || s.bloodGroup;
       
       if (filterGroup !== "all" && displayGroup !== filterGroup) return false;
-      if (filterStatus !== "all" && p.status !== filterStatus) return false;
-      if (searchQuery && !p.packCode.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      if (filterStatus !== "all" && s.status !== filterStatus) return false;
+      if (searchQuery && !s.bloodCode.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
     });
-  }, [bloodPacks, filterGroup, filterStatus, searchQuery]);
+  }, [stockData, filterGroup, filterStatus, searchQuery]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      // Invalidate and refetch both queries
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['bloodPacks'] }),
-        queryClient.invalidateQueries({ queryKey: ['bloodStock', 'summary'] }),
+        queryClient.invalidateQueries({ queryKey: ['bloodWorkflow', 'stock'] }),
+        queryClient.invalidateQueries({ queryKey: ['bloodWorkflow', 'stock', 'summary'] }),
       ]);
       toast.success('Stock data refreshed successfully');
     } catch (error) {
@@ -139,7 +113,7 @@ export default function BloodStockPage() {
 
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
-      await updateStatus.mutateAsync({ id, status });
+      // TODO: Implement status update API
       toast.success(`Marked as ${status.toLowerCase()}`);
     } catch (error: any) {
       toast.error('Failed to update status', {
@@ -148,7 +122,7 @@ export default function BloodStockPage() {
     }
   };
 
-  if (isLoadingPacks || isLoadingSummary) {
+  if (isLoadingStock || isLoadingSummary) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -198,12 +172,6 @@ export default function BloodStockPage() {
           >
             <RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />
             {isRefreshing ? "Refreshing..." : "Refresh"}
-          </Button>
-          <Button 
-            className="bg-[#7F1D1D] hover:bg-[#991B1B]"
-            onClick={() => router.push('/dashboard/blood-donate/blood-collection')}
-          >
-            <Plus size={14} className="mr-1.5" /> Add Pack
           </Button>
         </div>
       </div>
@@ -296,10 +264,10 @@ export default function BloodStockPage() {
 
       {/* Blood Packs Table */}
       <BloodPacksTable
-        packs={filteredPacks}
-        pagination={pagination}
-        onStatusUpdate={handleUpdateStatus}
-        onPageChange={setCurrentPage}
+        packs={filteredStock}
+        pagination={undefined}
+        onStatusUpdate={() => {}}
+        onPageChange={() => {}}
       />
     </div>
   );

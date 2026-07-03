@@ -18,6 +18,7 @@ import accountClaimRoutes from './routes/accountClaimRoutes';
 import donorRequestRoutes from './routes/donorRequestRoutes';
 import analyticsRoutes from './routes/analyticsRoutes';
 import settingsRoutes from './routes/settingsRoutes';
+import bloodWorkflowRoutes from './routes/bloodWorkflowRoutes';
 import path from 'path';
 
 const app: Application = express();
@@ -52,6 +53,11 @@ app.get('/health', (_, res) => {
 //
 // ✅ 4. Routes
 //
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.path}`);
+  next();
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/donors', donorRoutes);
@@ -64,6 +70,7 @@ app.use('/api/account-claim', accountClaimRoutes);
 app.use('/api/donor-requests', donorRequestRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/blood-workflow', bloodWorkflowRoutes);
 
 //
 // ✅ 5. 404 Handler

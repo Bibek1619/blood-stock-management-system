@@ -28,6 +28,7 @@ model User {
   eventParticipations EventParticipant[]
   eventVolunteers     EventVolunteer[]
   Notification        Notification[]
+  bloodTests          BloodTest[]
 
   @@index([email])
   @@index([phone])
@@ -59,6 +60,7 @@ model Donor {
   reverificationRequested   Boolean                 @default(false)
   reverificationRequestedAt DateTime?
   bloodPacks                BloodPack[]
+  bloodCollections          BloodCollection[]
   user                      User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([bloodGroup])
@@ -382,6 +384,112 @@ enum NotificationType {
   CERTIFICATE_ISSUED
   DONATION_REMINDER
   GENERAL
+}
+
+enum BloodCollectionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Blood Workflow Models
+model BloodCollection {
+  id              String                  @id @default(cuid())
+  bloodCode       String                  @unique
+  donorId         String?
+  donorName       String
+  bloodGroup      BloodGroup
+  quantityMl      Int                     @default(450)
+  collectionDate  DateTime                @default(now())
+  status          BloodCollectionStatus   @default(PENDING)
+  remarks         String?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  donor           Donor?                  @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  bloodTest       BloodTest?
+  bloodStock      BloodStock?
+
+  @@index([bloodGroup])
+  @@index([status])
+  @@index([collectionDate])
+}
+
+model BloodTest {
+  id                 String      @id @default(cuid())
+  bloodCollectionId  String      @unique
+  hiv                Boolean     @default(false)
+  hepatitisB         Boolean     @default(false)
+  hepatitisC         Boolean     @default(false)
+  malaria            Boolean     @default(false)
+  syphilis           Boolean     @default(false)
+  testedBy           String?
+  testDate           DateTime    @default(now())
+  status             TestStatus  @default(PENDING)
+  description        String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  bloodCollection    BloodCollection @relation(fields: [bloodCollectionId], references: [id], onDelete: Cascade)
+  tester             User?       @relation(fields: [testedBy], references: [id], onDelete: SetNull)
+
+  @@index([status])
+}
+
+model BloodStock {
+  id                 String      @id @default(cuid())
+  bloodCollectionId  String      @unique
+  bloodCode          String      @unique
+  bloodGroup         BloodGroup
+  quantityMl         Int
+  storedDate         DateTime    @default(now())
+  expiryDate         DateTime
+  status             PackStatus  @default(AVAILABLE)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  bloodCollection    BloodCollection @relation(fields: [bloodCollectionId], references: [id], onDelete: Cascade)
+  bloodIssueItems    BloodStockIssueItem[]
+
+  @@index([bloodGroup])
+  @@index([status])
+  @@index([expiryDate])
+  @@index([bloodCode])
+}
+
+model BloodStockIssueItem {
+  id            String      @id @default(cuid())
+  bloodIssueId  String
+  bloodStockId  String
+  quantityMl    Int
+  createdAt     DateTime    @default(now())
+  bloodIssue    BloodIssueRecord @relation(fields: [bloodIssueId], references: [id], onDelete: Cascade)
+  bloodStock    BloodStock  @relation(fields: [bloodStockId], references: [id], onDelete: Cascade)
+
+  @@unique([bloodIssueId, bloodStockId])
+  @@index([bloodIssueId])
+  @@index([bloodStockId])
+}
+
+model BloodIssueRecord {
+  id               String                    @id @default(cuid())
+  issueCode        String                    @unique
+  hospitalName     String
+  patientName      String
+  bloodGroup       BloodGroup
+  quantityMl       Int
+  issueDate        DateTime                  @default(now())
+  issuedBy         String?
+  remarks          String?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  bloodStockItems  BloodStockIssueItem[]
+
+  @@index([bloodGroup])
+  @@index([issueDate])
 }
 
 // Analytics Models

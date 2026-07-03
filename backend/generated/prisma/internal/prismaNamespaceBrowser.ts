@@ -65,6 +65,11 @@ export const ModelName = {
   About: 'About',
   Gallery: 'Gallery',
   Notification: 'Notification',
+  BloodCollection: 'BloodCollection',
+  BloodTest: 'BloodTest',
+  BloodStock: 'BloodStock',
+  BloodStockIssueItem: 'BloodStockIssueItem',
+  BloodIssueRecord: 'BloodIssueRecord',
   AnalyticsDailySummary: 'AnalyticsDailySummary',
   AnalyticsDonorActivity: 'AnalyticsDonorActivity',
   AnalyticsGeographic: 'AnalyticsGeographic',
@@ -333,6 +338,86 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const BloodCollectionScalarFieldEnum = {
+  id: 'id',
+  bloodCode: 'bloodCode',
+  donorId: 'donorId',
+  donorName: 'donorName',
+  bloodGroup: 'bloodGroup',
+  quantityMl: 'quantityMl',
+  collectionDate: 'collectionDate',
+  status: 'status',
+  remarks: 'remarks',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BloodCollectionScalarFieldEnum = (typeof BloodCollectionScalarFieldEnum)[keyof typeof BloodCollectionScalarFieldEnum]
+
+
+export const BloodTestScalarFieldEnum = {
+  id: 'id',
+  bloodCollectionId: 'bloodCollectionId',
+  hiv: 'hiv',
+  hepatitisB: 'hepatitisB',
+  hepatitisC: 'hepatitisC',
+  malaria: 'malaria',
+  syphilis: 'syphilis',
+  testedBy: 'testedBy',
+  testDate: 'testDate',
+  status: 'status',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BloodTestScalarFieldEnum = (typeof BloodTestScalarFieldEnum)[keyof typeof BloodTestScalarFieldEnum]
+
+
+export const BloodStockScalarFieldEnum = {
+  id: 'id',
+  bloodCollectionId: 'bloodCollectionId',
+  bloodCode: 'bloodCode',
+  bloodGroup: 'bloodGroup',
+  quantityMl: 'quantityMl',
+  storedDate: 'storedDate',
+  expiryDate: 'expiryDate',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BloodStockScalarFieldEnum = (typeof BloodStockScalarFieldEnum)[keyof typeof BloodStockScalarFieldEnum]
+
+
+export const BloodStockIssueItemScalarFieldEnum = {
+  id: 'id',
+  bloodIssueId: 'bloodIssueId',
+  bloodStockId: 'bloodStockId',
+  quantityMl: 'quantityMl',
+  createdAt: 'createdAt'
+} as const
+
+export type BloodStockIssueItemScalarFieldEnum = (typeof BloodStockIssueItemScalarFieldEnum)[keyof typeof BloodStockIssueItemScalarFieldEnum]
+
+
+export const BloodIssueRecordScalarFieldEnum = {
+  id: 'id',
+  issueCode: 'issueCode',
+  hospitalName: 'hospitalName',
+  patientName: 'patientName',
+  bloodGroup: 'bloodGroup',
+  quantityMl: 'quantityMl',
+  issueDate: 'issueDate',
+  issuedBy: 'issuedBy',
+  remarks: 'remarks',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BloodIssueRecordScalarFieldEnum = (typeof BloodIssueRecordScalarFieldEnum)[keyof typeof BloodIssueRecordScalarFieldEnum]
 
 
 export const AnalyticsDailySummaryScalarFieldEnum = {

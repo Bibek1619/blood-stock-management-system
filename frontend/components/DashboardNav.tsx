@@ -57,14 +57,12 @@ import { getSettings } from '@/lib/queries/settings';
 // ── Nav config ────────────────────────────────────────────────────────────────
 const NAV_MAIN = [
   { icon: Home, label: 'Dashboard', href: '/dashboard' },
-  {
-    icon: Droplet,
-    label: 'Blood Management',
-    submenu: [
-      { label: 'Blood Stock', href: '/dashboard/blood-stock', icon: Package },
-      { label: 'Blood Issue', href: '/dashboard/blood-donate', icon: Droplet },
-    ],
-  },
+  { icon: Droplet, label: 'Collected Blood', href: '/dashboard/blood-management/collected-blood' },
+  { icon: Activity, label: 'Test Blood', href: '/dashboard/blood-management/test-blood' },
+  { icon: Heart, label: 'Approved Blood', href: '/dashboard/blood-management/approved-blood' },
+  { icon: Activity, label: 'Rejected Blood', href: '/dashboard/blood-management/rejected-blood' },
+  { icon: Package, label: 'Blood Stock', href: '/dashboard/blood-stock' },
+  { icon: ArrowRightLeft, label: 'Issue Blood', href: '/dashboard/blood-donate' },
   { icon: Users, label: 'Donors', href: '/dashboard/donors' },
   { icon: Search, label: 'Blood Search', href: '/dashboard/blood-search' },
   { icon: Calendar, label: 'Events', href: '/dashboard/events' },

@@ -450,6 +450,40 @@ export type EnumNotificationTypeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumNotificationTypeFilter<$PrismaModel>
 }
 
+export type EnumBloodCollectionStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.BloodCollectionStatus | Prisma.EnumBloodCollectionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.BloodCollectionStatus[] | Prisma.ListEnumBloodCollectionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BloodCollectionStatus[] | Prisma.ListEnumBloodCollectionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBloodCollectionStatusFilter<$PrismaModel> | $Enums.BloodCollectionStatus
+}
+
+export type EnumBloodCollectionStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BloodCollectionStatus | Prisma.EnumBloodCollectionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.BloodCollectionStatus[] | Prisma.ListEnumBloodCollectionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BloodCollectionStatus[] | Prisma.ListEnumBloodCollectionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBloodCollectionStatusWithAggregatesFilter<$PrismaModel> | $Enums.BloodCollectionStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBloodCollectionStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBloodCollectionStatusFilter<$PrismaModel>
+}
+
+export type EnumTestStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.TestStatus | Prisma.EnumTestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TestStatus[] | Prisma.ListEnumTestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TestStatus[] | Prisma.ListEnumTestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTestStatusFilter<$PrismaModel> | $Enums.TestStatus
+}
+
+export type EnumTestStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TestStatus | Prisma.EnumTestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TestStatus[] | Prisma.ListEnumTestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TestStatus[] | Prisma.ListEnumTestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTestStatusWithAggregatesFilter<$PrismaModel> | $Enums.TestStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTestStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTestStatusFilter<$PrismaModel>
+}
+
 export type FloatFilter<$PrismaModel = never> = {
   equals?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
@@ -913,6 +947,40 @@ export type NestedEnumNotificationTypeWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumNotificationTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumNotificationTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumBloodCollectionStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.BloodCollectionStatus | Prisma.EnumBloodCollectionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.BloodCollectionStatus[] | Prisma.ListEnumBloodCollectionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BloodCollectionStatus[] | Prisma.ListEnumBloodCollectionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBloodCollectionStatusFilter<$PrismaModel> | $Enums.BloodCollectionStatus
+}
+
+export type NestedEnumBloodCollectionStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BloodCollectionStatus | Prisma.EnumBloodCollectionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.BloodCollectionStatus[] | Prisma.ListEnumBloodCollectionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BloodCollectionStatus[] | Prisma.ListEnumBloodCollectionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBloodCollectionStatusWithAggregatesFilter<$PrismaModel> | $Enums.BloodCollectionStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBloodCollectionStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBloodCollectionStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumTestStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.TestStatus | Prisma.EnumTestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TestStatus[] | Prisma.ListEnumTestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TestStatus[] | Prisma.ListEnumTestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTestStatusFilter<$PrismaModel> | $Enums.TestStatus
+}
+
+export type NestedEnumTestStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TestStatus | Prisma.EnumTestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TestStatus[] | Prisma.ListEnumTestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TestStatus[] | Prisma.ListEnumTestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTestStatusWithAggregatesFilter<$PrismaModel> | $Enums.TestStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTestStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTestStatusFilter<$PrismaModel>
 }
 
 export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {

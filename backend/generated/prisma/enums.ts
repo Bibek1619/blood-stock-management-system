@@ -137,3 +137,21 @@ export const NotificationType = {
 } as const
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
+
+
+export const BloodCollectionStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type BloodCollectionStatus = (typeof BloodCollectionStatus)[keyof typeof BloodCollectionStatus]
+
+
+export const TestStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type TestStatus = (typeof TestStatus)[keyof typeof TestStatus]
