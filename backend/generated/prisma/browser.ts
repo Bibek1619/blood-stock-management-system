@@ -88,6 +88,31 @@ export type Gallery = Prisma.GalleryModel
  */
 export type Notification = Prisma.NotificationModel
 /**
+ * Model BloodCollection
+ * 
+ */
+export type BloodCollection = Prisma.BloodCollectionModel
+/**
+ * Model BloodTest
+ * 
+ */
+export type BloodTest = Prisma.BloodTestModel
+/**
+ * Model BloodStock
+ * 
+ */
+export type BloodStock = Prisma.BloodStockModel
+/**
+ * Model BloodStockIssueItem
+ * 
+ */
+export type BloodStockIssueItem = Prisma.BloodStockIssueItemModel
+/**
+ * Model BloodIssueRecord
+ * 
+ */
+export type BloodIssueRecord = Prisma.BloodIssueRecordModel
+/**
  * Model AnalyticsDailySummary
  * 
  */
