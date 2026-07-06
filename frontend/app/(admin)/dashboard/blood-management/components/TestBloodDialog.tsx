@@ -31,6 +31,14 @@ export function TestBloodDialog({ open, onOpenChange, collection }: TestBloodDia
   
   const [status, setStatus] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
 
+  // Auto-switch to REJECTED when any disease is detected
+  const hasDisease = Object.values(testResults).some(v => v === true);
+  
+  // Update status when disease is detected
+  if (hasDisease && status === 'APPROVED') {
+    setStatus('REJECTED');
+  }
+
   const onSubmit = async (data: any) => {
     try {
       await testMutation.mutateAsync({
@@ -142,10 +150,18 @@ export function TestBloodDialog({ open, onOpenChange, collection }: TestBloodDia
             <Label className="text-base font-semibold">Final Decision</Label>
             <RadioGroup value={status} onValueChange={(value) => setStatus(value as 'APPROVED' | 'REJECTED')}>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="APPROVED" id="approved" />
+                <RadioGroupItem 
+                  value="APPROVED" 
+                  id="approved"
+                  disabled={Object.values(testResults).some(v => v === true)}
+                />
                 <label 
                   htmlFor="approved" 
-                  className="text-sm font-medium cursor-pointer flex items-center gap-2"
+                  className={`text-sm font-medium flex items-center gap-2 ${
+                    Object.values(testResults).some(v => v === true) 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'cursor-pointer'
+                  }`}
                 >
                   <span className="w-3 h-3 rounded-full bg-green-500"></span>
                   Approved - Blood is safe for use
@@ -162,6 +178,11 @@ export function TestBloodDialog({ open, onOpenChange, collection }: TestBloodDia
                 </label>
               </div>
             </RadioGroup>
+            {Object.values(testResults).some(v => v === true) && (
+              <p className="text-xs text-red-600 italic">
+                ⚠️ Approved option is disabled because disease(s) detected
+              </p>
+            )}
           </div>
 
           <div>
